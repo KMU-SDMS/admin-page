@@ -203,6 +203,37 @@ API 연동을 위한 기본 구조가 준비되어 있습니다:
 4. 브랜치에 푸시합니다 (`git push origin feature/AmazingFeature`)
 5. Pull Request를 생성합니다
 
+## 🧭 Git 워크플로우
+
+### 커밋 규칙 (Conventional Commits)
+
+- `feat`: 새로운 기능 추가
+- `fix`: 버그 수정
+- `chore`: 빌드/도구/설정 변경 등 코드 영향 없는 작업
+- `refactor`: 기능 변경 없이 구조/가독성 개선
+- `docs`: 문서 변경 (README 등)
+- `test`: 테스트 추가/수정
+- `ci`: CI 구성/스크립트 변경
+- `perf`: 성능 개선
+
+예시:
+```
+feat(rollcall): 체크리스트 일괄 출석 처리 기능 추가
+fix(api): 학생 조회 시 roomId 필터가 적용되지 않던 문제 수정
+docs: README에 설치 가이드 보강
+```
+
+### 브랜치 전략
+
+- `main`: 프로덕션 배포 브랜치
+- `test`: 테스트/스테이징 환경 배포 브랜치
+- `feat/*`: 기능 개발 브랜치 (예: `feat/rollcall-bulk-update`)
+- `fix/*`: 버그 수정 브랜치 (예: `fix/rollcall-filter`)
+- `chore/*`: 설정/빌드/의존성 작업 브랜치 (예: `chore/update-deps`)
+
+권장 흐름:
+1) `feat/*` 또는 `fix/*` 에서 작업 → 2) PR 생성 및 리뷰 → 3) `test`에 머지하여 검증 → 4) `main`으로 승급 배포
+
 ## 📄 라이선스
 
 이 프로젝트는 MIT 라이선스 하에 배포됩니다.
