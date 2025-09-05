@@ -26,38 +26,51 @@
 
 ## 🛠 기술 스택
 
-- **Frontend**: React 18, TypeScript
-- **Build Tool**: Vite
+- **Framework**: Next.js 14 (App Router), React 18, TypeScript
+- **Build Tool**: Next.js (SWC/Turbopack)
 - **Styling**: Tailwind CSS
 - **Icons**: Lucide React
-- **Routing**: React Router DOM
-- **HTTP Client**: Axios
+- **Routing**: Next.js App Router (`app/` 디렉터리 기반 파일 라우팅)
+- **HTTP Client**: Fetch API (래퍼: `lib/api.ts`)
 - **Charts**: Recharts
 - **Date Handling**: date-fns
 
-## 📁 프로젝트 구조
+## 📁 프로젝트 구조 (App Router)
 
 ```
-src/
-├── components/          # 재사용 가능한 컴포넌트
-│   ├── Layout.tsx      # 메인 레이아웃
-│   ├── Sidebar.tsx     # 사이드바 네비게이션
-│   └── Header.tsx      # 헤더 컴포넌트
-├── pages/              # 페이지 컴포넌트
-│   ├── Dashboard.tsx   # 대시보드
-│   ├── PackageManagement.tsx  # 택배 관리
-│   ├── RollCall.tsx    # 점호 관리
-│   ├── InquiryManagement.tsx  # 문의 관리
-│   └── NoticeSystem.tsx       # 공지 발송
-├── hooks/              # 커스텀 훅
-├── utils/              # 유틸리티 함수
-├── types/              # TypeScript 타입 정의
-├── services/           # API 서비스
-├── contexts/           # React Context
-└── assets/             # 정적 자산
-    ├── images/         # 이미지 파일
-    ├── icons/          # 아이콘 파일
-    └── styles/         # 스타일 파일
+app/
+├── layout.tsx                 # 루트 레이아웃
+├── page.tsx                   # 대시보드(홈)
+├── globals.css                # 전역 스타일(App Router)
+├── inquiries/                 # 문의 관리 라우트
+│   ├── page.tsx
+│   └── loading.tsx
+├── notices/                   # 공지 라우트
+│   ├── page.tsx
+│   └── loading.tsx
+├── packages/                  # 택배 관리 라우트
+│   ├── page.tsx
+│   └── loading.tsx
+└── rollcall/                  # 점호 관리 라우트
+    ├── page.tsx
+    └── loading.tsx
+
+components/
+├── layout.tsx                 # 공용 레이아웃 컴포넌트
+├── header.tsx
+├── sidebar.tsx
+├── inquiries/                 # 도메인 컴포넌트
+├── notices/
+├── packages/
+└── rollcall/
+
+hooks/                         # 커스텀 훅들
+lib/                           # 유틸리티/타입/API 래퍼
+├── api.ts
+├── types.ts
+└── utils.ts
+public/                        # 정적 자산
+styles/                        # Tailwind 등 스타일 리소스
 ```
 
 ## 🚀 시작하기
@@ -71,12 +84,12 @@ src/
 
 1. **의존성 설치**
    ```bash
-   npm install
+   pnpm install
    ```
 
 2. **개발 서버 실행**
    ```bash
-   npm run dev
+   pnpm dev
    ```
 
 3. **브라우저에서 확인**
@@ -88,17 +101,17 @@ src/
 
 ```bash
 # 프로덕션 빌드
-npm run build
+pnpm build
 
-# 빌드 미리보기
-npm run preview
+# 프로덕션 서버 시작
+pnpm start
 ```
 
 ## 🔧 개발 도구
 
 ### 코드 품질
 
-- **ESLint**: Google Style 가이드라인 적용
+- **ESLint**: Next.js ESLint 설정 기반
 - **Prettier**: 코드 포맷팅 자동화
 - **TypeScript**: 타입 안정성 보장
 
@@ -106,25 +119,16 @@ npm run preview
 
 ```bash
 # 개발 서버 실행
-npm run dev
+pnpm dev
 
 # 린트 검사
-npm run lint
-
-# 린트 자동 수정
-npm run lint:fix
-
-# 코드 포맷팅
-npm run format
-
-# 포맷팅 검사
-npm run format:check
-
-# 타입 검사
-npm run type-check
+pnpm lint
 
 # 프로덕션 빌드
-npm run build
+pnpm build
+
+# 서버 시작
+pnpm start
 ```
 
 ## 🎨 디자인 시스템
@@ -167,9 +171,9 @@ npm run build
 
 API 연동을 위한 기본 구조가 준비되어 있습니다:
 
-- `src/services/`: API 호출 함수들
-- `src/types/`: API 응답 타입 정의
-- `src/hooks/`: API 호출을 위한 커스텀 훅
+- `lib/api.ts`: Fetch 래퍼 및 헬퍼
+- `lib/types.ts`: API/도메인 타입 정의
+- `hooks/*`: API 호출을 위한 커스텀 훅
 
 ## 📝 개발 가이드라인
 
