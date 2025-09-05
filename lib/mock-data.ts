@@ -1,0 +1,182 @@
+import type { Room, Student, RollCall, Point, Notice } from "./types"
+
+// 목업 호실 데이터
+export const mockRooms: Room[] = [
+  { id: 1, name: "101호", floor: 1, capacity: 2 },
+  { id: 2, name: "102호", floor: 1, capacity: 2 },
+  { id: 3, name: "103호", floor: 1, capacity: 2 },
+  { id: 4, name: "104호", floor: 1, capacity: 2 },
+  { id: 5, name: "105호", floor: 1, capacity: 2 },
+  { id: 6, name: "106호", floor: 1, capacity: 2 },
+  { id: 7, name: "201호", floor: 2, capacity: 2 },
+  { id: 8, name: "202호", floor: 2, capacity: 2 },
+  { id: 9, name: "203호", floor: 2, capacity: 2 },
+  { id: 10, name: "204호", floor: 2, capacity: 2 },
+  { id: 11, name: "205호", floor: 2, capacity: 2 },
+  { id: 12, name: "206호", floor: 2, capacity: 2 },
+  { id: 13, name: "301호", floor: 3, capacity: 2 },
+  { id: 14, name: "302호", floor: 3, capacity: 2 },
+  { id: 15, name: "303호", floor: 3, capacity: 2 },
+  { id: 16, name: "304호", floor: 3, capacity: 2 },
+  { id: 17, name: "305호", floor: 3, capacity: 2 },
+  { id: 18, name: "306호", floor: 3, capacity: 2 },
+]
+
+// 목업 학생 데이터
+export const mockStudents: Student[] = [
+  { id: 1, name: "김민수", studentNo: "2024001", roomId: 1, status: "IN" },
+  { id: 2, name: "이영희", studentNo: "2024002", roomId: 1, status: "IN" },
+  { id: 3, name: "박철수", studentNo: "2024003", roomId: 2, status: "OUT" },
+  { id: 4, name: "정수진", studentNo: "2024004", roomId: 2, status: "IN" },
+  { id: 5, name: "최동현", studentNo: "2024005", roomId: 3, status: "IN" },
+  { id: 6, name: "한소영", studentNo: "2024006", roomId: 3, status: "LEAVE" },
+  { id: 7, name: "윤재호", studentNo: "2024007", roomId: 4, status: "IN" },
+  { id: 8, name: "강미래", studentNo: "2024008", roomId: 4, status: "IN" },
+  { id: 9, name: "임도윤", studentNo: "2024009", roomId: 5, status: "OUT" },
+  { id: 10, name: "송하은", studentNo: "2024010", roomId: 5, status: "IN" },
+  { id: 11, name: "조민기", studentNo: "2024011", roomId: 6, status: "IN" },
+  { id: 12, name: "배서연", studentNo: "2024012", roomId: 6, status: "IN" },
+  { id: 13, name: "신우진", studentNo: "2024013", roomId: 7, status: "IN" },
+  { id: 14, name: "오지혜", studentNo: "2024014", roomId: 7, status: "OUT" },
+  { id: 15, name: "홍준표", studentNo: "2024015", roomId: 8, status: "IN" },
+  { id: 16, name: "문채원", studentNo: "2024016", roomId: 8, status: "IN" },
+  { id: 17, name: "서태양", studentNo: "2024017", roomId: 9, status: "LEAVE" },
+  { id: 18, name: "노예린", studentNo: "2024018", roomId: 9, status: "IN" },
+  { id: 19, name: "권혁진", studentNo: "2024019", roomId: 10, status: "IN" },
+  { id: 20, name: "유다은", studentNo: "2024020", roomId: 10, status: "IN" },
+  { id: 21, name: "장민호", studentNo: "2024021", roomId: 11, status: "OUT" },
+  { id: 22, name: "안수빈", studentNo: "2024022", roomId: 11, status: "IN" },
+  { id: 23, name: "황지원", studentNo: "2024023", roomId: 12, status: "IN" },
+  { id: 24, name: "구본성", studentNo: "2024024", roomId: 12, status: "IN" },
+  { id: 25, name: "남궁현", studentNo: "2024025", roomId: 13, status: "IN" },
+  { id: 26, name: "독고민정", studentNo: "2024026", roomId: 13, status: "OUT" },
+  { id: 27, name: "선우진영", studentNo: "2024027", roomId: 14, status: "IN" },
+  { id: 28, name: "황보라미", studentNo: "2024028", roomId: 14, status: "IN" },
+  { id: 29, name: "제갈성훈", studentNo: "2024029", roomId: 15, status: "LEAVE" },
+  { id: 30, name: "사공예나", studentNo: "2024030", roomId: 15, status: "IN" },
+]
+
+// 목업 점호 데이터
+export const mockRollcalls: RollCall[] = [
+  { id: 1, studentId: 1, date: "2025-09-04", present: true, note: "" },
+  { id: 2, studentId: 2, date: "2025-09-04", present: true, note: "" },
+  { id: 3, studentId: 3, date: "2025-09-04", present: false, note: "외출 중" },
+  { id: 4, studentId: 4, date: "2025-09-04", present: true, note: "" },
+  { id: 5, studentId: 5, date: "2025-09-04", present: true, note: "" },
+  { id: 6, studentId: 6, date: "2025-09-04", present: false, note: "외박" },
+  { id: 7, studentId: 7, date: "2025-09-04", present: true, note: "" },
+  { id: 8, studentId: 8, date: "2025-09-04", present: true, note: "" },
+  { id: 9, studentId: 9, date: "2025-09-04", present: false, note: "외출 중" },
+  { id: 10, studentId: 10, date: "2025-09-04", present: true, note: "" },
+  { id: 11, studentId: 11, date: "2025-09-04", present: true, note: "" },
+  { id: 12, studentId: 12, date: "2025-09-04", present: true, note: "" },
+  { id: 13, studentId: 13, date: "2025-09-04", present: true, note: "" },
+  { id: 14, studentId: 14, date: "2025-09-04", present: false, note: "외출 중" },
+  { id: 15, studentId: 15, date: "2025-09-04", present: true, note: "" },
+  { id: 16, studentId: 16, date: "2025-09-04", present: true, note: "" },
+  { id: 17, studentId: 17, date: "2025-09-04", present: false, note: "외박" },
+  { id: 18, studentId: 18, date: "2025-09-04", present: true, note: "" },
+  { id: 19, studentId: 19, date: "2025-09-04", present: true, note: "" },
+  { id: 20, studentId: 20, date: "2025-09-04", present: true, note: "" },
+]
+
+// 목업 상벌점 데이터
+export const mockPoints: Point[] = [
+  { id: 1, studentId: 1, type: "MERIT", score: 5, reason: "청소 우수", date: "2025-09-03" },
+  { id: 2, studentId: 2, type: "MERIT", score: 3, reason: "도서관 봉사", date: "2025-09-02" },
+  { id: 3, studentId: 3, type: "DEMERIT", score: 2, reason: "지각", date: "2025-09-01" },
+  { id: 4, studentId: 5, type: "MERIT", score: 10, reason: "학급 회장 활동", date: "2025-09-03" },
+  { id: 5, studentId: 7, type: "MERIT", score: 5, reason: "분리수거 도움", date: "2025-09-04" },
+  { id: 6, studentId: 9, type: "DEMERIT", score: 3, reason: "소음", date: "2025-09-02" },
+  { id: 7, studentId: 11, type: "MERIT", score: 7, reason: "신입생 도움", date: "2025-09-01" },
+  { id: 8, studentId: 13, type: "MERIT", score: 4, reason: "복도 청소", date: "2025-09-03" },
+  { id: 9, studentId: 15, type: "DEMERIT", score: 1, reason: "취침시간 위반", date: "2025-09-02" },
+  { id: 10, studentId: 19, type: "MERIT", score: 8, reason: "행사 준비 도움", date: "2025-09-04" },
+]
+
+// 목업 공지사항 데이터
+export const mockNotices: Notice[] = [
+  {
+    id: 1,
+    title: "9월 정기 소방훈련 안내",
+    body: "9월 10일(화) 오후 2시에 정기 소방훈련이 실시됩니다. 모든 학생은 참여해주시기 바랍니다.",
+    target: "ALL",
+    targetValue: null,
+    createdAt: "2025-09-03T10:00:00Z",
+  },
+  {
+    id: 2,
+    title: "2층 세탁실 이용 안내",
+    body: "2층 세탁실 세탁기 1대가 수리 중입니다. 불편을 드려 죄송합니다.",
+    target: "FLOOR",
+    targetValue: "2",
+    createdAt: "2025-09-04T09:30:00Z",
+  },
+  {
+    id: 3,
+    title: "101호 인터넷 점검 안내",
+    body: "101호 인터넷 점검이 9월 5일 오전 10시부터 12시까지 진행됩니다.",
+    target: "ROOM",
+    targetValue: "1",
+    createdAt: "2025-09-04T14:20:00Z",
+  },
+]
+
+// 목업 택배 데이터
+export const mockParcels = [
+  {
+    id: 1,
+    courier: "CJ대한통운",
+    trackingNumber: "123456789012",
+    studentId: 1,
+    arrivedAt: "2025-09-04T10:30:00Z",
+    pickedUp: false,
+    memo: "냉장보관 필요",
+  },
+  {
+    id: 2,
+    courier: "한진택배",
+    trackingNumber: "987654321098",
+    studentId: 5,
+    arrivedAt: "2025-09-03T15:20:00Z",
+    pickedUp: true,
+    memo: "",
+  },
+  {
+    id: 3,
+    courier: "롯데택배",
+    trackingNumber: "456789123456",
+    studentId: 11,
+    arrivedAt: "2025-09-04T09:15:00Z",
+    pickedUp: false,
+    memo: "깨지기 쉬운 물품",
+  },
+]
+
+// 목업 문의사항 데이터
+export const mockInquiries = [
+  {
+    id: 1,
+    title: "에어컨 고장 신고",
+    category: "FACILITY",
+    studentId: 3,
+    status: "OPEN",
+    createdAt: "2025-09-04T08:30:00Z",
+  },
+  {
+    id: 2,
+    title: "외박 신청 문의",
+    category: "GENERAL",
+    studentId: 7,
+    status: "IN_PROGRESS",
+    createdAt: "2025-09-03T16:45:00Z",
+  },
+  {
+    id: 3,
+    title: "세탁기 사용법 문의",
+    category: "GENERAL",
+    studentId: 15,
+    status: "RESOLVED",
+    createdAt: "2025-09-02T11:20:00Z",
+  },
+]
