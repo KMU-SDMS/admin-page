@@ -19,20 +19,20 @@ const statusConfig = {
   PRESENT: {
     label: "재실",
     variant: "default" as const,
-    className: "bg-green-500 hover:bg-green-600 text-white border-green-500",
-    selectedClassName: "!bg-green-600 !text-white !font-bold !shadow-lg !ring-2 !ring-green-300",
+    className: "bg-transparent hover:bg-green-50 text-green-600 border-green-500",
+    selectedClassName: "!bg-green-50 !text-green-700 !font-bold !shadow-md !ring-2 !ring-green-300 !border-green-600",
   },
   LEAVE: {
     label: "외박",
     variant: "outline" as const,
-    className: "bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500",
-    selectedClassName: "!bg-yellow-600 !text-white !font-bold !shadow-lg !ring-2 !ring-yellow-300",
+    className: "bg-transparent hover:bg-yellow-50 text-yellow-600 border-yellow-500",
+    selectedClassName: "!bg-yellow-50 !text-yellow-700 !font-bold !shadow-md !ring-2 !ring-yellow-300 !border-yellow-600",
   },
   ABSENT: {
     label: "결석",
     variant: "destructive" as const,
-    className: "bg-red-500 hover:bg-red-600 text-white border-red-500",
-    selectedClassName: "!bg-red-600 !text-white !font-bold !shadow-lg !ring-2 !ring-red-300",
+    className: "bg-transparent hover:bg-red-50 text-red-600 border-red-500",
+    selectedClassName: "!bg-red-50 !text-red-700 !font-bold !shadow-md !ring-2 !ring-red-300 !border-red-600",
   },
 } as const
 
@@ -87,13 +87,14 @@ export const AttendanceStatusButtons = forwardRef<HTMLDivElement, AttendanceStat
               !isSelected && "hover:opacity-80"
             )}
             style={isSelected ? {
-              backgroundColor: statusKey === 'PRESENT' ? '#16a34a' : 
-                              statusKey === 'LEAVE' ? '#eab308' : '#dc2626',
-              color: 'white',
+              backgroundColor: statusKey === 'PRESENT' ? '#f0fdf4' : 
+                              statusKey === 'LEAVE' ? '#fefce8' : '#fef2f2',
+              color: statusKey === 'PRESENT' ? '#15803d' : 
+                     statusKey === 'LEAVE' ? '#a16207' : '#dc2626',
               fontWeight: 'bold',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+              boxShadow: '0 2px 4px -1px rgba(0, 0, 0, 0.1)',
               border: `2px solid ${statusKey === 'PRESENT' ? '#22c55e' : 
-                                  statusKey === 'LEAVE' ? '#facc15' : '#ef4444'}`
+                                  statusKey === 'LEAVE' ? '#eab308' : '#ef4444'}`
             } : {}}
             onClick={() => handleStatusChange(statusKey)}
             disabled={disabled || isChanging}

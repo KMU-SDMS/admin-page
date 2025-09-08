@@ -214,31 +214,33 @@ export function RoomGridView({ rooms, students, rollcalls, selectedDate, onUpdat
                           checked={selectedStudents.includes(student.id)}
                           onCheckedChange={() => toggleStudentSelection(student.id)}
                         />
-                        <div>
-                          <div className="font-medium">{student.name}</div>
-                          <div className="text-sm text-muted-foreground">{student.studentNo}</div>
+                        <div className="flex items-center gap-2">
+                          <div>
+                            <div className="font-medium">{student.name}</div>
+                            <div className="text-sm text-muted-foreground">{student.studentNo}</div>
+                          </div>
+                          {(() => {
+                            const rollcall = getStudentRollcall(student.id)
+                            const currentStatus = rollcall?.status || (rollcall?.present ? "PRESENT" : "ABSENT")
+                            
+                            const statusConfig = {
+                              PRESENT: { variant: "default" as const, label: "재실" },
+                              LEAVE: { variant: "outline" as const, label: "외박" },
+                              ABSENT: { variant: "destructive" as const, label: "결석" },
+                            }
+                            
+                            const config = statusConfig[currentStatus as keyof typeof statusConfig] || statusConfig.PRESENT
+                            
+                            return (
+                              <Badge variant={config.variant}>
+                                {config.label}
+                              </Badge>
+                            )
+                          })()}
                         </div>
                       </div>
 
                       <div className="flex flex-col gap-2">
-                        {(() => {
-                          const rollcall = getStudentRollcall(student.id)
-                          const currentStatus = rollcall?.status || (rollcall?.present ? "PRESENT" : "ABSENT")
-                          
-                          const statusConfig = {
-                            PRESENT: { variant: "default" as const, label: "재실" },
-                            LEAVE: { variant: "outline" as const, label: "외박" },
-                            ABSENT: { variant: "destructive" as const, label: "결석" },
-                          }
-                          
-                          const config = statusConfig[currentStatus as keyof typeof statusConfig] || statusConfig.PRESENT
-                          
-                          return (
-                            <Badge variant={config.variant}>
-                              {config.label}
-                            </Badge>
-                          )
-                        })()}
                         <AttendanceStatusButtons
                           student={student}
                           rollcall={getStudentRollcall(student.id)}

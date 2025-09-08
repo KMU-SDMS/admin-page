@@ -168,7 +168,7 @@ export function RollCallChecklist({
                 <TableHead>학번</TableHead>
                 <TableHead>호실</TableHead>
                 <TableHead>상태</TableHead>
-                <TableHead>출석 상태</TableHead>
+                <TableHead>출석 상태 변경</TableHead>
                 <TableHead>비고</TableHead>
                 <TableHead>저장</TableHead>
               </TableRow>
@@ -209,7 +209,7 @@ export function RollCallChecklist({
                         rollcall={rollcalls.find(r => r.studentId === student.id)}
                         onStatusChange={handleStatusChange}
                         disabled={rollcallData.saving}
-                        className="min-w-[200px]"
+                        className="min-w-[150px] max-w-[180px]"
                       />
                     </TableCell>
                     <TableCell>
