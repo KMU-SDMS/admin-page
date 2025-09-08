@@ -1,0 +1,51 @@
+# Version control
+.git/
+.gitignore
+.gitmodules
+
+# Dependencies / package managers
+node_modules/
+.pnpm-store/
+.npm/
+.npmrc
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Build outputs / caches
+.next/
+out/
+build/
+dist/
+.cache/
+.turbo/
+.vercel/
+*.tsbuildinfo
+.eslintcache
+.stylelintcache
+
+# Logs
+logs/
+*.log
+
+# IDE / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Tests / reports
+coverage/
+playwright-report/
+test-results/
+.cypress/
+cypress/screenshots/
+cypress/videos/
+
+# Env / secrets (keep example)
+.env
+.env.*
+!.env.example
+
+# Source maps / generated assets
+**/*.map
