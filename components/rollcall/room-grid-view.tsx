@@ -307,19 +307,20 @@ export function RoomGridView({ rooms, students, rollcalls, selectedDate, onUpdat
               </div>
             )}
 
-            {/* 저장 버튼 */}
+            {/* 저장 및 닫기 버튼 */}
             <div className="flex justify-center pt-4 border-t">
               <Button
                 onClick={() => {
-                  console.log("저장 버튼 클릭됨")
+                  console.log("저장 및 닫기 버튼 클릭됨")
                   toast.success("저장되었습니다.", {
                     description: "학생 출석 정보가 저장되었습니다.",
                     duration: 3000,
                   })
+                  setSelectedRoom(null)
                 }}
                 className="px-8"
               >
-                저장
+                저장 및 닫기
               </Button>
             </div>
           </div>
