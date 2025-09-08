@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { Student, Rollcall } from "@/lib/types"
 
-export type AttendanceStatus = "PRESENT" | "OUT" | "LEAVE" | "ABSENT"
+export type AttendanceStatus = "PRESENT" | "LEAVE" | "ABSENT"
 
 interface AttendanceStatusButtonsProps {
   student: Student
@@ -22,17 +22,11 @@ const statusConfig = {
     className: "bg-green-500 hover:bg-green-600 text-white border-green-500",
     selectedClassName: "!bg-green-600 !text-white !font-bold !shadow-lg !ring-2 !ring-green-300",
   },
-  OUT: {
-    label: "외출",
-    variant: "secondary" as const,
-    className: "bg-blue-500 hover:bg-blue-600 text-white border-blue-500",
-    selectedClassName: "!bg-blue-600 !text-white !font-bold !shadow-lg !ring-2 !ring-blue-300",
-  },
   LEAVE: {
     label: "외박",
     variant: "outline" as const,
-    className: "bg-purple-500 hover:bg-purple-600 text-white border-purple-500",
-    selectedClassName: "!bg-purple-600 !text-white !font-bold !shadow-lg !ring-2 !ring-purple-300",
+    className: "bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500",
+    selectedClassName: "!bg-yellow-600 !text-white !font-bold !shadow-lg !ring-2 !ring-yellow-300",
   },
   ABSENT: {
     label: "결석",
@@ -94,14 +88,12 @@ export const AttendanceStatusButtons = forwardRef<HTMLDivElement, AttendanceStat
             )}
             style={isSelected ? {
               backgroundColor: statusKey === 'PRESENT' ? '#16a34a' : 
-                              statusKey === 'OUT' ? '#2563eb' : 
-                              statusKey === 'LEAVE' ? '#9333ea' : '#dc2626',
+                              statusKey === 'LEAVE' ? '#eab308' : '#dc2626',
               color: 'white',
               fontWeight: 'bold',
               boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
               border: `2px solid ${statusKey === 'PRESENT' ? '#22c55e' : 
-                                  statusKey === 'OUT' ? '#3b82f6' : 
-                                  statusKey === 'LEAVE' ? '#a855f7' : '#ef4444'}`
+                                  statusKey === 'LEAVE' ? '#facc15' : '#ef4444'}`
             } : {}}
             onClick={() => handleStatusChange(statusKey)}
             disabled={disabled || isChanging}

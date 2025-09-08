@@ -190,7 +190,6 @@ export function RollCallChecklist({
                         
                         const statusConfig = {
                           PRESENT: { variant: "default" as const, label: "재실" },
-                          OUT: { variant: "secondary" as const, label: "외출" },
                           LEAVE: { variant: "outline" as const, label: "외박" },
                           ABSENT: { variant: "destructive" as const, label: "결석" },
                         }

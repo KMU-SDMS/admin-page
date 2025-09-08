@@ -227,7 +227,6 @@ export function RoomGridView({ rooms, students, rollcalls, selectedDate, onUpdat
                           
                           const statusConfig = {
                             PRESENT: { variant: "default" as const, label: "재실" },
-                            OUT: { variant: "secondary" as const, label: "외출" },
                             LEAVE: { variant: "outline" as const, label: "외박" },
                             ABSENT: { variant: "destructive" as const, label: "결석" },
                           }
@@ -305,6 +304,22 @@ export function RoomGridView({ rooms, students, rollcalls, selectedDate, onUpdat
                 </Button>
               </div>
             )}
+
+            {/* 저장 버튼 */}
+            <div className="flex justify-center pt-4 border-t">
+              <Button
+                onClick={() => {
+                  console.log("저장 버튼 클릭됨")
+                  toast.success("저장되었습니다.", {
+                    description: "학생 출석 정보가 저장되었습니다.",
+                    duration: 3000,
+                  })
+                }}
+                className="px-8"
+              >
+                저장
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

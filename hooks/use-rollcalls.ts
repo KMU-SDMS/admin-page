@@ -35,7 +35,7 @@ export function useRollcalls(params: RollcallQuery = {}) {
     }
   }
 
-  const mutate = async (rollcallData: Partial<Rollcall> & { date: string; studentId: number; present: boolean; status?: "PRESENT" | "OUT" | "LEAVE" | "ABSENT" }) => {
+  const mutate = async (rollcallData: Partial<Rollcall> & { date: string; studentId: number; present: boolean; status?: "PRESENT" | "LEAVE" | "ABSENT" }) => {
     try {
       console.log("mutate 호출됨:", rollcallData)
       const existingIndex = data.findIndex(
