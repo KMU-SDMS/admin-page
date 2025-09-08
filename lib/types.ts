@@ -11,7 +11,7 @@ export interface Student {
   name: string;
   studentNo: string;
   roomId: number;
-  status: "IN" | "OUT" | "LEAVE";
+  status: "IN" | "LEAVE" | "ABSENT";
 }
 
 export interface Rollcall {
