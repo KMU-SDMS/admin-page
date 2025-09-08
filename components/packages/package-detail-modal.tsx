@@ -1,59 +1,72 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Package, Calendar, User, FileText, Save, X } from "lucide-react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import type { Parcel } from "@/lib/types"
+import { useState } from "react";
+import { Package, Calendar, User, FileText, Save, X } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import type { Parcel } from "@/lib/types";
 
 interface ParcelWithDetails extends Parcel {
-  studentName?: string
-  roomName?: string
+  studentName?: string;
+  roomName?: string;
 }
 
 interface PackageDetailModalProps {
-  parcel: ParcelWithDetails
-  onClose: () => void
-  onUpdate: (id: number, data: { pickedUp: boolean; pickedUpAt?: string; memo?: string }) => Promise<void>
+  parcel: ParcelWithDetails;
+  onClose: () => void;
+  onUpdate: (
+    id: number,
+    data: { pickedUp: boolean; pickedUpAt?: string; memo?: string },
+  ) => Promise<void>;
 }
 
-export function PackageDetailModal({ parcel, onClose, onUpdate }: PackageDetailModalProps) {
-  const [isEditing, setIsEditing] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
+export function PackageDetailModal({
+  parcel,
+  onClose,
+  onUpdate,
+}: PackageDetailModalProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
     pickedUp: parcel.pickedUp,
     memo: parcel.memo || "",
-  })
+  });
 
   const handleSave = async () => {
-    setIsSaving(true)
+    setIsSaving(true);
     try {
       await onUpdate(parcel.id, {
         pickedUp: formData.pickedUp,
         pickedUpAt: formData.pickedUp ? new Date().toISOString() : undefined,
         memo: formData.memo.trim() || undefined,
-      })
-      setIsEditing(false)
+      });
+      setIsEditing(false);
     } catch (error) {
-      console.error("Failed to update parcel:", error)
+      console.error("Failed to update parcel:", error);
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   const handleCancel = () => {
     setFormData({
       pickedUp: parcel.pickedUp,
       memo: parcel.memo || "",
-    })
-    setIsEditing(false)
-  }
+    });
+    setIsEditing(false);
+  };
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
@@ -63,7 +76,9 @@ export function PackageDetailModal({ parcel, onClose, onUpdate }: PackageDetailM
             <Package className="h-5 w-5" />
             택배 상세 정보
           </DialogTitle>
-          <DialogDescription>택배 정보를 확인하고 수령 처리 및 메모를 관리할 수 있습니다.</DialogDescription>
+          <DialogDescription>
+            택배 정보를 확인하고 수령 처리 및 메모를 관리할 수 있습니다.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -76,14 +91,20 @@ export function PackageDetailModal({ parcel, onClose, onUpdate }: PackageDetailM
               </div>
               <div className="space-y-2 pl-6">
                 <div>
-                  <Label className="text-sm text-muted-foreground">택배사</Label>
+                  <Label className="text-sm text-muted-foreground">
+                    택배사
+                  </Label>
                   <div className="mt-1">
                     <Badge variant="outline">{parcel.courier}</Badge>
                   </div>
                 </div>
                 <div>
-                  <Label className="text-sm text-muted-foreground">운송장번호</Label>
-                  <div className="mt-1 font-mono text-sm">{parcel.trackingNo || "없음"}</div>
+                  <Label className="text-sm text-muted-foreground">
+                    운송장번호
+                  </Label>
+                  <div className="mt-1 font-mono text-sm">
+                    {parcel.trackingNo || "없음"}
+                  </div>
                 </div>
               </div>
             </div>
@@ -95,12 +116,18 @@ export function PackageDetailModal({ parcel, onClose, onUpdate }: PackageDetailM
               </div>
               <div className="space-y-2 pl-6">
                 <div>
-                  <Label className="text-sm text-muted-foreground">학생명</Label>
-                  <div className="mt-1">{parcel.studentName || `학생 ${parcel.studentId}`}</div>
+                  <Label className="text-sm text-muted-foreground">
+                    학생명
+                  </Label>
+                  <div className="mt-1">
+                    {parcel.studentName || `학생 ${parcel.studentId}`}
+                  </div>
                 </div>
                 <div>
                   <Label className="text-sm text-muted-foreground">호실</Label>
-                  <div className="mt-1">{parcel.roomName || `호실 ${parcel.roomId}`}</div>
+                  <div className="mt-1">
+                    {parcel.roomName || `호실 ${parcel.roomId}`}
+                  </div>
                 </div>
               </div>
             </div>
@@ -116,13 +143,21 @@ export function PackageDetailModal({ parcel, onClose, onUpdate }: PackageDetailM
             </div>
             <div className="grid gap-4 md:grid-cols-2 pl-6">
               <div>
-                <Label className="text-sm text-muted-foreground">도착일시</Label>
-                <div className="mt-1">{new Date(parcel.arrivedAt).toLocaleString()}</div>
+                <Label className="text-sm text-muted-foreground">
+                  도착일시
+                </Label>
+                <div className="mt-1">
+                  {new Date(parcel.arrivedAt).toLocaleString()}
+                </div>
               </div>
               <div>
-                <Label className="text-sm text-muted-foreground">수령일시</Label>
+                <Label className="text-sm text-muted-foreground">
+                  수령일시
+                </Label>
                 <div className="mt-1">
-                  {parcel.pickedUpAt ? new Date(parcel.pickedUpAt).toLocaleString() : "미수령"}
+                  {parcel.pickedUpAt
+                    ? new Date(parcel.pickedUpAt).toLocaleString()
+                    : "미수령"}
                 </div>
               </div>
             </div>
@@ -142,7 +177,9 @@ export function PackageDetailModal({ parcel, onClose, onUpdate }: PackageDetailM
                 <Switch
                   id="pickup-status"
                   checked={formData.pickedUp}
-                  onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, pickedUp: checked }))}
+                  onCheckedChange={(checked) =>
+                    setFormData((prev) => ({ ...prev, pickedUp: checked }))
+                  }
                   disabled={!isEditing}
                 />
               </div>
@@ -154,7 +191,9 @@ export function PackageDetailModal({ parcel, onClose, onUpdate }: PackageDetailM
                     id="memo"
                     placeholder="택배 관련 메모를 입력하세요..."
                     value={formData.memo}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, memo: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, memo: e.target.value }))
+                    }
                     rows={3}
                   />
                 ) : (
@@ -171,7 +210,11 @@ export function PackageDetailModal({ parcel, onClose, onUpdate }: PackageDetailM
         <div className="flex justify-end gap-2 pt-4 border-t">
           {isEditing ? (
             <>
-              <Button variant="outline" onClick={handleCancel} disabled={isSaving}>
+              <Button
+                variant="outline"
+                onClick={handleCancel}
+                disabled={isSaving}
+              >
                 <X className="h-4 w-4 mr-2" />
                 취소
               </Button>
@@ -203,5 +246,5 @@ export function PackageDetailModal({ parcel, onClose, onUpdate }: PackageDetailM
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

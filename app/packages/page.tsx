@@ -1,36 +1,43 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Package, Filter, RefreshCw, Eye } from "lucide-react"
-import { Layout } from "@/components/layout"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { SearchInput } from "@/components/ui/search-input"
-import { DataTable, type Column } from "@/components/ui/data-table"
-import { ExportCsvButton } from "@/components/ui/export-csv-button"
-import { PackageDetailModal } from "@/components/packages/package-detail-modal"
-import { useParcels } from "@/hooks/use-parcels"
-import { useStudents } from "@/hooks/use-students"
-import { useRooms } from "@/hooks/use-rooms"
-import { useToast } from "@/hooks/use-toast"
-import type { Parcel } from "@/lib/types"
+import { useState } from "react";
+import { Package, Filter, RefreshCw, Eye } from "lucide-react";
+import { Layout } from "@/components/layout";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { SearchInput } from "@/components/ui/search-input";
+import { DataTable, type Column } from "@/components/ui/data-table";
+import { ExportCsvButton } from "@/components/ui/export-csv-button";
+import { PackageDetailModal } from "@/components/packages/package-detail-modal";
+import { useParcels } from "@/hooks/use-parcels";
+import { useStudents } from "@/hooks/use-students";
+import { useRooms } from "@/hooks/use-rooms";
+import { useToast } from "@/hooks/use-toast";
+import type { Parcel } from "@/lib/types";
 
 interface ParcelWithDetails extends Parcel {
-  studentName?: string
-  roomName?: string
+  studentName?: string;
+  roomName?: string;
 }
 
 export default function PackagesPage() {
-  const [carrierFilter, setCarrierFilter] = useState("all")
-  const [pickedUpFilter, setPickedUpFilter] = useState("all")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedParcel, setSelectedParcel] = useState<ParcelWithDetails | null>(null)
+  const [carrierFilter, setCarrierFilter] = useState("all");
+  const [pickedUpFilter, setPickedUpFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedParcel, setSelectedParcel] =
+    useState<ParcelWithDetails | null>(null);
 
-  const { toast } = useToast()
+  const { toast } = useToast();
 
   const {
     data: parcels,
@@ -39,46 +46,51 @@ export default function PackagesPage() {
     mutate: mutateParcel,
   } = useParcels({
     carrier: carrierFilter === "all" ? undefined : carrierFilter,
-    pickedUp: pickedUpFilter === "all" ? undefined : pickedUpFilter === "picked",
+    pickedUp:
+      pickedUpFilter === "all" ? undefined : pickedUpFilter === "picked",
     name: searchQuery || undefined,
-  })
+  });
 
-  const { data: students } = useStudents()
-  const { data: rooms } = useRooms()
+  const { data: students } = useStudents();
+  const { data: rooms } = useRooms();
 
   // Enrich parcels with student and room information
   const enrichedParcels: ParcelWithDetails[] = parcels.map((parcel) => {
-    const student = students.find((s) => s.id === parcel.studentId)
-    const room = rooms.find((r) => r.id === parcel.roomId)
+    const student = students.find((s) => s.id === parcel.studentId);
+    const room = rooms.find((r) => r.id === parcel.roomId);
     return {
       ...parcel,
       studentName: student?.name,
       roomName: room?.name,
-    }
-  })
+    };
+  });
 
   // Get unique carriers for filter
-  const carriers = Array.from(new Set(parcels.map((p) => p.courier))).sort()
+  const carriers = Array.from(new Set(parcels.map((p) => p.courier))).sort();
 
-  const handlePickupToggle = async (parcel: ParcelWithDetails, pickedUp: boolean) => {
+  const handlePickupToggle = async (
+    parcel: ParcelWithDetails,
+    pickedUp: boolean,
+  ) => {
     try {
       await mutateParcel(parcel.id, {
         pickedUp,
         pickedUpAt: pickedUp ? new Date().toISOString() : undefined,
-      })
+      });
 
       toast({
         title: pickedUp ? "수령 처리 완료" : "수령 취소 완료",
         description: `${parcel.studentName}님의 택배 수령 상태가 변경되었습니다.`,
-      })
+      });
     } catch (error) {
       toast({
         title: "처리 실패",
-        description: error instanceof Error ? error.message : "상태 변경에 실패했습니다.",
+        description:
+          error instanceof Error ? error.message : "상태 변경에 실패했습니다.",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const columns: Column<ParcelWithDetails>[] = [
     {
@@ -124,7 +136,9 @@ export default function PackagesPage() {
     {
       key: "memo",
       label: "메모",
-      render: (parcel) => <span className="max-w-32 truncate block">{parcel.memo || "-"}</span>,
+      render: (parcel) => (
+        <span className="max-w-32 truncate block">{parcel.memo || "-"}</span>
+      ),
     },
     {
       key: "actions",
@@ -134,15 +148,15 @@ export default function PackagesPage() {
           variant="ghost"
           size="sm"
           onClick={(e) => {
-            e.stopPropagation()
-            setSelectedParcel(parcel)
+            e.stopPropagation();
+            setSelectedParcel(parcel);
           }}
         >
           <Eye className="h-4 w-4" />
         </Button>
       ),
     },
-  ]
+  ];
 
   const csvHeaders = [
     { key: "courier", label: "택배사" },
@@ -152,13 +166,13 @@ export default function PackagesPage() {
     { key: "arrivedAt", label: "도착일시" },
     { key: "pickedUp", label: "수령여부" },
     { key: "memo", label: "메모" },
-  ]
+  ];
 
   const csvData = enrichedParcels.map((parcel) => ({
     ...parcel,
     arrivedAt: new Date(parcel.arrivedAt).toLocaleString(),
     pickedUp: parcel.pickedUp ? "수령완료" : "미수령",
-  }))
+  }));
 
   return (
     <Layout>
@@ -166,7 +180,9 @@ export default function PackagesPage() {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold">택배 관리</h1>
-          <p className="text-muted-foreground">학생 택배 도착 및 수령 현황 관리</p>
+          <p className="text-muted-foreground">
+            학생 택배 도착 및 수령 현황 관리
+          </p>
         </div>
 
         {/* Filters */}
@@ -198,7 +214,10 @@ export default function PackagesPage() {
 
               <div className="space-y-2">
                 <Label>수령상태</Label>
-                <Select value={pickedUpFilter} onValueChange={setPickedUpFilter}>
+                <Select
+                  value={pickedUpFilter}
+                  onValueChange={setPickedUpFilter}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="전체" />
                   </SelectTrigger>
@@ -212,7 +231,11 @@ export default function PackagesPage() {
 
               <div className="space-y-2">
                 <Label>학생명/호실 검색</Label>
-                <SearchInput placeholder="학생명 또는 호실 검색..." value={searchQuery} onChange={setSearchQuery} />
+                <SearchInput
+                  placeholder="학생명 또는 호실 검색..."
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                />
               </div>
 
               <div className="space-y-2">
@@ -228,7 +251,12 @@ export default function PackagesPage() {
               <div className="space-y-2">
                 <Label>내보내기</Label>
                 <div className="pt-2">
-                  <ExportCsvButton data={csvData} filename="packages" headers={csvHeaders} disabled={parcelsLoading} />
+                  <ExportCsvButton
+                    data={csvData}
+                    filename="packages"
+                    headers={csvHeaders}
+                    disabled={parcelsLoading}
+                  />
                 </div>
               </div>
             </div>
@@ -243,7 +271,9 @@ export default function PackagesPage() {
                 <Package className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-medium">전체 택배</span>
               </div>
-              <div className="text-2xl font-bold mt-2">{enrichedParcels.length}</div>
+              <div className="text-2xl font-bold mt-2">
+                {enrichedParcels.length}
+              </div>
             </CardContent>
           </Card>
           <Card>
@@ -277,9 +307,9 @@ export default function PackagesPage() {
               <div className="text-2xl font-bold mt-2 text-blue-600">
                 {
                   enrichedParcels.filter((p) => {
-                    const today = new Date().toDateString()
-                    const arrivedDate = new Date(p.arrivedAt).toDateString()
-                    return today === arrivedDate
+                    const today = new Date().toDateString();
+                    const arrivedDate = new Date(p.arrivedAt).toDateString();
+                    return today === arrivedDate;
                   }).length
                 }
               </div>
@@ -309,16 +339,16 @@ export default function PackagesPage() {
             parcel={selectedParcel}
             onClose={() => setSelectedParcel(null)}
             onUpdate={async (id, data) => {
-              await mutateParcel(id, data)
-              setSelectedParcel(null)
+              await mutateParcel(id, data);
+              setSelectedParcel(null);
               toast({
                 title: "업데이트 완료",
                 description: "택배 정보가 성공적으로 업데이트되었습니다.",
-              })
+              });
             }}
           />
         )}
       </div>
     </Layout>
-  )
+  );
 }

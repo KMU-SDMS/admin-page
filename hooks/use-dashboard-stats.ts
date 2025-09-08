@@ -1,22 +1,22 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useStudents } from "./use-students"
-import { useRollcalls } from "./use-rollcalls"
-import { usePoints } from "./use-points"
-import type { Student } from "@/lib/types"
+import { useState, useEffect } from "react";
+import { useStudents } from "./use-students";
+import { useRollcalls } from "./use-rollcalls";
+import { usePoints } from "./use-points";
+import type { Student } from "@/lib/types";
 
 interface DashboardStats {
-  totalStudents: number
-  presentCount: number
-  absentCount: number
-  outLeaveCount: number
+  totalStudents: number;
+  presentCount: number;
+  absentCount: number;
+  outLeaveCount: number;
 }
 
 interface StudentWithPoints extends Student {
-  meritPoints: number
-  demeritPoints: number
-  totalScore: number
+  meritPoints: number;
+  demeritPoints: number;
+  totalScore: number;
 }
 
 export function useDashboardStats() {
@@ -25,72 +25,92 @@ export function useDashboardStats() {
     presentCount: 0,
     absentCount: 0,
     outLeaveCount: 0,
-  })
+  });
 
-  const [topStudents, setTopStudents] = useState<StudentWithPoints[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [topStudents, setTopStudents] = useState<StudentWithPoints[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const { data: students, isLoading: studentsLoading } = useStudents()
+  const { data: students, isLoading: studentsLoading } = useStudents();
   const { data: rollcalls, isLoading: rollcallsLoading } = useRollcalls({
     date: new Date().toISOString().split("T")[0], // Today's date
-  })
-  const { data: points, isLoading: pointsLoading } = usePoints()
+  });
+  const { data: points, isLoading: pointsLoading } = usePoints();
 
   useEffect(() => {
     if (studentsLoading || rollcallsLoading || pointsLoading) {
-      setIsLoading(true)
-      return
+      setIsLoading(true);
+      return;
     }
 
     // Calculate roll call stats
-    const totalStudents = students.length
-    const outLeaveCount = students.filter((s) => s.status === "OUT" || s.status === "LEAVE").length
+    const totalStudents = students.length;
+    const outLeaveCount = students.filter(
+      (s) => s.status === "OUT" || s.status === "LEAVE",
+    ).length;
 
-    const studentsWithRollcalls = students.filter((student) => rollcalls.some((r) => r.studentId === student.id))
+    const studentsWithRollcalls = students.filter((student) =>
+      rollcalls.some((r) => r.studentId === student.id),
+    );
 
-    const presentCount = rollcalls.filter((r) => r.present).length
-    const absentCount = rollcalls.filter((r) => !r.present).length
+    const presentCount = rollcalls.filter((r) => r.present).length;
+    const absentCount = rollcalls.filter((r) => !r.present).length;
 
     setStats({
       totalStudents,
       presentCount,
       absentCount,
       outLeaveCount,
-    })
+    });
 
     // Calculate top students by points
-    const studentPointsMap = new Map<number, { merit: number; demerit: number }>()
+    const studentPointsMap = new Map<
+      number,
+      { merit: number; demerit: number }
+    >();
 
     points.forEach((point) => {
-      const current = studentPointsMap.get(point.studentId) || { merit: 0, demerit: 0 }
+      const current = studentPointsMap.get(point.studentId) || {
+        merit: 0,
+        demerit: 0,
+      };
       if (point.type === "MERIT") {
-        current.merit += point.score
+        current.merit += point.score;
       } else {
-        current.demerit += point.score
+        current.demerit += point.score;
       }
-      studentPointsMap.set(point.studentId, current)
-    })
+      studentPointsMap.set(point.studentId, current);
+    });
 
     const studentsWithPoints: StudentWithPoints[] = students
       .map((student) => {
-        const pointData = studentPointsMap.get(student.id) || { merit: 0, demerit: 0 }
+        const pointData = studentPointsMap.get(student.id) || {
+          merit: 0,
+          demerit: 0,
+        };
         return {
           ...student,
           meritPoints: pointData.merit,
           demeritPoints: pointData.demerit,
           totalScore: pointData.merit - pointData.demerit,
-        }
+        };
       })
       .sort((a, b) => b.totalScore - a.totalScore)
-      .slice(0, 5)
+      .slice(0, 5);
 
-    setTopStudents(studentsWithPoints)
-    setIsLoading(false)
-  }, [students, rollcalls, points, studentsLoading, rollcallsLoading, pointsLoading])
+    setTopStudents(studentsWithPoints);
+    setIsLoading(false);
+  }, [
+    students,
+    rollcalls,
+    points,
+    studentsLoading,
+    rollcallsLoading,
+    pointsLoading,
+  ]);
 
   return {
     stats,
     topStudents,
     isLoading,
-  }
+  };
 }

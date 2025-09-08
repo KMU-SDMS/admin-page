@@ -1,32 +1,35 @@
-"use client"
+"use client";
 
-import { useState, useMemo } from "react"
-import { Users, Award } from "lucide-react"
-import { Layout } from "@/components/layout"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useRooms } from "@/hooks/use-rooms"
-import { useStudents } from "@/hooks/use-students"
-import { useRollcalls } from "@/hooks/use-rollcalls"
-import { RollCallChecklist } from "@/components/rollcall/rollcall-checklist"
-import { PointsManagement } from "@/components/rollcall/points-management"
-import { RoomGridView } from "@/components/rollcall/room-grid-view"
+import { useState, useMemo } from "react";
+import { Users, Award } from "lucide-react";
+import { Layout } from "@/components/layout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useRooms } from "@/hooks/use-rooms";
+import { useStudents } from "@/hooks/use-students";
+import { useRollcalls } from "@/hooks/use-rollcalls";
+import { RollCallChecklist } from "@/components/rollcall/rollcall-checklist";
+import { PointsManagement } from "@/components/rollcall/points-management";
+import { RoomGridView } from "@/components/rollcall/room-grid-view";
 
 export default function RollCallPage() {
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0])
-  const [selectedRoomId, setSelectedRoomId] = useState<string>("all")
-  const [nameSearch, setNameSearch] = useState("")
-  const [unconfirmedOnly, setUnconfirmedOnly] = useState(false)
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0],
+  );
+  const [selectedRoomId, setSelectedRoomId] = useState<string>("all");
+  const [nameSearch, setNameSearch] = useState("");
+  const [unconfirmedOnly, setUnconfirmedOnly] = useState(false);
 
-  const { data: rooms, isLoading: roomsLoading } = useRooms()
+  const { data: rooms, isLoading: roomsLoading } = useRooms();
   const {
     data: students,
     isLoading: studentsLoading,
     refetch: refetchStudents,
   } = useStudents({
-    roomId: selectedRoomId === "all" ? undefined : Number.parseInt(selectedRoomId),
+    roomId:
+      selectedRoomId === "all" ? undefined : Number.parseInt(selectedRoomId),
     name: nameSearch || undefined,
-  })
+  });
   const {
     data: rollcalls,
     isLoading: rollcallsLoading,
@@ -34,23 +37,24 @@ export default function RollCallPage() {
     mutate: mutateRollcall,
   } = useRollcalls({
     date: selectedDate,
-    roomId: selectedRoomId === "all" ? undefined : Number.parseInt(selectedRoomId),
+    roomId:
+      selectedRoomId === "all" ? undefined : Number.parseInt(selectedRoomId),
     name: nameSearch || undefined,
     present: unconfirmedOnly ? false : undefined,
-  })
+  });
 
   const filteredStudents = useMemo(() => {
-    if (!unconfirmedOnly) return students
+    if (!unconfirmedOnly) return students;
     return students.filter((student) => {
-      const rollcall = rollcalls.find((r) => r.studentId === student.id)
-      return !rollcall || !rollcall.present
-    })
-  }, [students, rollcalls, unconfirmedOnly])
+      const rollcall = rollcalls.find((r) => r.studentId === student.id);
+      return !rollcall || !rollcall.present;
+    });
+  }, [students, rollcalls, unconfirmedOnly]);
 
   const handleRefresh = () => {
-    refetchStudents()
-    refetchRollcalls()
-  }
+    refetchStudents();
+    refetchRollcalls();
+  };
 
   return (
     <Layout>
@@ -58,9 +62,10 @@ export default function RollCallPage() {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold">점호 관리</h1>
-          <p className="text-muted-foreground">학생 출석 확인 및 상/벌점 관리</p>
+          <p className="text-muted-foreground">
+            학생 출석 확인 및 상/벌점 관리
+          </p>
         </div>
-
 
         {/* Main Content */}
         <Tabs defaultValue="room-grid" className="space-y-4">
@@ -111,10 +116,14 @@ export default function RollCallPage() {
           </TabsContent>
 
           <TabsContent value="points">
-            <PointsManagement students={students} rooms={rooms} isLoading={studentsLoading} />
+            <PointsManagement
+              students={students}
+              rooms={rooms}
+              isLoading={studentsLoading}
+            />
           </TabsContent>
         </Tabs>
       </div>
     </Layout>
-  )
+  );
 }

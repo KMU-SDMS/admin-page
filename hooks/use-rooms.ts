@@ -1,35 +1,35 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { mockRooms } from "@/lib/mock-data"
-import type { Room } from "@/lib/types"
+import { useState, useEffect } from "react";
+import { mockRooms } from "@/lib/mock-data";
+import type { Room } from "@/lib/types";
 
 export function useRooms() {
-  const [data, setData] = useState<Room[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [data, setData] = useState<Room[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchRooms = async () => {
     try {
-      setIsLoading(true)
-      setError(null)
-      await new Promise((resolve) => setTimeout(resolve, 500)) // 로딩 시뮬레이션
-      setData(mockRooms)
+      setIsLoading(true);
+      setError(null);
+      await new Promise((resolve) => setTimeout(resolve, 500)); // 로딩 시뮬레이션
+      setData(mockRooms);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch rooms")
+      setError(err instanceof Error ? err.message : "Failed to fetch rooms");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchRooms()
-  }, [])
+    fetchRooms();
+  }, []);
 
   return {
     data,
     isLoading,
     error,
     refetch: fetchRooms,
-  }
+  };
 }

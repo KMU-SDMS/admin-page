@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { Header } from "./header"
-import { Sidebar } from "./sidebar"
+import { Header } from "./header";
+import { Sidebar } from "./sidebar";
 
 interface LayoutProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export function Layout({ children }: LayoutProps) {
@@ -18,5 +18,5 @@ export function Layout({ children }: LayoutProps) {
         <main className="flex-1 overflow-auto p-6">{children}</main>
       </div>
     </div>
-  )
+  );
 }

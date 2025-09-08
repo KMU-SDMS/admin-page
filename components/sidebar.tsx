@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   ClipboardCheck,
@@ -11,9 +11,9 @@ import {
   Megaphone,
   ChevronLeft,
   ChevronRight,
-} from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const navigation = [
   {
@@ -41,26 +41,40 @@ const navigation = [
     href: "/notices",
     icon: Megaphone,
   },
-]
+];
 
 export function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false)
-  const pathname = usePathname()
+  const [collapsed, setCollapsed] = useState(false);
+  const pathname = usePathname();
 
   return (
-    <aside className={cn("border-r bg-sidebar transition-all duration-300", collapsed ? "w-16" : "w-64")}>
+    <aside
+      className={cn(
+        "border-r bg-sidebar transition-all duration-300",
+        collapsed ? "w-16" : "w-64",
+      )}
+    >
       <div className="flex h-full flex-col">
         {/* Toggle Button */}
         <div className="flex justify-end p-2">
-          <Button variant="ghost" size="icon" onClick={() => setCollapsed(!collapsed)} className="h-8 w-8">
-            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCollapsed(!collapsed)}
+            className="h-8 w-8"
+          >
+            {collapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
           </Button>
         </div>
 
         {/* Navigation */}
         <nav className="flex-1 space-y-1 p-2">
           {navigation.map((item) => {
-            const isActive = pathname === item.href
+            const isActive = pathname === item.href;
             return (
               <Link
                 key={item.name}
@@ -76,10 +90,10 @@ export function Sidebar() {
                 <item.icon className="h-4 w-4 flex-shrink-0" />
                 {!collapsed && <span>{item.name}</span>}
               </Link>
-            )
+            );
           })}
         </nav>
       </div>
     </aside>
-  )
+  );
 }

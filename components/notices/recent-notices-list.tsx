@@ -1,27 +1,33 @@
-"use client"
+"use client";
 
-import { RefreshCw, Calendar, FileText } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import { EmptyState } from "@/components/ui/empty-state"
-import type { Notice } from "@/lib/types"
+import { RefreshCw, Calendar, FileText } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { EmptyState } from "@/components/ui/empty-state";
+import type { Notice } from "@/lib/types";
 
 interface RecentNoticesListProps {
-  notices: Notice[]
-  isLoading: boolean
-  getTargetDisplay: (notice: Notice) => string
-  onRefresh: () => void
+  notices: Notice[];
+  isLoading: boolean;
+  getTargetDisplay: (notice: Notice) => string;
+  onRefresh: () => void;
 }
 
-export function RecentNoticesList({ notices, isLoading, getTargetDisplay, onRefresh }: RecentNoticesListProps) {
+export function RecentNoticesList({
+  notices,
+  isLoading,
+  getTargetDisplay,
+  onRefresh,
+}: RecentNoticesListProps) {
   const getTargetBadge = (notice: Notice) => {
-    if (notice.target === "ALL") return <Badge variant="default">전체</Badge>
-    if (notice.target === "FLOOR") return <Badge variant="secondary">{notice.floor}층</Badge>
-    if (notice.target === "ROOM") return <Badge variant="outline">호실</Badge>
-    return null
-  }
+    if (notice.target === "ALL") return <Badge variant="default">전체</Badge>;
+    if (notice.target === "FLOOR")
+      return <Badge variant="secondary">{notice.floor}층</Badge>;
+    if (notice.target === "ROOM") return <Badge variant="outline">호실</Badge>;
+    return null;
+  };
 
   return (
     <Card className="h-fit">
@@ -31,8 +37,15 @@ export function RecentNoticesList({ notices, isLoading, getTargetDisplay, onRefr
             <FileText className="h-5 w-5" />
             최근 공지사항
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={onRefresh} disabled={isLoading}>
-            <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onRefresh}
+            disabled={isLoading}
+          >
+            <RefreshCw
+              className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+            />
           </Button>
         </div>
       </CardHeader>
@@ -56,17 +69,23 @@ export function RecentNoticesList({ notices, isLoading, getTargetDisplay, onRefr
                 className="space-y-3 p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
               >
                 <div className="space-y-2">
-                  <h4 className="font-medium line-clamp-2 text-sm leading-relaxed">{notice.title}</h4>
+                  <h4 className="font-medium line-clamp-2 text-sm leading-relaxed">
+                    {notice.title}
+                  </h4>
                   <div className="flex items-center justify-between">
                     {getTargetBadge(notice)}
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Calendar className="h-3 w-3" />
-                      <span>{new Date(notice.createdAt).toLocaleDateString()}</span>
+                      <span>
+                        {new Date(notice.createdAt).toLocaleDateString()}
+                      </span>
                     </div>
                   </div>
                 </div>
                 {notice.body && (
-                  <div className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{notice.body}</div>
+                  <div className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                    {notice.body}
+                  </div>
                 )}
               </div>
             ))}
@@ -79,5 +98,5 @@ export function RecentNoticesList({ notices, isLoading, getTargetDisplay, onRefr
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

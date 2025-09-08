@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { AlertCircle } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ErrorMessageProps {
-  message: string
-  onRetry?: () => void
+  message: string;
+  onRetry?: () => void;
 }
 
 export function ErrorMessage({ message, onRetry }: ErrorMessageProps) {
@@ -15,11 +15,14 @@ export function ErrorMessage({ message, onRetry }: ErrorMessageProps) {
       <AlertDescription className="flex items-center justify-between">
         <span>{message}</span>
         {onRetry && (
-          <button onClick={onRetry} className="text-sm underline hover:no-underline">
+          <button
+            onClick={onRetry}
+            className="text-sm underline hover:no-underline"
+          >
             Retry
           </button>
         )}
       </AlertDescription>
     </Alert>
-  )
+  );
 }

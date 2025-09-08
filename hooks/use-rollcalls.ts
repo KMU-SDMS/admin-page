@@ -1,56 +1,74 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { mockRollcalls } from "@/lib/mock-data"
-import type { Rollcall, RollcallQuery } from "@/lib/types"
+import { useState, useEffect } from "react";
+import { mockRollcalls } from "@/lib/mock-data";
+import type { Rollcall, RollcallQuery } from "@/lib/types";
 
 export function useRollcalls(params: RollcallQuery = {}) {
-  const [data, setData] = useState<Rollcall[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [data, setData] = useState<Rollcall[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchRollcalls = async () => {
     try {
-      setIsLoading(true)
-      setError(null)
-      await new Promise((resolve) => setTimeout(resolve, 500)) // 로딩 시뮬레이션
+      setIsLoading(true);
+      setError(null);
+      await new Promise((resolve) => setTimeout(resolve, 500)); // 로딩 시뮬레이션
 
-      let filteredRollcalls = [...mockRollcalls]
+      let filteredRollcalls = [...mockRollcalls];
 
       // 날짜 필터링
       if (params.date) {
-        filteredRollcalls = filteredRollcalls.filter((rollcall) => rollcall.date === params.date)
+        filteredRollcalls = filteredRollcalls.filter(
+          (rollcall) => rollcall.date === params.date,
+        );
       }
 
       // 출석 상태 필터링
       if (params.present !== undefined) {
-        filteredRollcalls = filteredRollcalls.filter((rollcall) => rollcall.present === params.present)
+        filteredRollcalls = filteredRollcalls.filter(
+          (rollcall) => rollcall.present === params.present,
+        );
       }
 
-      setData(filteredRollcalls)
+      setData(filteredRollcalls);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch rollcalls")
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch rollcalls",
+      );
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
-  const mutate = async (rollcallData: Partial<Rollcall> & { date: string; studentId: number; present: boolean; status?: "PRESENT" | "LEAVE" | "ABSENT" }) => {
+  const mutate = async (
+    rollcallData: Partial<Rollcall> & {
+      date: string;
+      studentId: number;
+      present: boolean;
+      status?: "PRESENT" | "LEAVE" | "ABSENT";
+    },
+  ) => {
     try {
-      console.log("mutate 호출됨:", rollcallData)
+      console.log("mutate 호출됨:", rollcallData);
       const existingIndex = data.findIndex(
-        (r) => r.studentId === rollcallData.studentId && r.date === rollcallData.date,
-      )
+        (r) =>
+          r.studentId === rollcallData.studentId &&
+          r.date === rollcallData.date,
+      );
 
-      console.log("기존 인덱스:", existingIndex)
+      console.log("기존 인덱스:", existingIndex);
 
       if (existingIndex >= 0) {
         // 기존 점호 기록 업데이트
-        const updatedData = [...data]
-        updatedData[existingIndex] = { ...updatedData[existingIndex], ...rollcallData }
-        console.log("기존 기록 업데이트:", updatedData[existingIndex])
-        setData(updatedData)
-        console.log("setData 호출됨, 새로운 데이터:", updatedData)
+        const updatedData = [...data];
+        updatedData[existingIndex] = {
+          ...updatedData[existingIndex],
+          ...rollcallData,
+        };
+        console.log("기존 기록 업데이트:", updatedData[existingIndex]);
+        setData(updatedData);
+        console.log("setData 호출됨, 새로운 데이터:", updatedData);
       } else {
         // 새 점호 기록 추가
         const newRollcall: Rollcall = {
@@ -61,21 +79,21 @@ export function useRollcalls(params: RollcallQuery = {}) {
           present: rollcallData.present,
           status: rollcallData.status,
           note: rollcallData.note || "",
-        }
-        console.log("새 기록 추가:", newRollcall)
-        const newData = [...data, newRollcall]
-        setData(newData)
-        console.log("setData 호출됨, 새로운 데이터:", newData)
+        };
+        console.log("새 기록 추가:", newRollcall);
+        const newData = [...data, newRollcall];
+        setData(newData);
+        console.log("setData 호출됨, 새로운 데이터:", newData);
       }
     } catch (err) {
-      console.error("mutate 에러:", err)
-      throw err
+      console.error("mutate 에러:", err);
+      throw err;
     }
-  }
+  };
 
   useEffect(() => {
-    fetchRollcalls()
-  }, [params.date, params.roomId, params.name, params.present])
+    fetchRollcalls();
+  }, [params.date, params.roomId, params.name, params.present]);
 
   return {
     data,
@@ -83,5 +101,5 @@ export function useRollcalls(params: RollcallQuery = {}) {
     error,
     refetch: fetchRollcalls,
     mutate,
-  }
+  };
 }
