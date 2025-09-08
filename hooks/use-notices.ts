@@ -1,43 +1,44 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { mockNotices } from "@/lib/mock-data"
-import type { Notice, NoticeQuery } from "@/lib/types"
+import { useState, useEffect } from "react";
+import { mockNotices } from "@/lib/mock-data";
+import type { Notice, NoticeQuery } from "@/lib/types";
 
 export function useNotices(params: NoticeQuery = {}) {
-  const [data, setData] = useState<Notice[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [data, setData] = useState<Notice[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchNotices = async () => {
     try {
-      setIsLoading(true)
-      setError(null)
-      await new Promise((resolve) => setTimeout(resolve, 500)) // 로딩 시뮬레이션
+      setIsLoading(true);
+      setError(null);
+      await new Promise((resolve) => setTimeout(resolve, 500)); // 로딩 시뮬레이션
 
       let filteredNotices = [...mockNotices].sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      )
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
 
       // 개수 제한 적용
       if (params.limit) {
-        filteredNotices = filteredNotices.slice(0, params.limit)
+        filteredNotices = filteredNotices.slice(0, params.limit);
       }
 
-      setData(filteredNotices)
+      setData(filteredNotices);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch notices")
+      setError(err instanceof Error ? err.message : "Failed to fetch notices");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const mutate = async (noticeData: {
-    title: string
-    body: string
-    target: "ALL" | "FLOOR" | "ROOM"
-    floor?: number
-    roomId?: number
+    title: string;
+    body: string;
+    target: "ALL" | "FLOOR" | "ROOM";
+    floor?: number;
+    roomId?: number;
   }) => {
     try {
       const newNotice: Notice = {
@@ -52,17 +53,17 @@ export function useNotices(params: NoticeQuery = {}) {
               ? noticeData.roomId?.toString()
               : null,
         createdAt: new Date().toISOString(),
-      }
+      };
 
-      setData((prevData) => [newNotice, ...prevData])
+      setData((prevData) => [newNotice, ...prevData]);
     } catch (err) {
-      throw err
+      throw err;
     }
-  }
+  };
 
   useEffect(() => {
-    fetchNotices()
-  }, [params.limit])
+    fetchNotices();
+  }, [params.limit]);
 
   return {
     data,
@@ -70,5 +71,5 @@ export function useNotices(params: NoticeQuery = {}) {
     error,
     refetch: fetchNotices,
     mutate,
-  }
+  };
 }

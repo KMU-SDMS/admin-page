@@ -1,41 +1,43 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { mockPoints } from "@/lib/mock-data"
-import type { Point } from "@/lib/types"
+import { useState, useEffect } from "react";
+import { mockPoints } from "@/lib/mock-data";
+import type { Point } from "@/lib/types";
 
 export function usePoints(studentId?: number) {
-  const [data, setData] = useState<Point[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [data, setData] = useState<Point[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchPoints = async () => {
     try {
-      setIsLoading(true)
-      setError(null)
-      await new Promise((resolve) => setTimeout(resolve, 500)) // 로딩 시뮬레이션
+      setIsLoading(true);
+      setError(null);
+      await new Promise((resolve) => setTimeout(resolve, 500)); // 로딩 시뮬레이션
 
-      let filteredPoints = [...mockPoints]
+      let filteredPoints = [...mockPoints];
 
       // 특정 학생 ID로 필터링
       if (studentId) {
-        filteredPoints = filteredPoints.filter((point) => point.studentId === studentId)
+        filteredPoints = filteredPoints.filter(
+          (point) => point.studentId === studentId,
+        );
       }
 
-      setData(filteredPoints)
+      setData(filteredPoints);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch points")
+      setError(err instanceof Error ? err.message : "Failed to fetch points");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const mutate = async (pointData: {
-    studentId: number
-    type: "MERIT" | "DEMERIT"
-    score: number
-    reason: string
-    date?: string
+    studentId: number;
+    type: "MERIT" | "DEMERIT";
+    score: number;
+    reason: string;
+    date?: string;
   }) => {
     try {
       const newPoint: Point = {
@@ -45,17 +47,17 @@ export function usePoints(studentId?: number) {
         score: pointData.score,
         reason: pointData.reason,
         date: pointData.date || new Date().toISOString().split("T")[0],
-      }
+      };
 
-      setData((prevData) => [...prevData, newPoint])
+      setData((prevData) => [...prevData, newPoint]);
     } catch (err) {
-      throw err
+      throw err;
     }
-  }
+  };
 
   useEffect(() => {
-    fetchPoints()
-  }, [studentId])
+    fetchPoints();
+  }, [studentId]);
 
   return {
     data,
@@ -63,5 +65,5 @@ export function usePoints(studentId?: number) {
     error,
     refetch: fetchPoints,
     mutate,
-  }
+  };
 }

@@ -1,29 +1,35 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Plus, Eye, Send } from "lucide-react"
-import { Layout } from "@/components/layout"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import { NoticePreview } from "@/components/notices/notice-preview"
-import { RecentNoticesList } from "@/components/notices/recent-notices-list"
-import { useNotices } from "@/hooks/use-notices"
-import { useRooms } from "@/hooks/use-rooms"
-import { useToast } from "@/hooks/use-toast"
+import { useState } from "react";
+import { Plus, Eye, Send } from "lucide-react";
+import { Layout } from "@/components/layout";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { NoticePreview } from "@/components/notices/notice-preview";
+import { RecentNoticesList } from "@/components/notices/recent-notices-list";
+import { useNotices } from "@/hooks/use-notices";
+import { useRooms } from "@/hooks/use-rooms";
+import { useToast } from "@/hooks/use-toast";
 
 interface NoticeForm {
-  title: string
-  body: string
-  target: "ALL" | "FLOOR" | "ROOM" | ""
-  floor?: number
-  roomId?: number
+  title: string;
+  body: string;
+  target: "ALL" | "FLOOR" | "ROOM" | "";
+  floor?: number;
+  roomId?: number;
 }
 
 export default function NoticesPage() {
@@ -31,41 +37,48 @@ export default function NoticesPage() {
     title: "",
     body: "",
     target: "",
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [showPreview, setShowPreview] = useState(false)
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
-  const { toast } = useToast()
-  const { data: notices, isLoading: noticesLoading, refetch: refetchNotices, mutate: mutateNotice } = useNotices()
-  const { data: rooms } = useRooms()
+  const { toast } = useToast();
+  const {
+    data: notices,
+    isLoading: noticesLoading,
+    refetch: refetchNotices,
+    mutate: mutateNotice,
+  } = useNotices();
+  const { data: rooms } = useRooms();
 
   // Get unique floors for selection
-  const floors = Array.from(new Set(rooms.map((r) => r.floor))).sort((a, b) => a - b)
+  const floors = Array.from(new Set(rooms.map((r) => r.floor))).sort(
+    (a, b) => a - b,
+  );
 
   const handleInputChange = (field: keyof NoticeForm, value: any) => {
     setForm((prev) => {
-      const updated = { ...prev, [field]: value }
+      const updated = { ...prev, [field]: value };
 
       // Reset dependent fields when target changes
       if (field === "target") {
-        delete updated.floor
-        delete updated.roomId
+        delete updated.floor;
+        delete updated.roomId;
       }
 
-      return updated
-    })
-  }
+      return updated;
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!form.title.trim() || !form.body.trim() || !form.target) {
       toast({
         title: "입력 오류",
         description: "제목, 내용, 대상을 모두 입력해주세요.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     if (form.target === "FLOOR" && !form.floor) {
@@ -73,8 +86,8 @@ export default function NoticesPage() {
         title: "입력 오류",
         description: "층을 선택해주세요.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     if (form.target === "ROOM" && !form.roomId) {
@@ -82,11 +95,11 @@ export default function NoticesPage() {
         title: "입력 오류",
         description: "호실을 선택해주세요.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
       await mutateNotice({
@@ -95,42 +108,43 @@ export default function NoticesPage() {
         target: form.target,
         floor: form.target === "FLOOR" ? form.floor : undefined,
         roomId: form.target === "ROOM" ? form.roomId : undefined,
-      })
+      });
 
       toast({
         title: "공지 작성 완료",
         description: "공지사항이 성공적으로 작성되었습니다.",
-      })
+      });
 
       // Reset form
       setForm({
         title: "",
         body: "",
         target: "",
-      })
-      setShowPreview(false)
+      });
+      setShowPreview(false);
     } catch (error) {
       toast({
         title: "공지 작성 실패",
-        description: error instanceof Error ? error.message : "공지 작성에 실패했습니다.",
+        description:
+          error instanceof Error ? error.message : "공지 작성에 실패했습니다.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const getTargetDisplay = (notice: any) => {
-    if (notice.target === "ALL") return "전체"
-    if (notice.target === "FLOOR") return `${notice.floor}층`
+    if (notice.target === "ALL") return "전체";
+    if (notice.target === "FLOOR") return `${notice.floor}층`;
     if (notice.target === "ROOM") {
-      const room = rooms.find((r) => r.id === notice.roomId)
-      return room ? room.name : `호실 ${notice.roomId}`
+      const room = rooms.find((r) => r.id === notice.roomId);
+      return room ? room.name : `호실 ${notice.roomId}`;
     }
-    return notice.target
-  }
+    return notice.target;
+  };
 
-  const isFormValid = form.title.trim() && form.body.trim() && form.target
+  const isFormValid = form.title.trim() && form.body.trim() && form.target;
 
   return (
     <Layout>
@@ -160,17 +174,26 @@ export default function NoticesPage() {
                       id="title"
                       placeholder="공지사항 제목을 입력하세요"
                       value={form.title}
-                      onChange={(e) => handleInputChange("title", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("title", e.target.value)
+                      }
                       maxLength={100}
                     />
-                    <div className="text-xs text-muted-foreground text-right">{form.title.length}/100</div>
+                    <div className="text-xs text-muted-foreground text-right">
+                      {form.title.length}/100
+                    </div>
                   </div>
 
                   {/* Target Selection */}
                   <div className="grid gap-4 md:grid-cols-3">
                     <div className="space-y-2">
                       <Label>대상</Label>
-                      <Select value={form.target} onValueChange={(value) => handleInputChange("target", value)}>
+                      <Select
+                        value={form.target}
+                        onValueChange={(value) =>
+                          handleInputChange("target", value)
+                        }
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="공지 대상 선택" />
                         </SelectTrigger>
@@ -187,7 +210,9 @@ export default function NoticesPage() {
                         <Label>층</Label>
                         <Select
                           value={form.floor?.toString() || ""}
-                          onValueChange={(value) => handleInputChange("floor", Number.parseInt(value))}
+                          onValueChange={(value) =>
+                            handleInputChange("floor", Number.parseInt(value))
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="층 선택" />
@@ -208,14 +233,19 @@ export default function NoticesPage() {
                         <Label>호실</Label>
                         <Select
                           value={form.roomId?.toString() || ""}
-                          onValueChange={(value) => handleInputChange("roomId", Number.parseInt(value))}
+                          onValueChange={(value) =>
+                            handleInputChange("roomId", Number.parseInt(value))
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="호실 선택" />
                           </SelectTrigger>
                           <SelectContent>
                             {rooms.map((room) => (
-                              <SelectItem key={room.id} value={room.id.toString()}>
+                              <SelectItem
+                                key={room.id}
+                                value={room.id.toString()}
+                              >
                                 {room.name} ({room.floor}층)
                               </SelectItem>
                             ))}
@@ -232,11 +262,15 @@ export default function NoticesPage() {
                       id="body"
                       placeholder="공지사항 내용을 입력하세요"
                       value={form.body}
-                      onChange={(e) => handleInputChange("body", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("body", e.target.value)
+                      }
                       rows={8}
                       maxLength={2000}
                     />
-                    <div className="text-xs text-muted-foreground text-right">{form.body.length}/2000</div>
+                    <div className="text-xs text-muted-foreground text-right">
+                      {form.body.length}/2000
+                    </div>
                   </div>
 
                   {/* Actions */}
@@ -250,7 +284,10 @@ export default function NoticesPage() {
                       <Eye className="h-4 w-4 mr-2" />
                       {showPreview ? "편집" : "미리보기"}
                     </Button>
-                    <Button type="submit" disabled={!isFormValid || isSubmitting}>
+                    <Button
+                      type="submit"
+                      disabled={!isFormValid || isSubmitting}
+                    >
                       {isSubmitting ? (
                         <>
                           <LoadingSpinner size="sm" className="mr-2" />
@@ -293,5 +330,5 @@ export default function NoticesPage() {
         </div>
       </div>
     </Layout>
-  )
+  );
 }

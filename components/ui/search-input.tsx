@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Search, X } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect } from "react";
+import { Search, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface SearchInputProps {
-  placeholder?: string
-  value?: string
-  onChange: (value: string) => void
-  debounceMs?: number
-  className?: string
+  placeholder?: string;
+  value?: string;
+  onChange: (value: string) => void;
+  debounceMs?: number;
+  className?: string;
 }
 
 export function SearchInput({
@@ -20,24 +20,24 @@ export function SearchInput({
   debounceMs = 300,
   className,
 }: SearchInputProps) {
-  const [localValue, setLocalValue] = useState(value)
+  const [localValue, setLocalValue] = useState(value);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      onChange(localValue)
-    }, debounceMs)
+      onChange(localValue);
+    }, debounceMs);
 
-    return () => clearTimeout(timer)
-  }, [localValue, onChange, debounceMs])
+    return () => clearTimeout(timer);
+  }, [localValue, onChange, debounceMs]);
 
   useEffect(() => {
-    setLocalValue(value)
-  }, [value])
+    setLocalValue(value);
+  }, [value]);
 
   const clearSearch = () => {
-    setLocalValue("")
-    onChange("")
-  }
+    setLocalValue("");
+    onChange("");
+  };
 
   return (
     <div className={`relative ${className}`}>
@@ -59,5 +59,5 @@ export function SearchInput({
         </Button>
       )}
     </div>
-  )
+  );
 }

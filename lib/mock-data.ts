@@ -1,4 +1,4 @@
-import type { Room, Student, RollCall, Point, Notice } from "./types"
+import type { Room, Student, RollCall, Point, Notice } from "./types";
 
 // 목업 호실 데이터
 export const mockRooms: Room[] = [
@@ -20,7 +20,7 @@ export const mockRooms: Room[] = [
   { id: 16, name: "304호", floor: 3, capacity: 2 },
   { id: 17, name: "305호", floor: 3, capacity: 2 },
   { id: 18, name: "306호", floor: 3, capacity: 2 },
-]
+];
 
 // 목업 학생 데이터
 export const mockStudents: Student[] = [
@@ -52,9 +52,15 @@ export const mockStudents: Student[] = [
   { id: 26, name: "독고민정", studentNo: "2024026", roomId: 13, status: "OUT" },
   { id: 27, name: "선우진영", studentNo: "2024027", roomId: 14, status: "IN" },
   { id: 28, name: "황보라미", studentNo: "2024028", roomId: 14, status: "IN" },
-  { id: 29, name: "제갈성훈", studentNo: "2024029", roomId: 15, status: "LEAVE" },
+  {
+    id: 29,
+    name: "제갈성훈",
+    studentNo: "2024029",
+    roomId: 15,
+    status: "LEAVE",
+  },
   { id: 30, name: "사공예나", studentNo: "2024030", roomId: 15, status: "IN" },
-]
+];
 
 // 목업 점호 데이터
 export const mockRollcalls: RollCall[] = [
@@ -71,28 +77,104 @@ export const mockRollcalls: RollCall[] = [
   { id: 11, studentId: 11, date: "2025-09-04", present: true, note: "" },
   { id: 12, studentId: 12, date: "2025-09-04", present: true, note: "" },
   { id: 13, studentId: 13, date: "2025-09-04", present: true, note: "" },
-  { id: 14, studentId: 14, date: "2025-09-04", present: false, note: "외출 중" },
+  {
+    id: 14,
+    studentId: 14,
+    date: "2025-09-04",
+    present: false,
+    note: "외출 중",
+  },
   { id: 15, studentId: 15, date: "2025-09-04", present: true, note: "" },
   { id: 16, studentId: 16, date: "2025-09-04", present: true, note: "" },
   { id: 17, studentId: 17, date: "2025-09-04", present: false, note: "외박" },
   { id: 18, studentId: 18, date: "2025-09-04", present: true, note: "" },
   { id: 19, studentId: 19, date: "2025-09-04", present: true, note: "" },
   { id: 20, studentId: 20, date: "2025-09-04", present: true, note: "" },
-]
+];
 
 // 목업 상벌점 데이터
 export const mockPoints: Point[] = [
-  { id: 1, studentId: 1, type: "MERIT", score: 5, reason: "청소 우수", date: "2025-09-03" },
-  { id: 2, studentId: 2, type: "MERIT", score: 3, reason: "도서관 봉사", date: "2025-09-02" },
-  { id: 3, studentId: 3, type: "DEMERIT", score: 2, reason: "지각", date: "2025-09-01" },
-  { id: 4, studentId: 5, type: "MERIT", score: 10, reason: "학급 회장 활동", date: "2025-09-03" },
-  { id: 5, studentId: 7, type: "MERIT", score: 5, reason: "분리수거 도움", date: "2025-09-04" },
-  { id: 6, studentId: 9, type: "DEMERIT", score: 3, reason: "소음", date: "2025-09-02" },
-  { id: 7, studentId: 11, type: "MERIT", score: 7, reason: "신입생 도움", date: "2025-09-01" },
-  { id: 8, studentId: 13, type: "MERIT", score: 4, reason: "복도 청소", date: "2025-09-03" },
-  { id: 9, studentId: 15, type: "DEMERIT", score: 1, reason: "취침시간 위반", date: "2025-09-02" },
-  { id: 10, studentId: 19, type: "MERIT", score: 8, reason: "행사 준비 도움", date: "2025-09-04" },
-]
+  {
+    id: 1,
+    studentId: 1,
+    type: "MERIT",
+    score: 5,
+    reason: "청소 우수",
+    date: "2025-09-03",
+  },
+  {
+    id: 2,
+    studentId: 2,
+    type: "MERIT",
+    score: 3,
+    reason: "도서관 봉사",
+    date: "2025-09-02",
+  },
+  {
+    id: 3,
+    studentId: 3,
+    type: "DEMERIT",
+    score: 2,
+    reason: "지각",
+    date: "2025-09-01",
+  },
+  {
+    id: 4,
+    studentId: 5,
+    type: "MERIT",
+    score: 10,
+    reason: "학급 회장 활동",
+    date: "2025-09-03",
+  },
+  {
+    id: 5,
+    studentId: 7,
+    type: "MERIT",
+    score: 5,
+    reason: "분리수거 도움",
+    date: "2025-09-04",
+  },
+  {
+    id: 6,
+    studentId: 9,
+    type: "DEMERIT",
+    score: 3,
+    reason: "소음",
+    date: "2025-09-02",
+  },
+  {
+    id: 7,
+    studentId: 11,
+    type: "MERIT",
+    score: 7,
+    reason: "신입생 도움",
+    date: "2025-09-01",
+  },
+  {
+    id: 8,
+    studentId: 13,
+    type: "MERIT",
+    score: 4,
+    reason: "복도 청소",
+    date: "2025-09-03",
+  },
+  {
+    id: 9,
+    studentId: 15,
+    type: "DEMERIT",
+    score: 1,
+    reason: "취침시간 위반",
+    date: "2025-09-02",
+  },
+  {
+    id: 10,
+    studentId: 19,
+    type: "MERIT",
+    score: 8,
+    reason: "행사 준비 도움",
+    date: "2025-09-04",
+  },
+];
 
 // 목업 공지사항 데이터
 export const mockNotices: Notice[] = [
@@ -120,7 +202,7 @@ export const mockNotices: Notice[] = [
     targetValue: "1",
     createdAt: "2025-09-04T14:20:00Z",
   },
-]
+];
 
 // 목업 택배 데이터
 export const mockParcels = [
@@ -151,7 +233,7 @@ export const mockParcels = [
     pickedUp: false,
     memo: "깨지기 쉬운 물품",
   },
-]
+];
 
 // 목업 문의사항 데이터
 export const mockInquiries = [
@@ -179,4 +261,4 @@ export const mockInquiries = [
     status: "RESOLVED",
     createdAt: "2025-09-02T11:20:00Z",
   },
-]
+];

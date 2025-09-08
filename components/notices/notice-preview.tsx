@@ -1,40 +1,47 @@
-"use client"
+"use client";
 
-import { Eye, Megaphone, Calendar, Target } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import type { Room } from "@/lib/types"
+import { Eye, Megaphone, Calendar, Target } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import type { Room } from "@/lib/types";
 
 interface NoticePreviewProps {
-  title: string
-  body: string
-  target: "ALL" | "FLOOR" | "ROOM"
-  floor?: number
-  roomId?: number
-  rooms: Room[]
+  title: string;
+  body: string;
+  target: "ALL" | "FLOOR" | "ROOM";
+  floor?: number;
+  roomId?: number;
+  rooms: Room[];
 }
 
-export function NoticePreview({ title, body, target, floor, roomId, rooms }: NoticePreviewProps) {
+export function NoticePreview({
+  title,
+  body,
+  target,
+  floor,
+  roomId,
+  rooms,
+}: NoticePreviewProps) {
   const getTargetDisplay = () => {
-    if (target === "ALL") return "전체"
-    if (target === "FLOOR") return `${floor}층`
+    if (target === "ALL") return "전체";
+    if (target === "FLOOR") return `${floor}층`;
     if (target === "ROOM") {
-      const room = rooms.find((r) => r.id === roomId)
-      return room ? room.name : `호실 ${roomId}`
+      const room = rooms.find((r) => r.id === roomId);
+      return room ? room.name : `호실 ${roomId}`;
     }
-    return target
-  }
+    return target;
+  };
 
   const getTargetBadge = () => {
-    if (target === "ALL") return <Badge variant="default">전체</Badge>
-    if (target === "FLOOR") return <Badge variant="secondary">{floor}층</Badge>
+    if (target === "ALL") return <Badge variant="default">전체</Badge>;
+    if (target === "FLOOR") return <Badge variant="secondary">{floor}층</Badge>;
     if (target === "ROOM") {
-      const room = rooms.find((r) => r.id === roomId)
-      return <Badge variant="outline">{room?.name || `호실 ${roomId}`}</Badge>
+      const room = rooms.find((r) => r.id === roomId);
+      return <Badge variant="outline">{room?.name || `호실 ${roomId}`}</Badge>;
     }
-    return null
-  }
+    return null;
+  };
 
   return (
     <Card className="border-2 border-dashed border-primary/20 bg-primary/5">
@@ -70,10 +77,12 @@ export function NoticePreview({ title, body, target, floor, roomId, rooms }: Not
 
           {/* Notice Body */}
           <div className="prose prose-sm max-w-none">
-            <div className="whitespace-pre-wrap text-sm leading-relaxed">{body}</div>
+            <div className="whitespace-pre-wrap text-sm leading-relaxed">
+              {body}
+            </div>
           </div>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

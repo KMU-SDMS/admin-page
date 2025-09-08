@@ -1,130 +1,174 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Users, Award } from "lucide-react"
-import { toast } from "sonner"
-import { api } from "@/lib/api"
-import type { Room, Student, RollCall } from "@/lib/types"
+import { useState, useMemo } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Users, Award } from "lucide-react";
+import { toast } from "sonner";
+import {
+  AttendanceStatusButtons,
+  type AttendanceStatus,
+} from "@/components/rollcall/attendance-status-buttons";
+import type { Room, Student, Rollcall } from "@/lib/types";
 
 interface RoomGridViewProps {
-  rooms: Room[]
-  students: Student[]
-  rollcalls: RollCall[]
-  selectedDate: string
-  onUpdateRollcall: (rollcall: RollCall) => void
+  rooms: Room[];
+  students: Student[];
+  rollcalls: Rollcall[];
+  selectedDate: string;
+  onUpdateRollcall: (rollcall: Rollcall) => void;
 }
 
-export function RoomGridView({ rooms, students, rollcalls, selectedDate, onUpdateRollcall }: RoomGridViewProps) {
-  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
-  const [selectedStudents, setSelectedStudents] = useState<number[]>([])
-  const [pointType, setPointType] = useState<"MERIT" | "DEMERIT">("MERIT")
-  const [pointScore, setPointScore] = useState("")
-  const [pointReason, setPointReason] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+export function RoomGridView({
+  rooms,
+  students,
+  rollcalls,
+  selectedDate,
+  onUpdateRollcall,
+}: RoomGridViewProps) {
+  console.log("RoomGridView 렌더링, rollcalls:", rollcalls);
+  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
+  const [pointType, setPointType] = useState<"MERIT" | "DEMERIT">("MERIT");
+  const [pointScore, setPointScore] = useState("");
+  const [pointReason, setPointReason] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 층별로 호실 그룹화
   const roomsByFloor = rooms.reduce(
     (acc, room) => {
       if (!acc[room.floor]) {
-        acc[room.floor] = []
+        acc[room.floor] = [];
       }
-      acc[room.floor].push(room)
-      return acc
+      acc[room.floor].push(room);
+      return acc;
     },
     {} as Record<number, Room[]>,
-  )
+  );
 
   // 호실별 학생 수와 출석 상태 계산
   const getRoomStats = (roomId: number) => {
-    const roomStudents = students.filter((s) => s.roomId === roomId)
+    const roomStudents = students.filter((s) => s.roomId === roomId);
     const presentCount = roomStudents.filter((s) => {
-      const rollcall = rollcalls.find((r) => r.studentId === s.id)
-      return rollcall?.present
-    }).length
+      const rollcall = rollcalls.find((r) => r.studentId === s.id);
+      return rollcall?.present;
+    }).length;
 
     return {
       total: roomStudents.length,
       present: presentCount,
       absent: roomStudents.length - presentCount,
-    }
-  }
+    };
+  };
 
   // 호실 클릭 핸들러
   const handleRoomClick = (room: Room) => {
-    setSelectedRoom(room)
-    setSelectedStudents([])
-    setPointType("MERIT")
-    setPointScore("")
-    setPointReason("")
-  }
+    setSelectedRoom(room);
+    setSelectedStudents([]);
+    setPointType("MERIT");
+    setPointScore("");
+    setPointReason("");
+  };
 
   // 학생 선택 토글
   const toggleStudentSelection = (studentId: number) => {
     setSelectedStudents((prev) =>
-      prev.includes(studentId) ? prev.filter((id) => id !== studentId) : [...prev, studentId],
-    )
-  }
+      prev.includes(studentId)
+        ? prev.filter((id) => id !== studentId)
+        : [...prev, studentId],
+    );
+  };
 
-  // 출석 상태 토글
-  const toggleAttendance = async (student: Student) => {
-    const existingRollcall = rollcalls.find((r) => r.studentId === student.id)
-    const newPresent = !existingRollcall?.present
+  // 출석 상태 변경
+  const handleStatusChange = async (
+    studentId: number,
+    status: AttendanceStatus,
+  ) => {
+    const student = students.find((s) => s.id === studentId);
+    if (!student) return;
+
+    const present = status === "PRESENT";
+    console.log("상태 변경:", {
+      studentId,
+      status,
+      present,
+      studentName: student.name,
+    });
 
     try {
       const rollcallData = {
         studentId: student.id,
+        roomId: student.roomId,
         date: selectedDate,
-        present: newPresent,
-        note: existingRollcall?.note || "",
-      }
+        present,
+        status,
+        note: "",
+      };
 
-      const updatedRollcall = await api.post<RollCall>("/rollcalls", rollcallData)
-      onUpdateRollcall(updatedRollcall)
-      toast.success(`${student.name} 출석 상태가 업데이트되었습니다.`)
+      console.log("rollcallData:", rollcallData);
+
+      // onUpdateRollcall을 호출하여 상태 업데이트
+      await onUpdateRollcall(rollcallData);
+      toast.success(`${student.name} 출석 상태가 업데이트되었습니다.`);
     } catch (error) {
-      toast.error("출석 상태 업데이트에 실패했습니다.")
+      console.error("상태 변경 에러:", error);
+      toast.error("출석 상태 업데이트에 실패했습니다.");
     }
-  }
+  };
 
   // 상벌점 부여
   const handleSubmitPoints = async () => {
     if (selectedStudents.length === 0 || !pointScore || !pointReason) {
-      toast.error("학생, 점수, 사유를 모두 입력해주세요.")
-      return
+      toast.error("학생, 점수, 사유를 모두 입력해주세요.");
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
-      const promises = selectedStudents.map((studentId) =>
-        api.post("/points", {
-          studentId,
-          type: pointType,
-          score: Number.parseInt(pointScore),
-          reason: pointReason,
-          date: selectedDate,
-        }),
-      )
+      // Mock 데이터로 시뮬레이션
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      await Promise.all(promises)
-      toast.success(`${selectedStudents.length}명에게 ${pointType === "MERIT" ? "상점" : "벌점"}이 부여되었습니다.`)
-      setSelectedRoom(null)
+      toast.success(
+        `${selectedStudents.length}명에게 ${pointType === "MERIT" ? "상점" : "벌점"}이 부여되었습니다.`,
+      );
+      setSelectedRoom(null);
     } catch (error) {
-      toast.error("상벌점 부여에 실패했습니다.")
+      toast.error("상벌점 부여에 실패했습니다.");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
-  const selectedRoomStudents = selectedRoom ? students.filter((s) => s.roomId === selectedRoom.id) : []
+  const selectedRoomStudents = selectedRoom
+    ? students.filter((s) => s.roomId === selectedRoom.id)
+    : [];
+
+  // 각 학생의 rollcall 데이터를 메모이제이션
+  const getStudentRollcall = useMemo(() => {
+    return (studentId: number) => {
+      const rollcall = rollcalls.find((r) => r.studentId === studentId);
+      console.log(`학생 ${studentId}의 rollcall:`, rollcall);
+      return rollcall;
+    };
+  }, [rollcalls]);
 
   return (
     <>
@@ -133,13 +177,16 @@ export function RoomGridView({ rooms, students, rollcalls, selectedDate, onUpdat
           .sort(([a], [b]) => Number.parseInt(b) - Number.parseInt(a))
           .map(([floor, floorRooms]) => (
             <div key={floor} className="space-y-3">
-              <h3 className="text-lg font-semibold text-muted-foreground">{floor}층</h3>
+              <h3 className="text-lg font-semibold text-muted-foreground">
+                {floor}층
+              </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
                 {floorRooms
                   .sort((a, b) => a.name.localeCompare(b.name))
                   .map((room) => {
-                    const stats = getRoomStats(room.id)
-                    const attendanceRate = stats.total > 0 ? (stats.present / stats.total) * 100 : 0
+                    const stats = getRoomStats(room.id);
+                    const attendanceRate =
+                      stats.total > 0 ? (stats.present / stats.total) * 100 : 0;
 
                     return (
                       <Card
@@ -154,24 +201,34 @@ export function RoomGridView({ rooms, students, rollcalls, selectedDate, onUpdat
                         onClick={() => handleRoomClick(room)}
                       >
                         <CardContent className="p-3 text-center">
-                          <div className="font-semibold text-sm mb-1">{room.name}</div>
+                          <div className="font-semibold text-sm mb-1">
+                            {room.name}
+                          </div>
                           <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mb-2">
                             <Users className="h-3 w-3" />
                             {stats.total}명
                           </div>
                           <div className="space-y-1">
-                            <Badge variant={stats.present > 0 ? "default" : "secondary"} className="text-xs px-1 py-0">
+                            <Badge
+                              variant={
+                                stats.present > 0 ? "default" : "secondary"
+                              }
+                              className="text-xs px-1 py-0"
+                            >
                               출석 {stats.present}
                             </Badge>
                             {stats.absent > 0 && (
-                              <Badge variant="destructive" className="text-xs px-1 py-0">
+                              <Badge
+                                variant="destructive"
+                                className="text-xs px-1 py-0"
+                              >
                                 결석 {stats.absent}
                               </Badge>
                             )}
                           </div>
                         </CardContent>
                       </Card>
-                    )
+                    );
                   })}
               </div>
             </div>
@@ -194,36 +251,75 @@ export function RoomGridView({ rooms, students, rollcalls, selectedDate, onUpdat
               <h4 className="font-medium">학생 목록 및 출석 관리</h4>
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {selectedRoomStudents.map((student) => {
-                  const rollcall = rollcalls.find((r) => r.studentId === student.id)
-                  const isPresent = rollcall?.present || false
+                  const rollcall = rollcalls.find(
+                    (r) => r.studentId === student.id,
+                  );
+                  const isPresent = rollcall?.present || false;
 
                   return (
-                    <div key={student.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div
+                      key={student.id}
+                      className="flex items-center justify-between p-3 border rounded-lg"
+                    >
                       <div className="flex items-center gap-3">
                         <Checkbox
                           checked={selectedStudents.includes(student.id)}
-                          onCheckedChange={() => toggleStudentSelection(student.id)}
+                          onCheckedChange={() =>
+                            toggleStudentSelection(student.id)
+                          }
                         />
-                        <div>
-                          <div className="font-medium">{student.name}</div>
-                          <div className="text-sm text-muted-foreground">{student.studentNo}</div>
+                        <div className="flex items-center gap-2">
+                          <div>
+                            <div className="font-medium">{student.name}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {student.studentNo}
+                            </div>
+                          </div>
+                          {(() => {
+                            const rollcall = getStudentRollcall(student.id);
+                            const currentStatus =
+                              rollcall?.status ||
+                              (rollcall?.present ? "PRESENT" : "ABSENT");
+
+                            const statusConfig = {
+                              PRESENT: {
+                                variant: "default" as const,
+                                label: "재실",
+                              },
+                              LEAVE: {
+                                variant: "outline" as const,
+                                label: "외박",
+                              },
+                              ABSENT: {
+                                variant: "destructive" as const,
+                                label: "결석",
+                              },
+                            };
+
+                            const config =
+                              statusConfig[
+                                currentStatus as keyof typeof statusConfig
+                              ] || statusConfig.PRESENT;
+
+                            return (
+                              <Badge variant={config.variant}>
+                                {config.label}
+                              </Badge>
+                            );
+                          })()}
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <Badge variant={student.status === "IN" ? "default" : "secondary"}>
-                          {student.status === "IN" ? "재실" : student.status === "OUT" ? "외출" : "외박"}
-                        </Badge>
-                        <Button
-                          size="sm"
-                          variant={isPresent ? "default" : "outline"}
-                          onClick={() => toggleAttendance(student)}
-                        >
-                          {isPresent ? "출석" : "결석"}
-                        </Button>
+                      <div className="flex flex-col gap-2">
+                        <AttendanceStatusButtons
+                          student={student}
+                          rollcall={getStudentRollcall(student.id)}
+                          onStatusChange={handleStatusChange}
+                          className="min-w-[180px]"
+                        />
                       </div>
                     </div>
-                  )
+                  );
                 })}
               </div>
             </div>
@@ -239,7 +335,12 @@ export function RoomGridView({ rooms, students, rollcalls, selectedDate, onUpdat
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>구분</Label>
-                    <Select value={pointType} onValueChange={(value: "MERIT" | "DEMERIT") => setPointType(value)}>
+                    <Select
+                      value={pointType}
+                      onValueChange={(value: "MERIT" | "DEMERIT") =>
+                        setPointType(value)
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -276,13 +377,32 @@ export function RoomGridView({ rooms, students, rollcalls, selectedDate, onUpdat
                   disabled={isSubmitting || !pointScore || !pointReason}
                   className="w-full"
                 >
-                  {isSubmitting ? "처리 중..." : `${pointType === "MERIT" ? "상점" : "벌점"} 부여`}
+                  {isSubmitting
+                    ? "처리 중..."
+                    : `${pointType === "MERIT" ? "상점" : "벌점"} 부여`}
                 </Button>
               </div>
             )}
+
+            {/* 저장 및 닫기 버튼 */}
+            <div className="flex justify-center pt-4 border-t">
+              <Button
+                onClick={() => {
+                  console.log("저장 및 닫기 버튼 클릭됨");
+                  toast.success("저장되었습니다.", {
+                    description: "학생 출석 정보가 저장되었습니다.",
+                    duration: 3000,
+                  });
+                  setSelectedRoom(null);
+                }}
+                className="px-8"
+              >
+                저장 및 닫기
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }
