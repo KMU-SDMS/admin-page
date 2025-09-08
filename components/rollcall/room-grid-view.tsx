@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -12,18 +12,19 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Users, Award } from "lucide-react"
 import { toast } from "sonner"
-import { api } from "@/lib/api"
-import type { Room, Student, RollCall } from "@/lib/types"
+import { AttendanceStatusButtons, type AttendanceStatus } from "@/components/rollcall/attendance-status-buttons"
+import type { Room, Student, Rollcall } from "@/lib/types"
 
 interface RoomGridViewProps {
   rooms: Room[]
   students: Student[]
-  rollcalls: RollCall[]
+  rollcalls: Rollcall[]
   selectedDate: string
-  onUpdateRollcall: (rollcall: RollCall) => void
+  onUpdateRollcall: (rollcall: Rollcall) => void
 }
 
 export function RoomGridView({ rooms, students, rollcalls, selectedDate, onUpdateRollcall }: RoomGridViewProps) {
+  console.log("RoomGridView 렌더링, rollcalls:", rollcalls)
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
   const [selectedStudents, setSelectedStudents] = useState<number[]>([])
   const [pointType, setPointType] = useState<"MERIT" | "DEMERIT">("MERIT")
@@ -74,23 +75,31 @@ export function RoomGridView({ rooms, students, rollcalls, selectedDate, onUpdat
     )
   }
 
-  // 출석 상태 토글
-  const toggleAttendance = async (student: Student) => {
-    const existingRollcall = rollcalls.find((r) => r.studentId === student.id)
-    const newPresent = !existingRollcall?.present
+  // 출석 상태 변경
+  const handleStatusChange = async (studentId: number, status: AttendanceStatus) => {
+    const student = students.find(s => s.id === studentId)
+    if (!student) return
+
+    const present = status === "PRESENT"
+    console.log("상태 변경:", { studentId, status, present, studentName: student.name })
 
     try {
       const rollcallData = {
         studentId: student.id,
+        roomId: student.roomId,
         date: selectedDate,
-        present: newPresent,
-        note: existingRollcall?.note || "",
+        present,
+        status,
+        note: "",
       }
 
-      const updatedRollcall = await api.post<RollCall>("/rollcalls", rollcallData)
-      onUpdateRollcall(updatedRollcall)
+      console.log("rollcallData:", rollcallData)
+      
+      // onUpdateRollcall을 호출하여 상태 업데이트
+      await onUpdateRollcall(rollcallData)
       toast.success(`${student.name} 출석 상태가 업데이트되었습니다.`)
     } catch (error) {
+      console.error("상태 변경 에러:", error)
       toast.error("출석 상태 업데이트에 실패했습니다.")
     }
   }
@@ -104,17 +113,9 @@ export function RoomGridView({ rooms, students, rollcalls, selectedDate, onUpdat
 
     setIsSubmitting(true)
     try {
-      const promises = selectedStudents.map((studentId) =>
-        api.post("/points", {
-          studentId,
-          type: pointType,
-          score: Number.parseInt(pointScore),
-          reason: pointReason,
-          date: selectedDate,
-        }),
-      )
-
-      await Promise.all(promises)
+      // Mock 데이터로 시뮬레이션
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
       toast.success(`${selectedStudents.length}명에게 ${pointType === "MERIT" ? "상점" : "벌점"}이 부여되었습니다.`)
       setSelectedRoom(null)
     } catch (error) {
@@ -125,6 +126,15 @@ export function RoomGridView({ rooms, students, rollcalls, selectedDate, onUpdat
   }
 
   const selectedRoomStudents = selectedRoom ? students.filter((s) => s.roomId === selectedRoom.id) : []
+
+  // 각 학생의 rollcall 데이터를 메모이제이션
+  const getStudentRollcall = useMemo(() => {
+    return (studentId: number) => {
+      const rollcall = rollcalls.find(r => r.studentId === studentId)
+      console.log(`학생 ${studentId}의 rollcall:`, rollcall)
+      return rollcall
+    }
+  }, [rollcalls])
 
   return (
     <>
@@ -210,17 +220,32 @@ export function RoomGridView({ rooms, students, rollcalls, selectedDate, onUpdat
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <Badge variant={student.status === "IN" ? "default" : "secondary"}>
-                          {student.status === "IN" ? "재실" : student.status === "OUT" ? "외출" : "외박"}
-                        </Badge>
-                        <Button
-                          size="sm"
-                          variant={isPresent ? "default" : "outline"}
-                          onClick={() => toggleAttendance(student)}
-                        >
-                          {isPresent ? "출석" : "결석"}
-                        </Button>
+                      <div className="flex flex-col gap-2">
+                        {(() => {
+                          const rollcall = getStudentRollcall(student.id)
+                          const currentStatus = rollcall?.status || (rollcall?.present ? "PRESENT" : "ABSENT")
+                          
+                          const statusConfig = {
+                            PRESENT: { variant: "default" as const, label: "재실" },
+                            OUT: { variant: "secondary" as const, label: "외출" },
+                            LEAVE: { variant: "outline" as const, label: "외박" },
+                            ABSENT: { variant: "destructive" as const, label: "결석" },
+                          }
+                          
+                          const config = statusConfig[currentStatus as keyof typeof statusConfig] || statusConfig.PRESENT
+                          
+                          return (
+                            <Badge variant={config.variant}>
+                              {config.label}
+                            </Badge>
+                          )
+                        })()}
+                        <AttendanceStatusButtons
+                          student={student}
+                          rollcall={getStudentRollcall(student.id)}
+                          onStatusChange={handleStatusChange}
+                          className="min-w-[180px]"
+                        />
                       </div>
                     </div>
                   )

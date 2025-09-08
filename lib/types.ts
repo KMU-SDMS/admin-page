@@ -20,6 +20,7 @@ export interface Rollcall {
   roomId: number
   studentId: number
   present: boolean
+  status?: "PRESENT" | "OUT" | "LEAVE" | "ABSENT"
   checkedAt?: string
   checker?: string
   note?: string

@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { EmptyState } from "@/components/ui/empty-state"
 import { useToast } from "@/hooks/use-toast"
+import { AttendanceStatusButtons, type AttendanceStatus } from "@/components/rollcall/attendance-status-buttons"
 import type { Student, Rollcall, Room } from "@/lib/types"
 
 interface RollCallChecklistProps {
@@ -64,7 +65,7 @@ export function RollCallChecklist({
     }))
   }
 
-  const saveRollcall = async (student: Student, present: boolean, note: string) => {
+  const saveRollcall = async (student: Student, present: boolean, note: string, status?: AttendanceStatus) => {
     updateRollcallState(student.id, { saving: true, error: null })
 
     try {
@@ -73,6 +74,7 @@ export function RollCallChecklist({
         studentId: student.id,
         roomId: student.roomId,
         present,
+        status,
         note: note.trim() || undefined,
       })
 
@@ -98,6 +100,15 @@ export function RollCallChecklist({
     const currentData = getRollcallData(student.id)
     updateRollcallState(student.id, { present })
     saveRollcall(student, present, currentData.note)
+  }
+
+  const handleStatusChange = async (studentId: number, status: AttendanceStatus) => {
+    const student = students.find(s => s.id === studentId)
+    if (!student) return
+
+    const present = status === "PRESENT"
+    updateRollcallState(studentId, { present })
+    await saveRollcall(student, present, "", status)
   }
 
   const handleNoteChange = (studentId: number, note: string) => {
@@ -157,7 +168,7 @@ export function RollCallChecklist({
                 <TableHead>학번</TableHead>
                 <TableHead>호실</TableHead>
                 <TableHead>상태</TableHead>
-                <TableHead>출석</TableHead>
+                <TableHead>출석 상태</TableHead>
                 <TableHead>비고</TableHead>
                 <TableHead>저장</TableHead>
               </TableRow>
@@ -172,12 +183,34 @@ export function RollCallChecklist({
                     <TableCell className="font-medium">{student.name}</TableCell>
                     <TableCell>{student.studentNo}</TableCell>
                     <TableCell>{room?.name || `호실 ${student.roomId}`}</TableCell>
-                    <TableCell>{getStatusBadge(student.status)}</TableCell>
                     <TableCell>
-                      <Switch
-                        checked={rollcallData.present}
-                        onCheckedChange={(present) => handlePresentChange(student, present)}
+                      {(() => {
+                        const rollcall = rollcalls.find(r => r.studentId === student.id)
+                        const currentStatus = rollcall?.status || (rollcall?.present ? "PRESENT" : "ABSENT")
+                        
+                        const statusConfig = {
+                          PRESENT: { variant: "default" as const, label: "재실" },
+                          OUT: { variant: "secondary" as const, label: "외출" },
+                          LEAVE: { variant: "outline" as const, label: "외박" },
+                          ABSENT: { variant: "destructive" as const, label: "결석" },
+                        }
+                        
+                        const config = statusConfig[currentStatus as keyof typeof statusConfig] || statusConfig.PRESENT
+                        
+                        return (
+                          <Badge variant={config.variant}>
+                            {config.label}
+                          </Badge>
+                        )
+                      })()}
+                    </TableCell>
+                    <TableCell>
+                      <AttendanceStatusButtons
+                        student={student}
+                        rollcall={rollcalls.find(r => r.studentId === student.id)}
+                        onStatusChange={handleStatusChange}
                         disabled={rollcallData.saving}
+                        className="min-w-[200px]"
                       />
                     </TableCell>
                     <TableCell>
