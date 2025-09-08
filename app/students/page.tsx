@@ -22,7 +22,6 @@ import { Student } from "@/lib/types";
 export default function StudentsPage() {
   const [nameSearch, setNameSearch] = useState("");
   const [roomFilter, setRoomFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
 
   const {
@@ -37,11 +36,8 @@ export default function StudentsPage() {
 
   const { data: rooms } = useRooms();
 
-  // Filter students by status
-  const filteredStudents = students.filter((student) => {
-    if (statusFilter === "all") return true;
-    return student.status === statusFilter;
-  });
+  // Filter students (no status filtering needed)
+  const filteredStudents = students;
 
   // Get unique room names for filter
   const roomOptions = rooms.map((room) => ({
@@ -58,9 +54,6 @@ export default function StudentsPage() {
   // Statistics
   const stats = {
     total: students.length,
-    in: students.filter((s) => s.status === "IN").length,
-    leave: students.filter((s) => s.status === "LEAVE").length,
-    absent: students.filter((s) => s.status === "ABSENT").length,
   };
 
   const handleEditStudent = (student: Student) => {
@@ -96,7 +89,7 @@ export default function StudentsPage() {
         </div>
 
         {/* Statistics */}
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-1">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center gap-2">
@@ -104,39 +97,6 @@ export default function StudentsPage() {
                 <span className="text-sm font-medium">전체 학생</span>
               </div>
               <div className="text-2xl font-bold mt-2">{stats.total}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-green-600" />
-                <span className="text-sm font-medium">입실</span>
-              </div>
-              <div className="text-2xl font-bold mt-2 text-green-600">
-                {stats.in}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-red-600" />
-                <span className="text-sm font-medium">외박</span>
-              </div>
-              <div className="text-2xl font-bold mt-2 text-red-600">
-                {stats.leave}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-orange-600" />
-                <span className="text-sm font-medium">결석</span>
-              </div>
-              <div className="text-2xl font-bold mt-2 text-orange-600">
-                {stats.absent}
-              </div>
             </CardContent>
           </Card>
         </div>
@@ -150,7 +110,7 @@ export default function StudentsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               <div className="space-y-2">
                 <Label>학생명 검색</Label>
                 <div className="relative">
@@ -177,21 +137,6 @@ export default function StudentsPage() {
                         {room.label}
                       </SelectItem>
                     ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>상태</Label>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="전체 상태" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">전체 상태</SelectItem>
-                    <SelectItem value="IN">입실</SelectItem>
-                    <SelectItem value="LEAVE">외박</SelectItem>
-                    <SelectItem value="ABSENT">결석</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

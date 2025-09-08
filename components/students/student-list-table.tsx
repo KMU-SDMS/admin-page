@@ -11,7 +11,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
@@ -47,22 +46,6 @@ export function StudentListTable({
   onSelectionChange,
 }: StudentListTableProps) {
   const [selectAll, setSelectAll] = useState(false);
-
-  const getStatusBadge = (status: Student["status"]) => {
-    const variants = {
-      IN: "default",
-      LEAVE: "destructive",
-      ABSENT: "secondary",
-    } as const;
-
-    const labels = {
-      IN: "입실",
-      LEAVE: "외박",
-      ABSENT: "결석",
-    };
-
-    return <Badge variant={variants[status]}>{labels[status]}</Badge>;
-  };
 
   const getRoomName = (roomId: number) => {
     const room = rooms.find((r) => r.id === roomId);
@@ -120,8 +103,8 @@ export function StudentListTable({
             </TableHead>
             <TableHead>학번</TableHead>
             <TableHead>이름</TableHead>
+            <TableHead>소속</TableHead>
             <TableHead>호실</TableHead>
-            <TableHead>상태</TableHead>
             <TableHead className="text-right">작업</TableHead>
           </TableRow>
         </TableHeader>
@@ -150,8 +133,10 @@ export function StudentListTable({
                   {student.studentNo}
                 </TableCell>
                 <TableCell>{student.name}</TableCell>
+                <TableCell>{`${student.college || ""} ${
+                  student.major || ""
+                }`}</TableCell>
                 <TableCell>{getRoomName(student.roomId)}</TableCell>
-                <TableCell>{getStatusBadge(student.status)}</TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
