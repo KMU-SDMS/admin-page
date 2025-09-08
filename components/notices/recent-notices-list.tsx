@@ -13,6 +13,7 @@ interface RecentNoticesListProps {
   isLoading: boolean;
   getTargetDisplay: (notice: Notice) => string;
   onRefresh: () => void;
+  onNoticeClick?: (notice: Notice) => void;
 }
 
 export function RecentNoticesList({
@@ -20,6 +21,7 @@ export function RecentNoticesList({
   isLoading,
   getTargetDisplay,
   onRefresh,
+  onNoticeClick,
 }: RecentNoticesListProps) {
   const getTargetBadge = (notice: Notice) => {
     if (notice.target === "ALL") return <Badge variant="default">전체</Badge>;
@@ -66,7 +68,8 @@ export function RecentNoticesList({
             {notices.slice(0, 10).map((notice) => (
               <div
                 key={notice.id}
-                className="space-y-3 p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
+                className="space-y-3 p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors cursor-pointer"
+                onClick={() => onNoticeClick?.(notice)}
               >
                 <div className="space-y-2">
                   <h4 className="font-medium line-clamp-2 text-sm leading-relaxed">

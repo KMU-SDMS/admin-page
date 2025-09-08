@@ -18,11 +18,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { NoticePreview } from "@/components/notices/notice-preview";
+import { NoticePreviewModal } from "@/components/notices/notice-preview-modal";
 import { RecentNoticesList } from "@/components/notices/recent-notices-list";
 import { useNotices } from "@/hooks/use-notices";
 import { useRooms } from "@/hooks/use-rooms";
 import { useToast } from "@/hooks/use-toast";
+import type { Notice } from "@/lib/types";
 
 interface NoticeForm {
   title: string;
@@ -39,7 +40,8 @@ export default function NoticesPage() {
     target: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
 
   const { toast } = useToast();
   const {
@@ -52,7 +54,7 @@ export default function NoticesPage() {
 
   // Get unique floors for selection
   const floors = Array.from(new Set(rooms.map((r) => r.floor))).sort(
-    (a, b) => a - b,
+    (a, b) => a - b
   );
 
   const handleInputChange = (field: keyof NoticeForm, value: any) => {
@@ -145,6 +147,11 @@ export default function NoticesPage() {
   };
 
   const isFormValid = form.title.trim() && form.body.trim() && form.target;
+
+  const handleNoticeClick = (notice: Notice) => {
+    setSelectedNotice(notice);
+    setShowModal(true);
+  };
 
   return (
     <Layout>
@@ -278,11 +285,11 @@ export default function NoticesPage() {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => setShowPreview(!showPreview)}
+                      onClick={() => setShowModal(true)}
                       disabled={!isFormValid}
                     >
                       <Eye className="h-4 w-4 mr-2" />
-                      {showPreview ? "편집" : "미리보기"}
+                      미리보기
                     </Button>
                     <Button
                       type="submit"
@@ -304,18 +311,6 @@ export default function NoticesPage() {
                 </form>
               </CardContent>
             </Card>
-
-            {/* Preview */}
-            {showPreview && isFormValid && (
-              <NoticePreview
-                title={form.title}
-                body={form.body}
-                target={form.target}
-                floor={form.floor}
-                roomId={form.roomId}
-                rooms={rooms}
-              />
-            )}
           </div>
 
           {/* Recent Notices */}
@@ -325,9 +320,43 @@ export default function NoticesPage() {
               isLoading={noticesLoading}
               getTargetDisplay={getTargetDisplay}
               onRefresh={refetchNotices}
+              onNoticeClick={handleNoticeClick}
             />
           </div>
         </div>
+
+        {/* Notice Preview Modal */}
+        <NoticePreviewModal
+          isOpen={showModal}
+          onClose={() => {
+            setShowModal(false);
+            setSelectedNotice(null);
+          }}
+          noticeData={
+            selectedNotice
+              ? {
+                  title: selectedNotice.title,
+                  body: selectedNotice.body,
+                  target: selectedNotice.target,
+                  floor:
+                    selectedNotice.target === "FLOOR"
+                      ? Number(selectedNotice.targetValue)
+                      : undefined,
+                  roomId:
+                    selectedNotice.target === "ROOM"
+                      ? Number(selectedNotice.targetValue)
+                      : undefined,
+                }
+              : {
+                  title: form.title,
+                  body: form.body,
+                  target: form.target as "ALL" | "FLOOR" | "ROOM",
+                  floor: form.floor,
+                  roomId: form.roomId,
+                }
+          }
+          rooms={rooms}
+        />
       </div>
     </Layout>
   );
