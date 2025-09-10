@@ -18,7 +18,7 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(
-        `HTTP ${response.status}: ${errorText || response.statusText}`,
+        `HTTP ${response.status}: ${errorText || response.statusText}`
       );
     }
 
