@@ -53,16 +53,13 @@ export function RoomGridView({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 층별로 호실 그룹화
-  const roomsByFloor = rooms.reduce(
-    (acc, room) => {
-      if (!acc[room.floor]) {
-        acc[room.floor] = [];
-      }
-      acc[room.floor].push(room);
-      return acc;
-    },
-    {} as Record<number, Room[]>,
-  );
+  const roomsByFloor = rooms.reduce((acc, room) => {
+    if (!acc[room.floor]) {
+      acc[room.floor] = [];
+    }
+    acc[room.floor].push(room);
+    return acc;
+  }, {} as Record<number, Room[]>);
 
   // 호실별 학생 수와 출석 상태 계산
   const getRoomStats = (roomId: number) => {
@@ -93,14 +90,14 @@ export function RoomGridView({
     setSelectedStudents((prev) =>
       prev.includes(studentId)
         ? prev.filter((id) => id !== studentId)
-        : [...prev, studentId],
+        : [...prev, studentId]
     );
   };
 
   // 출석 상태 변경
   const handleStatusChange = async (
     studentId: number,
-    status: AttendanceStatus,
+    status: AttendanceStatus
   ) => {
     const student = students.find((s) => s.id === studentId);
     if (!student) return;
@@ -147,7 +144,9 @@ export function RoomGridView({
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       toast.success(
-        `${selectedStudents.length}명에게 ${pointType === "MERIT" ? "상점" : "벌점"}이 부여되었습니다.`,
+        `${selectedStudents.length}명에게 ${
+          pointType === "MERIT" ? "상점" : "벌점"
+        }이 부여되었습니다.`
       );
       setSelectedRoom(null);
     } catch (error) {
@@ -195,8 +194,8 @@ export function RoomGridView({
                           attendanceRate === 100
                             ? "bg-green-50 border-green-200 hover:bg-green-100"
                             : attendanceRate > 0
-                              ? "bg-yellow-50 border-yellow-200 hover:bg-yellow-100"
-                              : "bg-red-50 border-red-200 hover:bg-red-100"
+                            ? "bg-yellow-50 border-yellow-200 hover:bg-yellow-100"
+                            : "bg-red-50 border-red-200 hover:bg-red-100"
                         }`}
                         onClick={() => handleRoomClick(room)}
                       >
@@ -252,7 +251,7 @@ export function RoomGridView({
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {selectedRoomStudents.map((student) => {
                   const rollcall = rollcalls.find(
-                    (r) => r.studentId === student.id,
+                    (r) => r.studentId === student.id
                   );
                   const isPresent = rollcall?.present || false;
 
@@ -272,7 +271,7 @@ export function RoomGridView({
                           <div>
                             <div className="font-medium">{student.name}</div>
                             <div className="text-sm text-muted-foreground">
-                              {student.studentNo}
+                              {student.studentIdNum}
                             </div>
                           </div>
                           {(() => {

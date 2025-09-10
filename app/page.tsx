@@ -117,7 +117,7 @@ export default function HomePage() {
                           <div>
                             <p className="font-medium">{student.name}</p>
                             <p className="text-sm text-muted-foreground">
-                              {student.studentNo}
+                              {student.studentIdNum}
                             </p>
                           </div>
                         </div>
