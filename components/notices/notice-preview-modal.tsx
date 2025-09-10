@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Calendar, User } from "lucide-react";
-import type { Room } from "@/lib/types";
 
 interface NoticePreviewModalProps {
   isOpen: boolean;
@@ -18,7 +17,6 @@ interface NoticePreviewModalProps {
     is_important: boolean;
     date: string;
   };
-  rooms: Room[];
   onOpenInNewWindow?: () => void;
 }
 
@@ -26,7 +24,6 @@ export function NoticePreviewModal({
   isOpen,
   onClose,
   noticeData,
-  rooms,
   onOpenInNewWindow,
 }: NoticePreviewModalProps) {
   // 키보드 접근성 (ESC로 닫기)

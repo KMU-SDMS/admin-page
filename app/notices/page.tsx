@@ -10,34 +10,25 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { NoticePreviewModal } from "@/components/notices/notice-preview-modal";
 import { RecentNoticesList } from "@/components/notices/recent-notices-list";
 import { useNotices } from "@/hooks/use-notices";
-import { useRooms } from "@/hooks/use-rooms";
 import { useToast } from "@/hooks/use-toast";
 import type { Notice } from "@/lib/types";
 
 interface NoticeForm {
   title: string;
-  body: string;
-  target: "ALL" | "FLOOR" | "ROOM" | "";
-  floor?: number;
-  roomId?: number;
+  content: string;
+  is_important: boolean;
 }
 
 export default function NoticesPage() {
   const [form, setForm] = useState<NoticeForm>({
     title: "",
-    body: "",
-    target: "",
+    content: "",
+    is_important: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -50,52 +41,21 @@ export default function NoticesPage() {
     refetch: refetchNotices,
     mutate: mutateNotice,
   } = useNotices();
-  const { data: rooms } = useRooms();
-
-  // Get unique floors for selection
-  const floors = Array.from(new Set(rooms.map((r) => r.floor))).sort(
-    (a, b) => a - b
-  );
 
   const handleInputChange = (field: keyof NoticeForm, value: any) => {
-    setForm((prev) => {
-      const updated = { ...prev, [field]: value };
-
-      // Reset dependent fields when target changes
-      if (field === "target") {
-        delete updated.floor;
-        delete updated.roomId;
-      }
-
-      return updated;
-    });
+    setForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!form.title.trim() || !form.body.trim() || !form.target) {
+    if (!form.title.trim() || !form.content.trim()) {
       toast({
         title: "입력 오류",
-        description: "제목, 내용, 대상을 모두 입력해주세요.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (form.target === "FLOOR" && !form.floor) {
-      toast({
-        title: "입력 오류",
-        description: "층을 선택해주세요.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (form.target === "ROOM" && !form.roomId) {
-      toast({
-        title: "입력 오류",
-        description: "호실을 선택해주세요.",
+        description: "제목과 내용을 모두 입력해주세요.",
         variant: "destructive",
       });
       return;
@@ -106,10 +66,8 @@ export default function NoticesPage() {
     try {
       await mutateNotice({
         title: form.title.trim(),
-        body: form.body.trim(),
-        target: form.target,
-        floor: form.target === "FLOOR" ? form.floor : undefined,
-        roomId: form.target === "ROOM" ? form.roomId : undefined,
+        content: form.content.trim(),
+        is_important: form.is_important,
       });
 
       toast({
@@ -120,8 +78,8 @@ export default function NoticesPage() {
       // Reset form
       setForm({
         title: "",
-        body: "",
-        target: "",
+        content: "",
+        is_important: false,
       });
       setShowModal(false);
     } catch (error) {
@@ -140,7 +98,7 @@ export default function NoticesPage() {
     return notice.is_important ? "중요공지" : "일반공지";
   };
 
-  const isFormValid = form.title.trim() && form.body.trim() && form.target;
+  const isFormValid = form.title.trim() && form.content.trim();
 
   const handleNoticeClick = (notice: Notice) => {
     setSelectedNotice(notice);
@@ -185,92 +143,38 @@ export default function NoticesPage() {
                     </div>
                   </div>
 
-                  {/* Target Selection */}
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <div className="space-y-2">
-                      <Label>대상</Label>
-                      <Select
-                        value={form.target}
-                        onValueChange={(value) =>
-                          handleInputChange("target", value)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="공지 대상 선택" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="ALL">전체</SelectItem>
-                          <SelectItem value="FLOOR">특정 층</SelectItem>
-                          <SelectItem value="ROOM">특정 호실</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {form.target === "FLOOR" && (
-                      <div className="space-y-2">
-                        <Label>층</Label>
-                        <Select
-                          value={form.floor?.toString() || ""}
-                          onValueChange={(value) =>
-                            handleInputChange("floor", Number.parseInt(value))
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="층 선택" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {floors.map((floor) => (
-                              <SelectItem key={floor} value={floor.toString()}>
-                                {floor}층
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-
-                    {form.target === "ROOM" && (
-                      <div className="space-y-2">
-                        <Label>호실</Label>
-                        <Select
-                          value={form.roomId?.toString() || ""}
-                          onValueChange={(value) =>
-                            handleInputChange("roomId", Number.parseInt(value))
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="호실 선택" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {rooms.map((room) => (
-                              <SelectItem
-                                key={room.id}
-                                value={room.id.toString()}
-                              >
-                                {room.name} ({room.floor}층)
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
+                  {/* Important Notice Checkbox */}
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="is_important"
+                      checked={form.is_important}
+                      onCheckedChange={(checked) =>
+                        handleInputChange("is_important", checked)
+                      }
+                    />
+                    <Label
+                      htmlFor="is_important"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      중요공지로 설정
+                    </Label>
                   </div>
 
-                  {/* Body */}
+                  {/* Content */}
                   <div className="space-y-2">
-                    <Label htmlFor="body">내용</Label>
+                    <Label htmlFor="content">내용</Label>
                     <Textarea
-                      id="body"
+                      id="content"
                       placeholder="공지사항 내용을 입력하세요"
-                      value={form.body}
+                      value={form.content}
                       onChange={(e) =>
-                        handleInputChange("body", e.target.value)
+                        handleInputChange("content", e.target.value)
                       }
                       rows={8}
                       maxLength={2000}
                     />
                     <div className="text-xs text-muted-foreground text-right">
-                      {form.body.length}/2000
+                      {form.content.length}/2000
                     </div>
                   </div>
 
@@ -336,12 +240,11 @@ export default function NoticesPage() {
                 }
               : {
                   title: form.title,
-                  body: form.body,
-                  is_important: false,
+                  body: form.content,
+                  is_important: form.is_important,
                   date: new Date().toISOString().split("T")[0],
                 }
           }
-          rooms={rooms}
         />
       </div>
     </Layout>
