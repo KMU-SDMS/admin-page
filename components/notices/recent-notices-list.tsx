@@ -24,11 +24,9 @@ export function RecentNoticesList({
   onNoticeClick,
 }: RecentNoticesListProps) {
   const getTargetBadge = (notice: Notice) => {
-    if (notice.target === "ALL") return <Badge variant="default">전체</Badge>;
-    if (notice.target === "FLOOR")
-      return <Badge variant="secondary">{notice.floor}층</Badge>;
-    if (notice.target === "ROOM") return <Badge variant="outline">호실</Badge>;
-    return null;
+    if (notice.is_important)
+      return <Badge variant="destructive">중요공지</Badge>;
+    return <Badge variant="default">일반공지</Badge>;
   };
 
   return (
@@ -79,15 +77,13 @@ export function RecentNoticesList({
                     {getTargetBadge(notice)}
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Calendar className="h-3 w-3" />
-                      <span>
-                        {new Date(notice.createdAt).toLocaleDateString()}
-                      </span>
+                      <span>{new Date(notice.date).toLocaleDateString()}</span>
                     </div>
                   </div>
                 </div>
-                {notice.body && (
+                {notice.content && (
                   <div className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                    {notice.body}
+                    {notice.content}
                   </div>
                 )}
               </div>

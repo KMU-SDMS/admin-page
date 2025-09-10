@@ -123,7 +123,7 @@ export default function NoticesPage() {
         body: "",
         target: "",
       });
-      setShowPreview(false);
+      setShowModal(false);
     } catch (error) {
       toast({
         title: "공지 작성 실패",
@@ -136,14 +136,8 @@ export default function NoticesPage() {
     }
   };
 
-  const getTargetDisplay = (notice: any) => {
-    if (notice.target === "ALL") return "전체";
-    if (notice.target === "FLOOR") return `${notice.floor}층`;
-    if (notice.target === "ROOM") {
-      const room = rooms.find((r) => r.id === notice.roomId);
-      return room ? room.name : `호실 ${notice.roomId}`;
-    }
-    return notice.target;
+  const getTargetDisplay = (notice: Notice) => {
+    return notice.is_important ? "중요공지" : "일반공지";
   };
 
   const isFormValid = form.title.trim() && form.body.trim() && form.target;
@@ -336,23 +330,15 @@ export default function NoticesPage() {
             selectedNotice
               ? {
                   title: selectedNotice.title,
-                  body: selectedNotice.body,
-                  target: selectedNotice.target,
-                  floor:
-                    selectedNotice.target === "FLOOR"
-                      ? Number(selectedNotice.targetValue)
-                      : undefined,
-                  roomId:
-                    selectedNotice.target === "ROOM"
-                      ? Number(selectedNotice.targetValue)
-                      : undefined,
+                  body: selectedNotice.content,
+                  is_important: selectedNotice.is_important,
+                  date: selectedNotice.date,
                 }
               : {
                   title: form.title,
                   body: form.body,
-                  target: form.target as "ALL" | "FLOOR" | "ROOM",
-                  floor: form.floor,
-                  roomId: form.roomId,
+                  is_important: false,
+                  date: new Date().toISOString().split("T")[0],
                 }
           }
           rooms={rooms}

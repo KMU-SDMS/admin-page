@@ -1,3 +1,5 @@
+import type { Notice } from "./types";
+
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001/";
 
@@ -18,7 +20,7 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(
-        `HTTP ${response.status}: ${errorText || response.statusText}`,
+        `HTTP ${response.status}: ${errorText || response.statusText}`
       );
     }
 
@@ -66,9 +68,16 @@ function apiDelete<T>(path: string) {
   return request<T>(path, { method: "DELETE" });
 }
 
+// Notices API
+export const noticesApi = {
+  getAll: () => apiGet<Notice[]>("/notices"),
+  getById: (id: number) => apiGet<Notice>(`/notices/${id}`),
+};
+
 export const api = {
   get: apiGet,
   post: apiPost,
   patch: apiPatch,
   delete: apiDelete,
+  notices: noticesApi,
 };

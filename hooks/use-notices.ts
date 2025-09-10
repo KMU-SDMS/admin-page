@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { mockNotices } from "@/lib/mock-data";
+import { api } from "@/lib/api";
 import type { Notice, NoticeQuery } from "@/lib/types";
 
 export function useNotices(params: NoticeQuery = {}) {
@@ -13,19 +13,18 @@ export function useNotices(params: NoticeQuery = {}) {
     try {
       setIsLoading(true);
       setError(null);
-      await new Promise((resolve) => setTimeout(resolve, 500)); // 로딩 시뮬레이션
 
-      let filteredNotices = [...mockNotices].sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      );
+      const notices = await api.notices.getAll();
+
+      // id 순서대로 정렬 (내림차순)
+      let sortedNotices = notices.sort((a, b) => b.id - a.id);
 
       // 개수 제한 적용
       if (params.limit) {
-        filteredNotices = filteredNotices.slice(0, params.limit);
+        sortedNotices = sortedNotices.slice(0, params.limit);
       }
 
-      setData(filteredNotices);
+      setData(sortedNotices);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch notices");
     } finally {
@@ -40,19 +39,14 @@ export function useNotices(params: NoticeQuery = {}) {
     floor?: number;
     roomId?: number;
   }) => {
+    // POST API가 구현되지 않았으므로 로컬 상태만 업데이트
     try {
       const newNotice: Notice = {
         id: Math.max(...data.map((n) => n.id), 0) + 1,
         title: noticeData.title,
-        body: noticeData.body,
-        target: noticeData.target,
-        targetValue:
-          noticeData.target === "FLOOR"
-            ? noticeData.floor?.toString()
-            : noticeData.target === "ROOM"
-              ? noticeData.roomId?.toString()
-              : null,
-        createdAt: new Date().toISOString(),
+        content: noticeData.body,
+        date: new Date().toISOString().split("T")[0],
+        is_important: false,
       };
 
       setData((prevData) => [newNotice, ...prevData]);
