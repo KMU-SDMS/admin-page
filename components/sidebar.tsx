@@ -9,6 +9,7 @@ import {
   Package,
   MessageSquare,
   Megaphone,
+  Users,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -20,6 +21,11 @@ const navigation = [
     name: "대시보드",
     href: "/",
     icon: LayoutDashboard,
+  },
+  {
+    name: "학생 관리",
+    href: "/students",
+    icon: Users,
   },
   {
     name: "점호 관리",
@@ -51,7 +57,7 @@ export function Sidebar() {
     <aside
       className={cn(
         "border-r bg-sidebar transition-all duration-300",
-        collapsed ? "w-16" : "w-64",
+        collapsed ? "w-16" : "w-64"
       )}
     >
       <div className="flex h-full flex-col">
@@ -84,7 +90,7 @@ export function Sidebar() {
                   isActive
                     ? "bg-sidebar-accent text-sidebar-accent-foreground"
                     : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                  collapsed && "justify-center",
+                  collapsed && "justify-center"
                 )}
               >
                 <item.icon className="h-4 w-4 flex-shrink-0" />

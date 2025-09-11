@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { mockRollcalls } from "@/lib/mock-data";
+import { api } from "@/lib/api";
 import type { Rollcall, RollcallQuery } from "@/lib/types";
 
 export function useRollcalls(params: RollcallQuery = {}) {
@@ -13,28 +13,13 @@ export function useRollcalls(params: RollcallQuery = {}) {
     try {
       setIsLoading(true);
       setError(null);
-      await new Promise((resolve) => setTimeout(resolve, 500)); // 로딩 시뮬레이션
 
-      let filteredRollcalls = [...mockRollcalls];
-
-      // 날짜 필터링
-      if (params.date) {
-        filteredRollcalls = filteredRollcalls.filter(
-          (rollcall) => rollcall.date === params.date,
-        );
-      }
-
-      // 출석 상태 필터링
-      if (params.present !== undefined) {
-        filteredRollcalls = filteredRollcalls.filter(
-          (rollcall) => rollcall.present === params.present,
-        );
-      }
-
-      setData(filteredRollcalls);
+      // API 호출
+      const rollcalls = await api.get<Rollcall[]>("/rollcalls", params);
+      setData(rollcalls);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to fetch rollcalls",
+        err instanceof Error ? err.message : "Failed to fetch rollcalls"
       );
     } finally {
       setIsLoading(false);
@@ -47,43 +32,29 @@ export function useRollcalls(params: RollcallQuery = {}) {
       studentId: number;
       present: boolean;
       status?: "PRESENT" | "LEAVE" | "ABSENT";
-    },
+    }
   ) => {
     try {
-      console.log("mutate 호출됨:", rollcallData);
-      const existingIndex = data.findIndex(
-        (r) =>
-          r.studentId === rollcallData.studentId &&
-          r.date === rollcallData.date,
+      // API 호출로 점호 기록 생성/업데이트
+      const updatedRollcall = await api.post<Rollcall>(
+        "/rollcalls",
+        rollcallData
       );
 
-      console.log("기존 인덱스:", existingIndex);
+      // 로컬 상태 업데이트
+      const existingIndex = data.findIndex(
+        (r) =>
+          r.studentId === rollcallData.studentId && r.date === rollcallData.date
+      );
 
       if (existingIndex >= 0) {
         // 기존 점호 기록 업데이트
         const updatedData = [...data];
-        updatedData[existingIndex] = {
-          ...updatedData[existingIndex],
-          ...rollcallData,
-        };
-        console.log("기존 기록 업데이트:", updatedData[existingIndex]);
+        updatedData[existingIndex] = updatedRollcall;
         setData(updatedData);
-        console.log("setData 호출됨, 새로운 데이터:", updatedData);
       } else {
         // 새 점호 기록 추가
-        const newRollcall: Rollcall = {
-          id: Math.max(...data.map((r) => r.id), 0) + 1,
-          studentId: rollcallData.studentId,
-          roomId: rollcallData.roomId,
-          date: rollcallData.date,
-          present: rollcallData.present,
-          status: rollcallData.status,
-          note: rollcallData.note || "",
-        };
-        console.log("새 기록 추가:", newRollcall);
-        const newData = [...data, newRollcall];
-        setData(newData);
-        console.log("setData 호출됨, 새로운 데이터:", newData);
+        setData((prevData) => [...prevData, updatedRollcall]);
       }
     } catch (err) {
       console.error("mutate 에러:", err);

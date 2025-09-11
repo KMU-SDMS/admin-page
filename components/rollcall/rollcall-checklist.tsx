@@ -67,7 +67,7 @@ export function RollCallChecklist({
 
   const updateRollcallState = (
     studentId: number,
-    updates: Partial<RollcallState[number]>,
+    updates: Partial<RollcallState[number]>
   ) => {
     setRollcallState((prev) => ({
       ...prev,
@@ -82,7 +82,7 @@ export function RollCallChecklist({
     student: Student,
     present: boolean,
     note: string,
-    status?: AttendanceStatus,
+    status?: AttendanceStatus
   ) => {
     updateRollcallState(student.id, { saving: true, error: null });
 
@@ -123,7 +123,7 @@ export function RollCallChecklist({
 
   const handleStatusChange = async (
     studentId: number,
-    status: AttendanceStatus,
+    status: AttendanceStatus
   ) => {
     const student = students.find((s) => s.id === studentId);
     if (!student) return;
@@ -205,14 +205,14 @@ export function RollCallChecklist({
                     <TableCell className="font-medium">
                       {student.name}
                     </TableCell>
-                    <TableCell>{student.studentNo}</TableCell>
+                    <TableCell>{student.studentIdNum}</TableCell>
                     <TableCell>
                       {room?.name || `호실 ${student.roomId}`}
                     </TableCell>
                     <TableCell>
                       {(() => {
                         const rollcall = rollcalls.find(
-                          (r) => r.studentId === student.id,
+                          (r) => r.studentId === student.id
                         );
                         const currentStatus =
                           rollcall?.status ||
@@ -244,7 +244,7 @@ export function RollCallChecklist({
                       <AttendanceStatusButtons
                         student={student}
                         rollcall={rollcalls.find(
-                          (r) => r.studentId === student.id,
+                          (r) => r.studentId === student.id
                         )}
                         onStatusChange={handleStatusChange}
                         disabled={rollcallData.saving}

@@ -9,9 +9,18 @@ export interface Room {
 export interface Student {
   id: number;
   name: string;
-  studentNo: string;
+  studentIdNum: string;
+  affiliation: string;
+  major: string;
   roomId: number;
-  status: "IN" | "OUT" | "LEAVE";
+  status?: "IN" | "LEAVE" | "ABSENT";
+}
+
+// GET /students/{roomId} 응답용 타입
+export interface RoomStudent {
+  roomId: string;
+  name: string;
+  studentIdNum: string;
 }
 
 export interface Rollcall {
