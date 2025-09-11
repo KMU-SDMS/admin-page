@@ -130,10 +130,10 @@ export function StudentListTable({
                   />
                 </TableCell>
                 <TableCell className="font-medium">
-                  {student.studentNo}
+                  {student.studentIdNum}
                 </TableCell>
                 <TableCell>{student.name}</TableCell>
-                <TableCell>{`${student.college || ""} ${
+                <TableCell>{`${student.affiliation || ""} ${
                   student.major || ""
                 }`}</TableCell>
                 <TableCell>{getRoomName(student.roomId)}</TableCell>

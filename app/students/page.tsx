@@ -18,6 +18,7 @@ import { StudentListTable } from "@/components/students/student-list-table";
 import { useStudents } from "@/hooks/use-students";
 import { useRooms } from "@/hooks/use-rooms";
 import { Student } from "@/lib/types";
+import { useMemo } from "react";
 
 export default function StudentsPage() {
   const [nameSearch, setNameSearch] = useState("");
@@ -25,19 +26,31 @@ export default function StudentsPage() {
   const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
 
   const {
-    data: students,
+    data: allStudents,
     isLoading: studentsLoading,
     error: studentsError,
     refetch: refetchStudents,
-  } = useStudents({
-    name: nameSearch || undefined,
-    roomId: roomFilter === "all" ? undefined : parseInt(roomFilter),
-  });
+  } = useStudents();
 
   const { data: rooms } = useRooms();
 
-  // Filter students (no status filtering needed)
-  const filteredStudents = students;
+  // 클라이언트 사이드 필터링
+  const filteredStudents = useMemo(() => {
+    if (!allStudents) return [];
+
+    return allStudents.filter((student) => {
+      // 이름 검색 필터
+      const nameMatch =
+        nameSearch.trim() === "" ||
+        student.name.toLowerCase().includes(nameSearch.toLowerCase());
+
+      // 호실 필터
+      const roomMatch =
+        roomFilter === "all" || student.roomId === parseInt(roomFilter);
+
+      return nameMatch && roomMatch;
+    });
+  }, [allStudents, nameSearch, roomFilter]);
 
   // Get unique room names for filter
   const roomOptions = rooms.map((room) => ({
@@ -51,9 +64,9 @@ export default function StudentsPage() {
     name: room.name,
   }));
 
-  // Statistics
+  // Statistics (필터링된 결과 반영)
   const stats = {
-    total: students.length,
+    total: filteredStudents.length,
   };
 
   const handleEditStudent = (student: Student) => {

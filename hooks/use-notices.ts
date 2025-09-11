@@ -25,6 +25,7 @@ export function useNotices(params: NoticeQuery = {}) {
       }
 
       setData(sortedNotices);
+
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch notices");
     } finally {

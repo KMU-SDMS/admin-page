@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, forwardRef, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { Student, Rollcall } from "@/lib/types";
@@ -41,10 +41,13 @@ const statusConfig = {
   },
 } as const;
 
-export const AttendanceStatusButtons = forwardRef<
-  HTMLDivElement,
-  AttendanceStatusButtonsProps
->(({ student, rollcall, onStatusChange, disabled = false, className }, ref) => {
+export function AttendanceStatusButtons({
+  student,
+  rollcall,
+  onStatusChange,
+  disabled = false,
+  className,
+}: AttendanceStatusButtonsProps) {
   const [isChanging, setIsChanging] = useState(false);
 
   // 현재 상태 결정: rollcall의 status가 있으면 사용, 없으면 present 기반으로 추론
@@ -78,7 +81,7 @@ export const AttendanceStatusButtons = forwardRef<
   });
 
   return (
-    <div ref={ref} className={cn("flex gap-1", className)}>
+    <div className={cn("flex gap-1", className)}>
       {Object.entries(statusConfig).map(([status, config]) => {
         const statusKey = status as AttendanceStatus;
         const isSelected = currentStatus === statusKey;
@@ -86,7 +89,7 @@ export const AttendanceStatusButtons = forwardRef<
           `버튼 ${status} (${statusKey}) isSelected:`,
           isSelected,
           "currentStatus:",
-          currentStatus,
+          currentStatus
         );
         return (
           <button
@@ -98,7 +101,7 @@ export const AttendanceStatusButtons = forwardRef<
               isSelected && config.selectedClassName,
               disabled && "opacity-50 cursor-not-allowed",
               isChanging && "opacity-70 cursor-wait",
-              !isSelected && "hover:opacity-80",
+              !isSelected && "hover:opacity-80"
             )}
             onClick={() => handleStatusChange(statusKey)}
             disabled={disabled || isChanging}
@@ -109,6 +112,4 @@ export const AttendanceStatusButtons = forwardRef<
       })}
     </div>
   );
-});
-
-AttendanceStatusButtons.displayName = "AttendanceStatusButtons";
+}

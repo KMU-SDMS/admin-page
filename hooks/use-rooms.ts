@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { mockRooms } from "@/lib/mock-data";
+import { api } from "@/lib/api";
 import type { Room } from "@/lib/types";
 
 export function useRooms() {
@@ -13,8 +13,10 @@ export function useRooms() {
     try {
       setIsLoading(true);
       setError(null);
-      await new Promise((resolve) => setTimeout(resolve, 500)); // 로딩 시뮬레이션
-      setData(mockRooms);
+
+      // API 호출
+      const rooms = await api.get<Room[]>("/rooms");
+      setData(rooms);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch rooms");
     } finally {
