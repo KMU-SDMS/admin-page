@@ -248,37 +248,6 @@ export const mockPoints: Point[] = [
   },
 ];
 
-// 목업 공지사항 데이터
-export const mockNotices: Notice[] = [
-  {
-    id: 1,
-    title: "9월 정기 소방훈련 안내",
-    body: "9월 10일(화) 오후 2시에 정기 소방훈련이 실시됩니다. 모든 학생은 참여해주시기 바랍니다.",
-    target: "ALL",
-    floor: undefined,
-    roomId: undefined,
-    createdAt: "2025-09-03T10:00:00Z",
-  },
-  {
-    id: 2,
-    title: "2층 세탁실 이용 안내",
-    body: "2층 세탁실 세탁기 1대가 수리 중입니다. 불편을 드려 죄송합니다.",
-    target: "FLOOR",
-    floor: 2,
-    roomId: undefined,
-    createdAt: "2025-09-04T09:30:00Z",
-  },
-  {
-    id: 3,
-    title: "101호 인터넷 점검 안내",
-    body: "101호 인터넷 점검이 9월 5일 오전 10시부터 12시까지 진행됩니다.",
-    target: "ROOM",
-    floor: undefined,
-    roomId: 1,
-    createdAt: "2025-09-04T14:20:00Z",
-  },
-];
-
 // 목업 택배 데이터
 export const mockParcels = [
   {

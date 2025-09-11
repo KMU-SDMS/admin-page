@@ -70,11 +70,9 @@ export interface Inquiry {
 export interface Notice {
   id: number;
   title: string;
-  body: string;
-  target: "ALL" | "FLOOR" | "ROOM";
-  floor?: number;
-  roomId?: number;
-  createdAt: string;
+  content: string;
+  date: string;
+  is_important: boolean;
 }
 
 // API response types

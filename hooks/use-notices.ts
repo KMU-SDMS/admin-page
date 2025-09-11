@@ -14,9 +14,18 @@ export function useNotices(params: NoticeQuery = {}) {
       setIsLoading(true);
       setError(null);
 
-      // API 호출
-      const notices = await api.get<Notice[]>("/notices", params);
-      setData(notices);
+      const notices = await api.notices.getAll();
+
+      // id 순서대로 정렬 (내림차순)
+      let sortedNotices = notices.sort((a, b) => b.id - a.id);
+
+      // 개수 제한 적용
+      if (params.limit) {
+        sortedNotices = sortedNotices.slice(0, params.limit);
+      }
+
+      setData(sortedNotices);
+
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch notices");
     } finally {
@@ -31,9 +40,16 @@ export function useNotices(params: NoticeQuery = {}) {
     floor?: number;
     roomId?: number;
   }) => {
+    // POST API가 구현되지 않았으므로 로컬 상태만 업데이트
     try {
-      // API 호출로 공지사항 생성
-      const newNotice = await api.post<Notice>("/notices", noticeData);
+      const newNotice: Notice = {
+        id: Math.max(...data.map((n) => n.id), 0) + 1,
+        title: noticeData.title,
+        content: noticeData.body,
+        date: new Date().toISOString().split("T")[0],
+        is_important: false,
+      };
+
       setData((prevData) => [newNotice, ...prevData]);
     } catch (err) {
       throw err;
