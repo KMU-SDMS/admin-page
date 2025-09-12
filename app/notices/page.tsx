@@ -2,8 +2,18 @@
 
 import type React from "react";
 
-import { useState } from "react";
-import { Plus, Eye, Send } from "lucide-react";
+import { useState, useEffect } from "react";
+import {
+  Plus,
+  Eye,
+  Send,
+  RefreshCw,
+  Star,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,9 +21,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { NoticePreviewModal } from "@/components/notices/notice-preview-modal";
-import { RecentNoticesList } from "@/components/notices/recent-notices-list";
 import { useNotices } from "@/hooks/use-notices";
 import { useToast } from "@/hooks/use-toast";
 import type { Notice } from "@/lib/types";
@@ -33,6 +57,11 @@ export default function NoticesPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
+  const [timeFilter, setTimeFilter] = useState<string>("this-week");
+  const [sortFilter, setSortFilter] = useState<string>("latest");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isListExpanded, setIsListExpanded] = useState(false);
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   const { toast } = useToast();
   const {
@@ -98,12 +127,106 @@ export default function NoticesPage() {
     return notice.is_important ? "중요공지" : "일반공지";
   };
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${month}.${day} ${hours}:${minutes}`;
+  };
+
+  // Filter and sort notices
+  const getFilteredNotices = () => {
+    if (!notices) return [];
+
+    let filtered = [...notices];
+
+    // Time filter
+    if (timeFilter !== "all") {
+      const now = new Date();
+      const filterDate = new Date();
+
+      if (timeFilter === "this-week") {
+        filterDate.setDate(now.getDate() - 7);
+      } else if (timeFilter === "this-month") {
+        filterDate.setMonth(now.getMonth() - 1);
+      }
+
+      filtered = filtered.filter(
+        (notice) => new Date(notice.date) >= filterDate
+      );
+    }
+
+    // Sort filter
+    filtered.sort((a, b) => {
+      if (sortFilter === "latest") {
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      } else if (sortFilter === "oldest") {
+        return new Date(a.date).getTime() - new Date(b.date).getTime();
+      }
+      return 0;
+    });
+
+    return filtered;
+  };
+
+  // Pagination logic
+  const itemsPerPage = 10;
+  const totalItems = getFilteredNotices().length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedNotices = getFilteredNotices().slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [timeFilter, sortFilter]);
+
   const isFormValid = form.title.trim() && form.content.trim();
 
   const handleNoticeClick = (notice: Notice) => {
     setSelectedNotice(notice);
     setShowModal(true);
   };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refetchNotices();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Handle F5 refresh
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      setIsRefreshing(true);
+    };
+
+    const handleLoad = () => {
+      setIsRefreshing(false);
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("load", handleLoad);
+
+    // Check if page is being refreshed
+    if (document.readyState === "complete") {
+      setIsRefreshing(false);
+    }
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("load", handleLoad);
+    };
+  }, []);
 
   return (
     <Layout>
@@ -114,9 +237,15 @@ export default function NoticesPage() {
           <p className="text-muted-foreground">기숙사 공지사항 작성 및 관리</p>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Notice Creation Form */}
-          <div className="lg:col-span-2 space-y-6">
+        <div className="flex gap-6">
+          {/* Notice Creation Form - Left Panel */}
+          <div
+            className={`space-y-6 transition-all duration-700 ease-in-out ${
+              isListExpanded
+                ? "w-0 opacity-0 overflow-hidden"
+                : "w-2/3 opacity-100"
+            }`}
+          >
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -131,16 +260,13 @@ export default function NoticesPage() {
                     <Label htmlFor="title">제목</Label>
                     <Input
                       id="title"
-                      placeholder="공지사항 제목을 입력하세요"
+                      placeholder="제목을 입력하세요"
                       value={form.title}
                       onChange={(e) =>
                         handleInputChange("title", e.target.value)
                       }
                       maxLength={100}
                     />
-                    <div className="text-xs text-muted-foreground text-right">
-                      {form.title.length}/100
-                    </div>
                   </div>
 
                   {/* Important Notice Checkbox */}
@@ -173,9 +299,6 @@ export default function NoticesPage() {
                       rows={8}
                       maxLength={2000}
                     />
-                    <div className="text-xs text-muted-foreground text-right">
-                      {form.content.length}/2000
-                    </div>
                   </div>
 
                   {/* Actions */}
@@ -211,15 +334,228 @@ export default function NoticesPage() {
             </Card>
           </div>
 
-          {/* Recent Notices */}
-          <div>
-            <RecentNoticesList
-              notices={notices}
-              isLoading={noticesLoading}
-              getTargetDisplay={getTargetDisplay}
-              onRefresh={refetchNotices}
-              onNoticeClick={handleNoticeClick}
-            />
+          {/* Notice List - Right Panel */}
+          <div
+            className={`space-y-6 transition-all duration-700 ease-in-out ${
+              isListExpanded ? "w-full" : "w-1/3"
+            }`}
+          >
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setIsListExpanded(!isListExpanded)}
+                      title={isListExpanded ? "축소" : "확대"}
+                      className="transition-transform duration-300 ease-in-out"
+                    >
+                      <div className="transition-transform duration-300 ease-in-out">
+                        {isListExpanded ? (
+                          <ChevronLeft className="h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
+                      </div>
+                    </Button>
+                    <CardTitle className="whitespace-nowrap">
+                      공지 목록
+                    </CardTitle>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Select value={timeFilter} onValueChange={setTimeFilter}>
+                      <SelectTrigger className="w-24">
+                        <SelectValue placeholder="이번 주" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="this-week">이번 주</SelectItem>
+                        <SelectItem value="this-month">이번 달</SelectItem>
+                        <SelectItem value="all">전체</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={sortFilter} onValueChange={setSortFilter}>
+                      <SelectTrigger className="w-24">
+                        <SelectValue placeholder="최신순" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="latest">최신순</SelectItem>
+                        <SelectItem value="oldest">오래된순</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={handleRefresh}
+                      disabled={isRefreshing}
+                    >
+                      <RefreshCw
+                        className={`h-4 w-4 ${
+                          isRefreshing ? "animate-spin" : ""
+                        }`}
+                      />
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[600px] flex flex-col">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="hover:bg-transparent">
+                        <TableHead className="hover:bg-transparent">
+                          제목
+                        </TableHead>
+                        <TableHead className="hover:bg-transparent">
+                          공지유형
+                        </TableHead>
+                        <TableHead className="hover:bg-transparent">
+                          작성일
+                        </TableHead>
+                        <TableHead className="hover:bg-transparent">
+                          작성자
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {noticesLoading ? (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center">
+                            <LoadingSpinner />
+                          </TableCell>
+                        </TableRow>
+                      ) : paginatedNotices.length > 0 ? (
+                        <>
+                          {paginatedNotices.map((notice) => (
+                            <TableRow
+                              key={notice.id}
+                              className="cursor-pointer hover:bg-gray-50"
+                              onClick={() => handleNoticeClick(notice)}
+                            >
+                              <TableCell className="font-medium">
+                                <div className="flex items-center gap-2">
+                                  {notice.is_important && (
+                                    <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                                  )}
+                                  {notice.title}
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <span
+                                  className={`px-2 py-1 rounded text-xs ${
+                                    notice.is_important
+                                      ? "bg-red-100 text-red-800"
+                                      : "bg-blue-100 text-blue-800"
+                                  }`}
+                                >
+                                  {notice.is_important
+                                    ? "중요공지"
+                                    : "일반공지"}
+                                </span>
+                              </TableCell>
+                              <TableCell>{formatDate(notice.date)}</TableCell>
+                              <TableCell>관리자</TableCell>
+                            </TableRow>
+                          ))}
+                          {/* Fill remaining rows to maintain height */}
+                          {Array.from(
+                            {
+                              length: Math.max(0, 10 - paginatedNotices.length),
+                            },
+                            (_, i) => (
+                              <TableRow key={`empty-${i}`} className="h-[60px]">
+                                <TableCell
+                                  colSpan={4}
+                                  className="h-[60px]"
+                                ></TableCell>
+                              </TableRow>
+                            )
+                          )}
+                        </>
+                      ) : (
+                        <TableRow>
+                          <TableCell
+                            colSpan={4}
+                            className="text-center text-muted-foreground"
+                          >
+                            공지사항이 없습니다.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+              {/* Pagination */}
+              {totalPages >= 1 && (
+                <div className="flex items-center justify-between px-6 py-4 border-t">
+                  <div className="text-sm text-muted-foreground">
+                    총 {totalItems}개 중 {startIndex + 1}-
+                    {Math.min(endIndex, totalItems)}개 표시
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(1)}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronsLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      {Array.from(
+                        { length: Math.min(5, totalPages) },
+                        (_, i) => {
+                          const pageNum =
+                            Math.max(
+                              1,
+                              Math.min(totalPages - 4, currentPage - 2)
+                            ) + i;
+                          if (pageNum > totalPages) return null;
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={
+                                currentPage === pageNum ? "default" : "outline"
+                              }
+                              size="sm"
+                              onClick={() => handlePageChange(pageNum)}
+                              className="w-8 h-8 p-0"
+                            >
+                              {pageNum}
+                            </Button>
+                          );
+                        }
+                      )}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(totalPages)}
+                      disabled={currentPage === totalPages}
+                    >
+                      <ChevronsRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </Card>
           </div>
         </div>
 
