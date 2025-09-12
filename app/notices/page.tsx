@@ -156,7 +156,7 @@ export default function NoticesPage() {
                       htmlFor="is_important"
                       className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                     >
-                      중요공지로 설정
+                      중요공지
                     </Label>
                   </div>
 

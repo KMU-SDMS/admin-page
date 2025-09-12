@@ -72,6 +72,8 @@ function apiDelete<T>(path: string) {
 export const noticesApi = {
   getAll: () => apiGet<Notice[]>("/notices"),
   getById: (id: number) => apiGet<Notice>(`/notices/${id}`),
+  create: (data: { title: string; content: string; is_important: boolean }) =>
+    apiPost<Notice>("/notice", data),
 };
 
 export const api = {
