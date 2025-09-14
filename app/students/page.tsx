@@ -31,10 +31,19 @@ export default function StudentsPage() {
     refetch: refetchStudents,
   } = useStudents({
     name: nameSearch || undefined,
-    roomId: roomFilter === "all" ? undefined : parseInt(roomFilter),
+    roomId: roomFilter === "all" ? undefined : roomFilter,
   });
 
   const { data: rooms } = useRooms();
+
+  // 디버깅을 위한 로그
+  console.log("현재 roomFilter:", roomFilter);
+  console.log(
+    "전달되는 roomId:",
+    roomFilter === "all" ? undefined : roomFilter
+  );
+  console.log("받은 학생 데이터:", students);
+  console.log("받은 방 데이터:", rooms);
 
   // Filter students (no status filtering needed)
   const filteredStudents = students;

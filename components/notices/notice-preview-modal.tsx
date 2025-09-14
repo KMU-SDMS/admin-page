@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Edit, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,8 +16,11 @@ interface NoticePreviewModalProps {
     body: string;
     is_important: boolean;
     date: string;
+    id?: number;
   };
   onOpenInNewWindow?: () => void;
+  onEdit?: (id: number) => void;
+  onDelete?: (id: number) => void;
 }
 
 export function NoticePreviewModal({
@@ -25,6 +28,8 @@ export function NoticePreviewModal({
   onClose,
   noticeData,
   onOpenInNewWindow,
+  onEdit,
+  onDelete,
 }: NoticePreviewModalProps) {
   // 키보드 접근성 (ESC로 닫기)
   useEffect(() => {
@@ -48,18 +53,47 @@ export function NoticePreviewModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
-          <div className="flex items-center justify-end">
-            {onOpenInNewWindow && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onOpenInNewWindow}
-                className="flex items-center gap-1"
-              >
-                <ExternalLink className="h-4 w-4" />
-                새창으로 보기
-              </Button>
-            )}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {noticeData.id && onEdit && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onEdit(noticeData.id!)}
+                  className="flex items-center gap-1"
+                >
+                  <Edit className="h-4 w-4" />
+                  수정
+                </Button>
+              )}
+              {noticeData.id && onDelete && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    console.log("삭제 버튼 클릭:", noticeData.id);
+                    onDelete(noticeData.id!);
+                  }}
+                  className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  삭제
+                </Button>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {onOpenInNewWindow && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onOpenInNewWindow}
+                  className="flex items-center gap-1"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  새창으로 보기
+                </Button>
+              )}
+            </div>
           </div>
         </DialogHeader>
 

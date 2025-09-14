@@ -9,11 +9,10 @@ export interface Room {
 export interface Student {
   id: number;
   name: string;
-  studentNo: string;
-  roomId: number;
-  status: "IN" | "LEAVE" | "ABSENT";
-  college: string;
+  studentIdNum: string;
+  affiliation: string;
   major: string;
+  roomId: string;
 }
 
 export interface Rollcall {
@@ -76,7 +75,7 @@ export interface ApiResponse<T> {
 
 // Query parameter types
 export interface StudentQuery {
-  roomId?: number;
+  roomId?: string;
   name?: string;
 }
 
@@ -102,4 +101,16 @@ export interface InquiryQuery {
 
 export interface NoticeQuery {
   limit?: number;
+  page?: number;
+}
+
+export interface NoticePageInfo {
+  total_page: number;
+  total_notice: number;
+  now_page: number;
+}
+
+export interface NoticePaginatedResponse {
+  notices: Notice[];
+  page_info: NoticePageInfo;
 }

@@ -38,6 +38,8 @@ import {
 } from "@/components/ui/table";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { NoticePreviewModal } from "@/components/notices/notice-preview-modal";
+import { NoticeEditModal } from "@/components/notices/notice-edit-modal";
+import { NoticeDeleteDialog } from "@/components/notices/notice-delete-dialog";
 import { useNotices } from "@/hooks/use-notices";
 import { useToast } from "@/hooks/use-toast";
 import type { Notice } from "@/lib/types";
@@ -57,6 +59,8 @@ export default function NoticesPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [timeFilter, setTimeFilter] = useState<string>("this-week");
   const [sortFilter, setSortFilter] = useState<string>("latest");
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -66,10 +70,11 @@ export default function NoticesPage() {
   const { toast } = useToast();
   const {
     data: notices,
+    pageInfo,
     isLoading: noticesLoading,
     refetch: refetchNotices,
     mutate: mutateNotice,
-  } = useNotices();
+  } = useNotices({ page: currentPage });
 
   const handleInputChange = (field: keyof NoticeForm, value: any) => {
     setForm((prev) => ({
@@ -136,57 +141,21 @@ export default function NoticesPage() {
     return `${month}.${day} ${hours}:${minutes}`;
   };
 
-  // Filter and sort notices
-  const getFilteredNotices = () => {
-    if (!notices) return [];
-
-    let filtered = [...notices];
-
-    // Time filter
-    if (timeFilter !== "all") {
-      const now = new Date();
-      const filterDate = new Date();
-
-      if (timeFilter === "this-week") {
-        filterDate.setDate(now.getDate() - 7);
-      } else if (timeFilter === "this-month") {
-        filterDate.setMonth(now.getMonth() - 1);
-      }
-
-      filtered = filtered.filter(
-        (notice) => new Date(notice.date) >= filterDate
-      );
-    }
-
-    // Sort filter
-    filtered.sort((a, b) => {
-      if (sortFilter === "latest") {
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
-      } else if (sortFilter === "oldest") {
-        return new Date(a.date).getTime() - new Date(b.date).getTime();
-      }
-      return 0;
-    });
-
-    return filtered;
-  };
-
-  // Pagination logic
-  const itemsPerPage = 10;
-  const totalItems = getFilteredNotices().length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedNotices = getFilteredNotices().slice(startIndex, endIndex);
+  // 서버에서 페이지네이션된 데이터를 사용
+  const displayNotices = notices || [];
+  const totalItems = pageInfo?.total_notice || 0;
+  const totalPages = pageInfo?.total_page || 1;
+  const startIndex = ((pageInfo?.now_page || 1) - 1) * 10;
+  const endIndex = Math.min(startIndex + 10, totalItems);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
 
-  // Reset page when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [timeFilter, sortFilter]);
+  // Reset page when filters change (현재는 서버 페이지네이션을 사용하므로 주석 처리)
+  // useEffect(() => {
+  //   setCurrentPage(1);
+  // }, [timeFilter, sortFilter]);
 
   const isFormValid = form.title.trim() && form.content.trim();
 
@@ -202,6 +171,34 @@ export default function NoticesPage() {
     } finally {
       setIsRefreshing(false);
     }
+  };
+
+  const handleEditNotice = (id: number) => {
+    const notice = displayNotices.find((n) => n.id === id);
+    if (notice) {
+      setSelectedNotice(notice);
+      setShowEditModal(true);
+      setShowModal(false);
+    }
+  };
+
+  const handleDeleteNotice = (id: number) => {
+    console.log("handleDeleteNotice 호출:", id);
+    const notice = displayNotices.find((n) => n.id === id);
+    console.log("찾은 공지사항:", notice);
+    if (notice) {
+      setSelectedNotice(notice);
+      setShowDeleteDialog(true);
+      setShowModal(false);
+    }
+  };
+
+  const handleEditSuccess = () => {
+    refetchNotices();
+  };
+
+  const handleDeleteSuccess = () => {
+    refetchNotices();
   };
 
   // Handle F5 refresh
@@ -424,9 +421,9 @@ export default function NoticesPage() {
                             <LoadingSpinner />
                           </TableCell>
                         </TableRow>
-                      ) : paginatedNotices.length > 0 ? (
+                      ) : displayNotices.length > 0 ? (
                         <>
-                          {paginatedNotices.map((notice) => (
+                          {displayNotices.map((notice) => (
                             <TableRow
                               key={notice.id}
                               className="cursor-pointer hover:bg-gray-50"
@@ -460,7 +457,7 @@ export default function NoticesPage() {
                           {/* Fill remaining rows to maintain height */}
                           {Array.from(
                             {
-                              length: Math.max(0, 10 - paginatedNotices.length),
+                              length: Math.max(0, 10 - displayNotices.length),
                             },
                             (_, i) => (
                               <TableRow key={`empty-${i}`} className="h-[60px]">
@@ -498,15 +495,17 @@ export default function NoticesPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => handlePageChange(1)}
-                      disabled={currentPage === 1}
+                      disabled={pageInfo?.now_page === 1}
                     >
                       <ChevronsLeft className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
+                      onClick={() =>
+                        handlePageChange((pageInfo?.now_page || 1) - 1)
+                      }
+                      disabled={pageInfo?.now_page === 1}
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
@@ -514,17 +513,20 @@ export default function NoticesPage() {
                       {Array.from(
                         { length: Math.min(5, totalPages) },
                         (_, i) => {
+                          const currentPageNum = pageInfo?.now_page || 1;
                           const pageNum =
                             Math.max(
                               1,
-                              Math.min(totalPages - 4, currentPage - 2)
+                              Math.min(totalPages - 4, currentPageNum - 2)
                             ) + i;
                           if (pageNum > totalPages) return null;
                           return (
                             <Button
                               key={pageNum}
                               variant={
-                                currentPage === pageNum ? "default" : "outline"
+                                currentPageNum === pageNum
+                                  ? "default"
+                                  : "outline"
                               }
                               size="sm"
                               onClick={() => handlePageChange(pageNum)}
@@ -539,8 +541,10 @@ export default function NoticesPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
+                      onClick={() =>
+                        handlePageChange((pageInfo?.now_page || 1) + 1)
+                      }
+                      disabled={pageInfo?.now_page === totalPages}
                     >
                       <ChevronRight className="h-4 w-4" />
                     </Button>
@@ -548,7 +552,7 @@ export default function NoticesPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => handlePageChange(totalPages)}
-                      disabled={currentPage === totalPages}
+                      disabled={pageInfo?.now_page === totalPages}
                     >
                       <ChevronsRight className="h-4 w-4" />
                     </Button>
@@ -573,6 +577,7 @@ export default function NoticesPage() {
                   body: selectedNotice.content,
                   is_important: selectedNotice.is_important,
                   date: selectedNotice.date,
+                  id: selectedNotice.id,
                 }
               : {
                   title: form.title,
@@ -581,6 +586,30 @@ export default function NoticesPage() {
                   date: new Date().toISOString().split("T")[0],
                 }
           }
+          onEdit={handleEditNotice}
+          onDelete={handleDeleteNotice}
+        />
+
+        {/* Notice Edit Modal */}
+        <NoticeEditModal
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedNotice(null);
+          }}
+          notice={selectedNotice}
+          onSuccess={handleEditSuccess}
+        />
+
+        {/* Notice Delete Dialog */}
+        <NoticeDeleteDialog
+          isOpen={showDeleteDialog}
+          onClose={() => {
+            setShowDeleteDialog(false);
+            setSelectedNotice(null);
+          }}
+          notice={selectedNotice}
+          onSuccess={handleDeleteSuccess}
         />
       </div>
     </Layout>

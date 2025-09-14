@@ -2,10 +2,26 @@
 
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
-import type { Notice, NoticeQuery } from "@/lib/types";
+import type { Notice, NoticeQuery, NoticePageInfo } from "@/lib/types";
 
-export function useNotices(params: NoticeQuery = {}) {
+interface UseNoticesResult {
+  data: Notice[];
+  pageInfo?: NoticePageInfo;
+  isLoading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+  mutate: (noticeData: {
+    title: string;
+    content: string;
+    is_important: boolean;
+  }) => Promise<void>;
+}
+
+export function useNotices(params: NoticeQuery = {}): UseNoticesResult {
   const [data, setData] = useState<Notice[]>([]);
+  const [pageInfo, setPageInfo] = useState<NoticePageInfo | undefined>(
+    undefined
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -14,17 +30,27 @@ export function useNotices(params: NoticeQuery = {}) {
       setIsLoading(true);
       setError(null);
 
-      const notices = await api.notices.getAll();
+      // 페이지네이션 파라미터가 있으면 페이지네이션 API 사용
+      if (params.page !== undefined) {
+        const response = await api.notices.getPaginated(params);
+        setData(Array.isArray(response.notices) ? response.notices : []);
+        setPageInfo(response.page_info);
+      } else {
+        // 기존 로직 유지 (페이지네이션 없이)
+        const notices = await api.notices.getAll();
 
-      // id 순서대로 정렬 (내림차순)
-      let sortedNotices = notices.sort((a, b) => b.id - a.id);
+        // notices가 배열인지 확인하고 정렬
+        let sortedNotices = Array.isArray(notices) ? notices : [];
+        sortedNotices = sortedNotices.sort((a, b) => b.id - a.id);
 
-      // 개수 제한 적용
-      if (params.limit) {
-        sortedNotices = sortedNotices.slice(0, params.limit);
+        // 개수 제한 적용
+        if (params.limit) {
+          sortedNotices = sortedNotices.slice(0, params.limit);
+        }
+
+        setData(sortedNotices);
+        setPageInfo(undefined);
       }
-
-      setData(sortedNotices);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch notices");
     } finally {
@@ -47,10 +73,11 @@ export function useNotices(params: NoticeQuery = {}) {
 
   useEffect(() => {
     fetchNotices();
-  }, [params.limit]);
+  }, [params.limit, params.page]);
 
   return {
     data,
+    pageInfo,
     isLoading,
     error,
     refetch: fetchNotices,

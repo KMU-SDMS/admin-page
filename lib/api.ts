@@ -1,4 +1,9 @@
-import type { Notice } from "./types";
+import type {
+  Notice,
+  NoticePaginatedResponse,
+  NoticeQuery,
+  Student,
+} from "./types";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001/";
@@ -7,6 +12,7 @@ console.warn("API_BASE_URL:", API_BASE);
 
 export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const url = `${API_BASE}${path}`;
+  console.log(`API 요청: ${url}`);
 
   try {
     const response = await fetch(url, {
@@ -19,12 +25,14 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.error(`API 오류: ${url} - ${response.status}: ${errorText}`);
       throw new Error(
         `HTTP ${response.status}: ${errorText || response.statusText}`
       );
     }
 
     const data = await response.json();
+    console.log(`API 응답: ${url}`, data);
     return data;
   } catch (error) {
     console.error(`API request failed: ${url}`, error);
@@ -71,9 +79,37 @@ function apiDelete<T>(path: string) {
 // Notices API
 export const noticesApi = {
   getAll: () => apiGet<Notice[]>("/notices"),
+  getPaginated: (params?: NoticeQuery) =>
+    apiGet<NoticePaginatedResponse>("/notices", params),
   getById: (id: number) => apiGet<Notice>(`/notices/${id}`),
   create: (data: { title: string; content: string; is_important: boolean }) =>
     apiPost<Notice>("/notice", data),
+  update: (data: {
+    id: number;
+    title: string;
+    content: string;
+    is_important: boolean;
+  }) =>
+    request<Notice>("/notice", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+  delete: (id: number) => {
+    console.log("삭제 API 호출:", { id });
+    return request<{ message: string }>("/notices", {
+      method: "DELETE",
+      body: JSON.stringify({ id }),
+    });
+  },
+};
+
+// Students API
+export const studentsApi = {
+  getAll: () => {
+    console.log("API 호출: /students");
+    return apiGet<Student[]>("/students");
+  },
+  getById: (id: number) => apiGet<Student>(`/students/${id}`),
 };
 
 export const api = {
@@ -82,4 +118,5 @@ export const api = {
   patch: apiPatch,
   delete: apiDelete,
   notices: noticesApi,
+  students: studentsApi,
 };
