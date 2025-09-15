@@ -47,8 +47,8 @@ export function StudentListTable({
 }: StudentListTableProps) {
   const [selectAll, setSelectAll] = useState(false);
 
-  const getRoomName = (roomId: number) => {
-    const room = rooms.find((r) => r.id === roomId);
+  const getRoomName = (roomId: string) => {
+    const room = rooms.find((r) => r.id.toString() === roomId);
     return room ? room.name : `호실 ${roomId}`;
   };
 

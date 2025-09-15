@@ -31,13 +31,7 @@ export default function HomePage() {
   const { data: rooms } = useRooms();
 
   const getTargetDisplay = (notice: any) => {
-    if (notice.target === "ALL") return "전체";
-    if (notice.target === "FLOOR") return `${notice.floor}층`;
-    if (notice.target === "ROOM") {
-      const room = rooms.find((r) => r.id === notice.roomId);
-      return room ? room.name : `호실 ${notice.roomId}`;
-    }
-    return notice.target;
+    return notice.is_important ? "중요공지" : "일반공지";
   };
 
   return (
@@ -159,7 +153,7 @@ export default function HomePage() {
                 <ErrorMessage message={noticesError} />
               ) : (
                 <div className="space-y-4">
-                  {notices.length === 0 ? (
+                  {!notices || notices.length === 0 ? (
                     <p className="text-center text-muted-foreground py-8">
                       공지사항이 없습니다.
                     </p>
@@ -177,7 +171,7 @@ export default function HomePage() {
                             {getTargetDisplay(notice)}
                           </Badge>
                           <span>
-                            {new Date(notice.createdAt).toLocaleDateString()}
+                            {new Date(notice.date).toLocaleDateString()}
                           </span>
                         </div>
                       </div>

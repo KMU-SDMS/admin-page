@@ -18,31 +18,6 @@ import { Button } from "@/components/ui/button";
 
 const navigation = [
   {
-    name: "대시보드",
-    href: "/",
-    icon: LayoutDashboard,
-  },
-  {
-    name: "학생 관리",
-    href: "/students",
-    icon: Users,
-  },
-  {
-    name: "점호 관리",
-    href: "/rollcall",
-    icon: ClipboardCheck,
-  },
-  {
-    name: "택배 관리",
-    href: "/packages",
-    icon: Package,
-  },
-  {
-    name: "문의 관리",
-    href: "/inquiries",
-    icon: MessageSquare,
-  },
-  {
     name: "공지 시스템",
     href: "/notices",
     icon: Megaphone,

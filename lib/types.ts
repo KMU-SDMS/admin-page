@@ -12,15 +12,8 @@ export interface Student {
   studentIdNum: string;
   affiliation: string;
   major: string;
-  roomId: number;
-  status?: "IN" | "LEAVE" | "ABSENT";
-}
-
-// GET /students/{roomId} 응답용 타입
-export interface RoomStudent {
   roomId: string;
-  name: string;
-  studentIdNum: string;
+
 }
 
 export interface Rollcall {
@@ -83,7 +76,7 @@ export interface ApiResponse<T> {
 
 // Query parameter types
 export interface StudentQuery {
-  roomId?: number;
+  roomId?: string;
   name?: string;
 }
 
@@ -109,4 +102,16 @@ export interface InquiryQuery {
 
 export interface NoticeQuery {
   limit?: number;
+  page?: number;
+}
+
+export interface NoticePageInfo {
+  total_page: number;
+  total_notice: number;
+  now_page: number;
+}
+
+export interface NoticePaginatedResponse {
+  notices: Notice[];
+  page_info: NoticePageInfo;
 }

@@ -44,12 +44,10 @@ export function useDashboardStats() {
 
     // Calculate roll call stats
     const totalStudents = students.length;
-    const outLeaveCount = students.filter(
-      (s) => s.status === "OUT" || s.status === "LEAVE",
-    ).length;
+    const outLeaveCount = 0; // status 필드가 없으므로 0으로 설정
 
     const studentsWithRollcalls = students.filter((student) =>
-      rollcalls.some((r) => r.studentId === student.id),
+      rollcalls.some((r) => r.studentId === student.id)
     );
 
     const presentCount = rollcalls.filter((r) => r.present).length;

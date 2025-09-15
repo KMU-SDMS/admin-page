@@ -1,4 +1,5 @@
-import type { Rollcall, Point, Notice } from "./types";
+import type { Room, Student, Rollcall, Point } from "./types";
+
 
 // 목업 점호 데이터
 export const mockRollcalls: Rollcall[] = [

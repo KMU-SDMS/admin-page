@@ -30,27 +30,16 @@ export default function StudentsPage() {
     isLoading: studentsLoading,
     error: studentsError,
     refetch: refetchStudents,
-  } = useStudents();
+  } = useStudents({
+    name: nameSearch || undefined,
+    roomId: roomFilter === "all" ? undefined : roomFilter,
+  });
 
   const { data: rooms } = useRooms();
 
-  // 클라이언트 사이드 필터링
-  const filteredStudents = useMemo(() => {
-    if (!allStudents) return [];
+  // Filter students (no status filtering needed)
+  const filteredStudents = students;
 
-    return allStudents.filter((student) => {
-      // 이름 검색 필터
-      const nameMatch =
-        nameSearch.trim() === "" ||
-        student.name.toLowerCase().includes(nameSearch.toLowerCase());
-
-      // 호실 필터
-      const roomMatch =
-        roomFilter === "all" || student.roomId === parseInt(roomFilter);
-
-      return nameMatch && roomMatch;
-    });
-  }, [allStudents, nameSearch, roomFilter]);
 
   // Get unique room names for filter
   const roomOptions = rooms.map((room) => ({

@@ -1,7 +1,6 @@
 "use client";
 
-import { Search, Bell, User } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -15,21 +14,11 @@ export function Header() {
     <header className="border-b bg-background px-6 py-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <h1 className="text-xl font-semibold">기숙사 관리 시스템</h1>
+          <h1 className="text-3xl font-bold">공지 시스템</h1>
+          <p className="text-muted-foreground">기숙사 공지사항 작성 및 관리</p>
         </div>
 
         <div className="flex items-center gap-4">
-          {/* Global Search */}
-          <div className="relative w-64">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="학생명, 호실 검색..." className="pl-9" />
-          </div>
-
-          {/* Notifications */}
-          <Button variant="ghost" size="icon">
-            <Bell className="h-4 w-4" />
-          </Button>
-
           {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
