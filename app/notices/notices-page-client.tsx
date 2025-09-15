@@ -232,13 +232,13 @@ export function NoticesPageClient({
   }, []);
 
   return (
-    <div className="flex flex-col xl:flex-row gap-1.5">
+    <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
       {/* Notice Creation Form - Left Panel */}
       <div
-        className={`space-y-6 transition-all duration-700 ease-in-out ${
+        className={`space-y-4 lg:space-y-6 transition-all duration-700 ease-in-out ${
           isListExpanded
             ? "w-0 opacity-0 overflow-hidden pointer-events-none"
-            : "w-full xl:w-5/8 opacity-100"
+            : "w-full lg:w-1/2 xl:w-3/5 opacity-100"
         }`}
       >
         <Card className="h-full">
@@ -302,7 +302,7 @@ export function NoticesPageClient({
                   variant="outline"
                   onClick={() => setShowModal(true)}
                   disabled={!isFormValid}
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto text-sm"
                 >
                   <Eye className="h-4 w-4 mr-2" />
                   미리보기
@@ -310,7 +310,7 @@ export function NoticesPageClient({
                 <Button
                   type="submit"
                   disabled={!isFormValid || isSubmitting}
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto text-sm"
                 >
                   {isSubmitting ? (
                     <>
@@ -332,13 +332,13 @@ export function NoticesPageClient({
 
       {/* Notice List - Right Panel */}
       <div
-        className={`space-y-6 transition-all duration-700 ease-in-out ${
-          isListExpanded ? "w-full min-w-0" : "w-full xl:w-3/8"
+        className={`space-y-4 lg:space-y-6 transition-all duration-700 ease-in-out ${
+          isListExpanded ? "w-full min-w-0" : "w-full lg:w-1/2 xl:w-2/5"
         }`}
       >
         <Card className="h-full">
           <CardHeader>
-            <div className="flex items-center justify-between w-full gap-4 overflow-x-auto">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-3 sm:gap-4">
               <div className="flex items-center gap-2 flex-shrink-0">
                 <Button
                   variant="outline"
@@ -355,11 +355,13 @@ export function NoticesPageClient({
                     )}
                   </div>
                 </Button>
-                <CardTitle className="whitespace-nowrap">공지 목록</CardTitle>
+                <CardTitle className="whitespace-nowrap text-base sm:text-lg">
+                  공지 목록
+                </CardTitle>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto">
                 <Select value={timeFilter} onValueChange={setTimeFilter}>
-                  <SelectTrigger className="w-24 [&>svg]:bg-transparent [&>svg]:text-muted-foreground">
+                  <SelectTrigger className="w-20 sm:w-24 [&>svg]:bg-transparent [&>svg]:text-muted-foreground text-xs sm:text-sm">
                     <SelectValue placeholder="이번 주" />
                   </SelectTrigger>
                   <SelectContent>
@@ -369,7 +371,7 @@ export function NoticesPageClient({
                   </SelectContent>
                 </Select>
                 <Select value={sortFilter} onValueChange={setSortFilter}>
-                  <SelectTrigger className="w-24 [&>svg]:bg-transparent [&>svg]:text-muted-foreground">
+                  <SelectTrigger className="w-20 sm:w-24 [&>svg]:bg-transparent [&>svg]:text-muted-foreground text-xs sm:text-sm">
                     <SelectValue placeholder="최신순" />
                   </SelectTrigger>
                   <SelectContent>
@@ -392,26 +394,31 @@ export function NoticesPageClient({
             </div>
           </CardHeader>
           <CardContent className="flex flex-col h-full">
-            <div className="flex flex-col overflow-x-auto min-w-0 h-[410px]">
+            <div className="flex flex-col overflow-x-auto min-w-0 h-[300px] sm:h-[350px] lg:h-[410px]">
               <Table className="min-w-full">
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
-                    <TableHead className="hover:bg-transparent">제목</TableHead>
-                    <TableHead className="hover:bg-transparent">
+                    <TableHead className="hover:bg-transparent text-xs sm:text-sm font-medium">
+                      제목
+                    </TableHead>
+                    <TableHead className="hover:bg-transparent text-xs sm:text-sm font-medium hidden sm:table-cell">
                       공지유형
                     </TableHead>
-                    <TableHead className="hover:bg-transparent">
+                    <TableHead className="hover:bg-transparent text-xs sm:text-sm font-medium">
                       작성일
                     </TableHead>
-                    <TableHead className="hover:bg-transparent">
+                    <TableHead className="hover:bg-transparent text-xs sm:text-sm font-medium hidden md:table-cell">
                       작성자
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {noticesLoading ? (
-                    <TableRow className="h-[33px]">
-                      <TableCell colSpan={4} className="text-center h-[33px]">
+                    <TableRow className="h-[28px] sm:h-[33px]">
+                      <TableCell
+                        colSpan={4}
+                        className="text-center h-[28px] sm:h-[33px]"
+                      >
                         <LoadingSpinner />
                       </TableCell>
                     </TableRow>
@@ -420,17 +427,31 @@ export function NoticesPageClient({
                       {displayNotices.map((notice) => (
                         <TableRow
                           key={notice.id}
-                          className="cursor-pointer hover:bg-gray-50 h-[33px]"
+                          className="cursor-pointer hover:bg-gray-50 h-[28px] sm:h-[33px]"
                           onClick={() => handleNoticeClick(notice)}
                         >
-                          <TableCell className="font-medium min-w-0">
+                          <TableCell className="font-medium min-w-0 text-xs sm:text-sm">
                             <div className="flex items-center gap-2 truncate">
-                              {notice.title.length > 7
-                                ? `${notice.title.substring(0, 7)}...`
-                                : notice.title}
+                              <span className="truncate max-w-[120px] sm:max-w-[200px] lg:max-w-none">
+                                {notice.title.length > 15
+                                  ? `${notice.title.substring(0, 15)}...`
+                                  : notice.title}
+                              </span>
+                              {/* Mobile: Show badge inline */}
+                              <span className="sm:hidden">
+                                <span
+                                  className={`px-1.5 py-0.5 rounded text-xs ${
+                                    notice.is_important
+                                      ? "bg-red-100 text-red-800"
+                                      : "bg-blue-100 text-blue-800"
+                                  }`}
+                                >
+                                  {notice.is_important ? "중요" : "일반"}
+                                </span>
+                              </span>
                             </div>
                           </TableCell>
-                          <TableCell className="whitespace-nowrap">
+                          <TableCell className="whitespace-nowrap hidden sm:table-cell">
                             <span
                               className={`px-2 py-1 rounded text-xs ${
                                 notice.is_important
@@ -441,40 +462,46 @@ export function NoticesPageClient({
                               {notice.is_important ? "중요공지" : "일반공지"}
                             </span>
                           </TableCell>
-                          <TableCell className="whitespace-nowrap">
+                          <TableCell className="whitespace-nowrap text-xs sm:text-sm">
                             {formatDate(notice.date)}
                           </TableCell>
-                          <TableCell className="whitespace-nowrap">
+                          <TableCell className="whitespace-nowrap text-xs sm:text-sm hidden md:table-cell">
                             관리자
                           </TableCell>
                         </TableRow>
                       ))}
                       {/* Fill remaining rows to maintain height */}
                       {Array.from({ length: emptyRowsCount }, (_, i) => (
-                        <TableRow key={`empty-${i}`} className="h-[33px]">
+                        <TableRow
+                          key={`empty-${i}`}
+                          className="h-[28px] sm:h-[33px]"
+                        >
                           <TableCell
                             colSpan={4}
-                            className="h-[33px]"
+                            className="h-[28px] sm:h-[33px]"
                           ></TableCell>
                         </TableRow>
                       ))}
                     </>
                   ) : (
                     <>
-                      <TableRow className="h-[33px]">
+                      <TableRow className="h-[28px] sm:h-[33px]">
                         <TableCell
                           colSpan={4}
-                          className="text-center text-muted-foreground h-[33px]"
+                          className="text-center text-muted-foreground h-[28px] sm:h-[33px] text-xs sm:text-sm"
                         >
                           공지사항이 없습니다.
                         </TableCell>
                       </TableRow>
                       {/* Fill remaining rows to maintain height */}
                       {Array.from({ length: 9 }, (_, i) => (
-                        <TableRow key={`empty-${i}`} className="h-[33px]">
+                        <TableRow
+                          key={`empty-${i}`}
+                          className="h-[28px] sm:h-[33px]"
+                        >
                           <TableCell
                             colSpan={4}
-                            className="h-[33px]"
+                            className="h-[28px] sm:h-[33px]"
                           ></TableCell>
                         </TableRow>
                       ))}
@@ -486,19 +513,20 @@ export function NoticesPageClient({
           </CardContent>
           {/* Pagination */}
           {totalPages >= 1 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t gap-4">
-              <div className="text-sm text-muted-foreground text-center sm:text-left">
+            <div className="flex flex-col sm:flex-row items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-t gap-3 sm:gap-4">
+              <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
                 총 {totalItems}개 중 {startIndex + 1}-
                 {Math.min(endIndex, totalItems)}개 표시
               </div>
-              <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-end">
+              <div className="flex items-center gap-1 sm:gap-2 flex-wrap justify-center sm:justify-end">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handlePageChange(1)}
                   disabled={displayPageInfo?.now_page === 1}
+                  className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                 >
-                  <ChevronsLeft className="h-4 w-4" />
+                  <ChevronsLeft className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
                 <Button
                   variant="outline"
@@ -507,8 +535,9 @@ export function NoticesPageClient({
                     handlePageChange((displayPageInfo?.now_page || 1) - 1)
                   }
                   disabled={displayPageInfo?.now_page === 1}
+                  className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
                 <div className="flex items-center gap-1 flex-wrap">
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -527,7 +556,7 @@ export function NoticesPageClient({
                         }
                         size="sm"
                         onClick={() => handlePageChange(pageNum)}
-                        className="w-8 h-8 p-0"
+                        className="w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm"
                       >
                         {pageNum}
                       </Button>
@@ -541,16 +570,18 @@ export function NoticesPageClient({
                     handlePageChange((displayPageInfo?.now_page || 1) + 1)
                   }
                   disabled={displayPageInfo?.now_page === totalPages}
+                  className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                 >
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handlePageChange(totalPages)}
                   disabled={displayPageInfo?.now_page === totalPages}
+                  className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                 >
-                  <ChevronsRight className="h-4 w-4" />
+                  <ChevronsRight className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
               </div>
             </div>
