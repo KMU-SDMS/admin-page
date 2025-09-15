@@ -114,6 +114,9 @@ export function NoticesPageClient({
         is_important: form.is_important,
       });
 
+      // Refresh the notices list
+      await refetchNotices();
+
       toast({
         title: "공지 작성 완료",
         description: "공지사항이 성공적으로 작성되었습니다.",
