@@ -1,7 +1,8 @@
-"use client";
-
-import { useState } from "react";
+import { Suspense } from "react";
 import { Users, Filter, RefreshCw, Plus, Search } from "lucide-react";
+
+// 동적 렌더링 강제
+export const dynamic = "force-dynamic";
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,63 +16,30 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { StudentListTable } from "@/components/students/student-list-table";
-import { useStudents } from "@/hooks/use-students";
-import { useRooms } from "@/hooks/use-rooms";
+import { api } from "@/lib/api";
 import { Student } from "@/lib/types";
-import { useMemo } from "react";
+import { StudentsPageClient } from "./students-page-client";
 
-export default function StudentsPage() {
-  const [nameSearch, setNameSearch] = useState("");
-  const [roomFilter, setRoomFilter] = useState("all");
-  const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
+async function getStudents() {
+  try {
+    return await api.students.getAll();
+  } catch (error) {
+    console.error("Failed to fetch students:", error);
+    return [];
+  }
+}
 
-  const {
-    data: allStudents,
-    isLoading: studentsLoading,
-    error: studentsError,
-    refetch: refetchStudents,
-  } = useStudents({
-    name: nameSearch || undefined,
-    roomId: roomFilter === "all" ? undefined : roomFilter,
-  });
+async function getRooms() {
+  try {
+    return await api.get("/rooms");
+  } catch (error) {
+    console.error("Failed to fetch rooms:", error);
+    return [];
+  }
+}
 
-  const { data: rooms } = useRooms();
-
-  // Filter students (no status filtering needed)
-  const filteredStudents = students;
-
-
-  // Get unique room names for filter
-  const roomOptions = rooms.map((room) => ({
-    value: room.id.toString(),
-    label: room.name,
-  }));
-
-  // Room data for table component
-  const roomData = rooms.map((room) => ({
-    id: room.id,
-    name: room.name,
-  }));
-
-  // Statistics (필터링된 결과 반영)
-  const stats = {
-    total: filteredStudents.length,
-  };
-
-  const handleEditStudent = (student: Student) => {
-    // TODO: 학생 수정 모달 열기
-    console.log("Edit student:", student);
-  };
-
-  const handleDeleteStudent = (student: Student) => {
-    // TODO: 학생 삭제 확인 다이얼로그 열기
-    console.log("Delete student:", student);
-  };
-
-  const handleBulkDelete = (studentIds: number[]) => {
-    // TODO: 다중 삭제 확인 다이얼로그 열기
-    console.log("Bulk delete students:", studentIds);
-  };
+export default async function StudentsPage() {
+  const [students, rooms] = await Promise.all([getStudents(), getRooms()]);
 
   return (
     <Layout>
@@ -98,83 +66,15 @@ export default function StudentsPage() {
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-medium">전체 학생</span>
               </div>
-              <div className="text-2xl font-bold mt-2">{stats.total}</div>
+              <div className="text-2xl font-bold mt-2">{students.length}</div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Filters */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              필터 및 검색
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <div className="space-y-2">
-                <Label>학생명 검색</Label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="학생명 입력..."
-                    value={nameSearch}
-                    onChange={(e) => setNameSearch(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>호실</Label>
-                <Select value={roomFilter} onValueChange={setRoomFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="전체 호실" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">전체 호실</SelectItem>
-                    {roomOptions.map((room) => (
-                      <SelectItem key={room.value} value={room.value}>
-                        {room.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>작업</Label>
-                <div className="pt-2">
-                  <Button onClick={refetchStudents} variant="outline" size="sm">
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    새로고침
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Students Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>학생 목록</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <StudentListTable
-              students={filteredStudents}
-              rooms={roomData}
-              isLoading={studentsLoading}
-              error={studentsError}
-              onEdit={handleEditStudent}
-              onDelete={handleDeleteStudent}
-              onBulkDelete={handleBulkDelete}
-              selectedStudents={selectedStudents}
-              onSelectionChange={setSelectedStudents}
-            />
-          </CardContent>
-        </Card>
+        {/* Client Component for Interactive Features */}
+        <Suspense fallback={<div>Loading...</div>}>
+          <StudentsPageClient initialStudents={students} initialRooms={rooms} />
+        </Suspense>
       </div>
     </Layout>
   );

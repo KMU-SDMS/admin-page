@@ -112,6 +112,30 @@ export const studentsApi = {
   getById: (id: number) => apiGet<Student>(`/students/${id}`),
 };
 
+// Rooms API
+export const roomsApi = {
+  getAll: () => apiGet<any[]>("/rooms"),
+  getById: (id: number) => apiGet<any>(`/rooms/${id}`),
+};
+
+// Inquiries API
+export const inquiriesApi = {
+  getAll: () => apiGet<any[]>("/inquiries"),
+  getById: (id: number) => apiGet<any>(`/inquiries/${id}`),
+};
+
+// Parcels API
+export const parcelsApi = {
+  getAll: () => apiGet<any[]>("/parcels"),
+  getById: (id: number) => apiGet<any>(`/parcels/${id}`),
+};
+
+// Rollcalls API
+export const rollcallsApi = {
+  getAll: () => apiGet<any[]>("/rollcalls"),
+  getById: (id: number) => apiGet<any>(`/rollcalls/${id}`),
+};
+
 export const api = {
   get: apiGet,
   post: apiPost,
@@ -119,4 +143,8 @@ export const api = {
   delete: apiDelete,
   notices: noticesApi,
   students: studentsApi,
+  rooms: roomsApi,
+  inquiries: inquiriesApi,
+  parcels: parcelsApi,
+  rollcalls: rollcallsApi,
 };
