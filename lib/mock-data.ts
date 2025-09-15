@@ -1,27 +1,5 @@
 import type { Room, Student, Rollcall, Point } from "./types";
 
-// 목업 호실 데이터
-export const mockRooms: Room[] = [
-  { id: 1, name: "101호", floor: 1, capacity: 2 },
-  { id: 2, name: "102호", floor: 1, capacity: 2 },
-  { id: 3, name: "103호", floor: 1, capacity: 2 },
-  { id: 4, name: "104호", floor: 1, capacity: 2 },
-  { id: 5, name: "105호", floor: 1, capacity: 2 },
-  { id: 6, name: "106호", floor: 1, capacity: 2 },
-  { id: 7, name: "201호", floor: 2, capacity: 2 },
-  { id: 8, name: "202호", floor: 2, capacity: 2 },
-  { id: 9, name: "203호", floor: 2, capacity: 2 },
-  { id: 10, name: "204호", floor: 2, capacity: 2 },
-  { id: 11, name: "205호", floor: 2, capacity: 2 },
-  { id: 12, name: "206호", floor: 2, capacity: 2 },
-  { id: 13, name: "301호", floor: 3, capacity: 2 },
-  { id: 14, name: "302호", floor: 3, capacity: 2 },
-  { id: 15, name: "303호", floor: 3, capacity: 2 },
-  { id: 16, name: "304호", floor: 3, capacity: 2 },
-  { id: 17, name: "305호", floor: 3, capacity: 2 },
-  { id: 18, name: "306호", floor: 3, capacity: 2 },
-];
-
 
 // 목업 점호 데이터
 export const mockRollcalls: Rollcall[] = [

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { mockPoints } from "@/lib/mock-data";
+import { api } from "@/lib/api";
 import type { Point } from "@/lib/types";
 
 export function usePoints(studentId?: number) {
@@ -13,18 +13,11 @@ export function usePoints(studentId?: number) {
     try {
       setIsLoading(true);
       setError(null);
-      await new Promise((resolve) => setTimeout(resolve, 500)); // 로딩 시뮬레이션
 
-      let filteredPoints = [...mockPoints];
-
-      // 특정 학생 ID로 필터링
-      if (studentId) {
-        filteredPoints = filteredPoints.filter(
-          (point) => point.studentId === studentId,
-        );
-      }
-
-      setData(filteredPoints);
+      // API 호출
+      const params = studentId ? { studentId } : {};
+      const points = await api.get<Point[]>("/points", params);
+      setData(points);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch points");
     } finally {
@@ -40,15 +33,8 @@ export function usePoints(studentId?: number) {
     date?: string;
   }) => {
     try {
-      const newPoint: Point = {
-        id: Math.max(...data.map((p) => p.id), 0) + 1,
-        studentId: pointData.studentId,
-        type: pointData.type,
-        score: pointData.score,
-        reason: pointData.reason,
-        date: pointData.date || new Date().toISOString().split("T")[0],
-      };
-
+      // API 호출로 상벌점 생성
+      const newPoint = await api.post<Point>("/points", pointData);
       setData((prevData) => [...prevData, newPoint]);
     } catch (err) {
       throw err;

@@ -13,6 +13,7 @@ export interface Student {
   affiliation: string;
   major: string;
   roomId: string;
+
 }
 
 export interface Rollcall {

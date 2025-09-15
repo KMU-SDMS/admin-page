@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import type { Student, StudentQuery } from "@/lib/types";
 
 export function useStudents(params: StudentQuery = {}) {
+
   const [data, setData] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,6 +45,7 @@ export function useStudents(params: StudentQuery = {}) {
       }
 
       setData(filteredStudents);
+
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch students");
     } finally {
@@ -53,7 +55,7 @@ export function useStudents(params: StudentQuery = {}) {
 
   useEffect(() => {
     fetchStudents();
-  }, [params.roomId, params.name]);
+  }, []);
 
   return {
     data,

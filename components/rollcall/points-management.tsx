@@ -44,7 +44,7 @@ export function PointsManagement({
   isLoading,
 }: PointsManagementProps) {
   const [selectedStudentId, setSelectedStudentId] = useState<number | null>(
-    null,
+    null
   );
   const [studentSearch, setStudentSearch] = useState("");
   const [pointForm, setPointForm] = useState({
@@ -63,7 +63,7 @@ export function PointsManagement({
   } = usePoints(selectedStudentId || undefined);
 
   const filteredStudents = students.filter((student) =>
-    student.name.toLowerCase().includes(studentSearch.toLowerCase()),
+    student.name.toLowerCase().includes(studentSearch.toLowerCase())
   );
 
   const selectedStudent = selectedStudentId
@@ -109,7 +109,9 @@ export function PointsManagement({
 
       toast({
         title: "포인트 부여 완료",
-        description: `${selectedStudent?.name} 학생에게 ${pointForm.type === "MERIT" ? "상점" : "벌점"} ${score}점이 부여되었습니다.`,
+        description: `${selectedStudent?.name} 학생에게 ${
+          pointForm.type === "MERIT" ? "상점" : "벌점"
+        } ${score}점이 부여되었습니다.`,
       });
 
       setPointForm({ type: "", score: "", reason: "" });
@@ -173,7 +175,7 @@ export function PointsManagement({
                   >
                     <div className="font-medium">{student.name}</div>
                     <div className="text-sm text-muted-foreground">
-                      {student.studentNo} •{" "}
+                      {student.studentIdNum} •{" "}
                       {room?.name || `호실 ${student.roomId}`}
                     </div>
                   </div>
