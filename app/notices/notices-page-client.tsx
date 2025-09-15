@@ -150,7 +150,7 @@ export function NoticesPageClient({
     return `${month}.${day} ${hours}:${minutes}`;
   };
 
-  // Use initial data if hooks haven't loaded yet
+  // Use server pagination data
   const displayNotices =
     notices.length > 0 ? notices : initialNoticesData.notices;
   const displayPageInfo = pageInfo || initialNoticesData.pageInfo;
@@ -209,6 +209,13 @@ export function NoticesPageClient({
   const handleDeleteSuccess = () => {
     refetchNotices();
   };
+
+  // Handle filter changes
+  useEffect(() => {
+    // Reset to first page when filters change
+    setCurrentPage(1);
+    // TODO: 서버에서 필터링을 지원하면 여기서 API 호출
+  }, [timeFilter, sortFilter]);
 
   // Handle F5 refresh
   useEffect(() => {
@@ -364,17 +371,17 @@ export function NoticesPageClient({
               </div>
               <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto">
                 <Select value={timeFilter} onValueChange={setTimeFilter}>
-                  <SelectTrigger className="w-20 sm:w-24 [&>svg]:bg-transparent [&>svg]:text-muted-foreground text-xs sm:text-sm">
-                    <SelectValue placeholder="이번 주" />
+                  <SelectTrigger className="w-24 sm:w-28 [&>svg]:bg-transparent [&>svg]:text-muted-foreground text-xs sm:text-sm">
+                    <SelectValue placeholder="7일내" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="this-week">이번 주</SelectItem>
-                    <SelectItem value="this-month">이번 달</SelectItem>
+                    <SelectItem value="this-week">7일내</SelectItem>
+                    <SelectItem value="this-month">30일내</SelectItem>
                     <SelectItem value="all">전체</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={sortFilter} onValueChange={setSortFilter}>
-                  <SelectTrigger className="w-20 sm:w-24 [&>svg]:bg-transparent [&>svg]:text-muted-foreground text-xs sm:text-sm">
+                  <SelectTrigger className="w-24 sm:w-28 [&>svg]:bg-transparent [&>svg]:text-muted-foreground text-xs sm:text-sm">
                     <SelectValue placeholder="최신순" />
                   </SelectTrigger>
                   <SelectContent>
@@ -515,12 +522,12 @@ export function NoticesPageClient({
             </div>
           </CardContent>
           {/* Pagination */}
-          {totalPages >= 1 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-t gap-3 sm:gap-4">
-              <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
-                총 {totalItems}개 중 {startIndex + 1}-
-                {Math.min(endIndex, totalItems)}개 표시
-              </div>
+          <div className="flex flex-col sm:flex-row items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-t gap-3 sm:gap-4">
+            <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
+              총 {totalItems}개 중 {startIndex + 1}-
+              {Math.min(endIndex, totalItems)}개 표시
+            </div>
+            {totalPages > 1 && (
               <div className="flex items-center gap-1 sm:gap-2 flex-wrap justify-center sm:justify-end">
                 <Button
                   variant="outline"
@@ -587,8 +594,8 @@ export function NoticesPageClient({
                   <ChevronsRight className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </Card>
       </div>
 
