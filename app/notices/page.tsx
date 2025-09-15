@@ -8,7 +8,6 @@ import {
   Eye,
   Send,
   RefreshCw,
-  Star,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
@@ -148,6 +147,9 @@ export default function NoticesPage() {
   const startIndex = ((pageInfo?.now_page || 1) - 1) * 10;
   const endIndex = Math.min(startIndex + 10, totalItems);
 
+  // 동적으로 빈 행 개수 계산 (항상 10개 행 유지)
+  const emptyRowsCount = Math.max(0, 10 - displayNotices.length);
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
@@ -228,30 +230,27 @@ export default function NoticesPage() {
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold">공지 시스템</h1>
-          <p className="text-muted-foreground">기숙사 공지사항 작성 및 관리</p>
-        </div>
-
-        <div className="flex gap-6">
+        <div className="flex flex-col xl:flex-row gap-1.5">
           {/* Notice Creation Form - Left Panel */}
           <div
             className={`space-y-6 transition-all duration-700 ease-in-out ${
               isListExpanded
-                ? "w-0 opacity-0 overflow-hidden"
-                : "w-2/3 opacity-100"
+                ? "w-0 opacity-0 overflow-hidden pointer-events-none"
+                : "w-full xl:w-5/8 opacity-100"
             }`}
           >
-            <Card>
+            <Card className="h-full">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Plus className="h-5 w-5" />
                   공지 작성
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
+              <CardContent className="flex flex-col h-full">
+                <form
+                  onSubmit={handleSubmit}
+                  className="flex flex-col h-full space-y-4"
+                >
                   {/* Title */}
                   <div className="space-y-2">
                     <Label htmlFor="title">제목</Label>
@@ -284,7 +283,7 @@ export default function NoticesPage() {
                   </div>
 
                   {/* Content */}
-                  <div className="space-y-2">
+                  <div className="space-y-2 flex-1 flex flex-col">
                     <Label htmlFor="content">내용</Label>
                     <Textarea
                       id="content"
@@ -293,18 +292,19 @@ export default function NoticesPage() {
                       onChange={(e) =>
                         handleInputChange("content", e.target.value)
                       }
-                      rows={8}
+                      className="flex-1 resize-none"
                       maxLength={2000}
                     />
                   </div>
 
                   {/* Actions */}
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2 mt-auto">
                     <Button
                       type="button"
                       variant="outline"
                       onClick={() => setShowModal(true)}
                       disabled={!isFormValid}
+                      className="w-full sm:w-auto"
                     >
                       <Eye className="h-4 w-4 mr-2" />
                       미리보기
@@ -312,6 +312,7 @@ export default function NoticesPage() {
                     <Button
                       type="submit"
                       disabled={!isFormValid || isSubmitting}
+                      className="w-full sm:w-auto"
                     >
                       {isSubmitting ? (
                         <>
@@ -334,13 +335,13 @@ export default function NoticesPage() {
           {/* Notice List - Right Panel */}
           <div
             className={`space-y-6 transition-all duration-700 ease-in-out ${
-              isListExpanded ? "w-full" : "w-1/3"
+              isListExpanded ? "w-full min-w-0" : "w-full xl:w-3/8"
             }`}
           >
-            <Card>
+            <Card className="h-full">
               <CardHeader>
-                <div className="flex items-center justify-between w-full">
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between w-full gap-4 overflow-x-auto">
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     <Button
                       variant="outline"
                       size="icon"
@@ -350,9 +351,9 @@ export default function NoticesPage() {
                     >
                       <div className="transition-transform duration-300 ease-in-out">
                         {isListExpanded ? (
-                          <ChevronLeft className="h-4 w-4" />
-                        ) : (
                           <ChevronRight className="h-4 w-4" />
+                        ) : (
+                          <ChevronLeft className="h-4 w-4" />
                         )}
                       </div>
                     </Button>
@@ -360,9 +361,9 @@ export default function NoticesPage() {
                       공지 목록
                     </CardTitle>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     <Select value={timeFilter} onValueChange={setTimeFilter}>
-                      <SelectTrigger className="w-24">
+                      <SelectTrigger className="w-24 [&>svg]:bg-transparent [&>svg]:text-muted-foreground">
                         <SelectValue placeholder="이번 주" />
                       </SelectTrigger>
                       <SelectContent>
@@ -372,7 +373,7 @@ export default function NoticesPage() {
                       </SelectContent>
                     </Select>
                     <Select value={sortFilter} onValueChange={setSortFilter}>
-                      <SelectTrigger className="w-24">
+                      <SelectTrigger className="w-24 [&>svg]:bg-transparent [&>svg]:text-muted-foreground">
                         <SelectValue placeholder="최신순" />
                       </SelectTrigger>
                       <SelectContent>
@@ -385,6 +386,7 @@ export default function NoticesPage() {
                       size="icon"
                       onClick={handleRefresh}
                       disabled={isRefreshing}
+                      className="flex-shrink-0"
                     >
                       <RefreshCw
                         className={`h-4 w-4 ${
@@ -395,9 +397,9 @@ export default function NoticesPage() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="h-[600px] flex flex-col">
-                  <Table>
+              <CardContent className="flex flex-col h-full">
+                <div className="flex flex-col overflow-x-auto min-w-0 h-[410px]">
+                  <Table className="min-w-full">
                     <TableHeader>
                       <TableRow className="hover:bg-transparent">
                         <TableHead className="hover:bg-transparent">
@@ -416,8 +418,11 @@ export default function NoticesPage() {
                     </TableHeader>
                     <TableBody>
                       {noticesLoading ? (
-                        <TableRow>
-                          <TableCell colSpan={4} className="text-center">
+                        <TableRow className="h-[33px]">
+                          <TableCell
+                            colSpan={4}
+                            className="text-center h-[33px]"
+                          >
                             <LoadingSpinner />
                           </TableCell>
                         </TableRow>
@@ -426,18 +431,17 @@ export default function NoticesPage() {
                           {displayNotices.map((notice) => (
                             <TableRow
                               key={notice.id}
-                              className="cursor-pointer hover:bg-gray-50"
+                              className="cursor-pointer hover:bg-gray-50 h-[33px]"
                               onClick={() => handleNoticeClick(notice)}
                             >
-                              <TableCell className="font-medium">
-                                <div className="flex items-center gap-2">
-                                  {notice.is_important && (
-                                    <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                                  )}
-                                  {notice.title}
+                              <TableCell className="font-medium min-w-0">
+                                <div className="flex items-center gap-2 truncate">
+                                  {notice.title.length > 7
+                                    ? `${notice.title.substring(0, 7)}...`
+                                    : notice.title}
                                 </div>
                               </TableCell>
-                              <TableCell>
+                              <TableCell className="whitespace-nowrap">
                                 <span
                                   className={`px-2 py-1 rounded text-xs ${
                                     notice.is_important
@@ -450,34 +454,44 @@ export default function NoticesPage() {
                                     : "일반공지"}
                                 </span>
                               </TableCell>
-                              <TableCell>{formatDate(notice.date)}</TableCell>
-                              <TableCell>관리자</TableCell>
+                              <TableCell className="whitespace-nowrap">
+                                {formatDate(notice.date)}
+                              </TableCell>
+                              <TableCell className="whitespace-nowrap">
+                                관리자
+                              </TableCell>
                             </TableRow>
                           ))}
                           {/* Fill remaining rows to maintain height */}
-                          {Array.from(
-                            {
-                              length: Math.max(0, 10 - displayNotices.length),
-                            },
-                            (_, i) => (
-                              <TableRow key={`empty-${i}`} className="h-[60px]">
-                                <TableCell
-                                  colSpan={4}
-                                  className="h-[60px]"
-                                ></TableCell>
-                              </TableRow>
-                            )
-                          )}
+                          {Array.from({ length: emptyRowsCount }, (_, i) => (
+                            <TableRow key={`empty-${i}`} className="h-[33px]">
+                              <TableCell
+                                colSpan={4}
+                                className="h-[33px]"
+                              ></TableCell>
+                            </TableRow>
+                          ))}
                         </>
                       ) : (
-                        <TableRow>
-                          <TableCell
-                            colSpan={4}
-                            className="text-center text-muted-foreground"
-                          >
-                            공지사항이 없습니다.
-                          </TableCell>
-                        </TableRow>
+                        <>
+                          <TableRow className="h-[33px]">
+                            <TableCell
+                              colSpan={4}
+                              className="text-center text-muted-foreground h-[33px]"
+                            >
+                              공지사항이 없습니다.
+                            </TableCell>
+                          </TableRow>
+                          {/* Fill remaining rows to maintain height */}
+                          {Array.from({ length: 9 }, (_, i) => (
+                            <TableRow key={`empty-${i}`} className="h-[33px]">
+                              <TableCell
+                                colSpan={4}
+                                className="h-[33px]"
+                              ></TableCell>
+                            </TableRow>
+                          ))}
+                        </>
                       )}
                     </TableBody>
                   </Table>
@@ -485,12 +499,12 @@ export default function NoticesPage() {
               </CardContent>
               {/* Pagination */}
               {totalPages >= 1 && (
-                <div className="flex items-center justify-between px-6 py-4 border-t">
-                  <div className="text-sm text-muted-foreground">
+                <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t gap-4">
+                  <div className="text-sm text-muted-foreground text-center sm:text-left">
                     총 {totalItems}개 중 {startIndex + 1}-
                     {Math.min(endIndex, totalItems)}개 표시
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-end">
                     <Button
                       variant="outline"
                       size="sm"
@@ -509,7 +523,7 @@ export default function NoticesPage() {
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 flex-wrap">
                       {Array.from(
                         { length: Math.min(5, totalPages) },
                         (_, i) => {

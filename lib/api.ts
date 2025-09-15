@@ -96,7 +96,7 @@ export const noticesApi = {
     }),
   delete: (id: number) => {
     console.log("삭제 API 호출:", { id });
-    return request<{ message: string }>("/notices", {
+    return request<{ message: string }>("/notice", {
       method: "DELETE",
       body: JSON.stringify({ id }),
     });
