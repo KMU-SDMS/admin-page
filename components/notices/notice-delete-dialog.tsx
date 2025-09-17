@@ -36,12 +36,10 @@ export function NoticeDeleteDialog({
   const handleDelete = async () => {
     if (!notice) return;
 
-    console.log("삭제 시도:", notice.id);
     setIsDeleting(true);
 
     try {
       const result = await noticesApi.delete(notice.id);
-      console.log("삭제 결과:", result);
 
       toast({
         title: "공지 삭제 완료",
@@ -51,7 +49,6 @@ export function NoticeDeleteDialog({
       onSuccess();
       onClose();
     } catch (error) {
-      console.error("삭제 오류:", error);
       toast({
         title: "공지 삭제 실패",
         description:

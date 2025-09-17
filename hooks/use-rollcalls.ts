@@ -57,7 +57,6 @@ export function useRollcalls(params: RollcallQuery = {}) {
         setData((prevData) => [...prevData, updatedRollcall]);
       }
     } catch (err) {
-      console.error("mutate 에러:", err);
       throw err;
     }
   };

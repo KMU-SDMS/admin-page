@@ -31,7 +31,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "border-r bg-sidebar transition-all duration-300",
+        "border-r bg-sidebar transition-all duration-300 h-screen",
         collapsed ? "w-16" : "w-40"
       )}
     >
@@ -61,7 +61,7 @@ export function Sidebar() {
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-responsive-xxs font-medium transition-colors whitespace-nowrap",
                   isActive
                     ? "bg-sidebar-accent text-sidebar-accent-foreground"
                     : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",

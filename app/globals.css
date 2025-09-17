@@ -121,5 +121,207 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-size: var(--font-size-base); /* 반응형 기본 폰트 사이즈 */
+  }
+
+  /* 기본 HTML 요소들 반응형 폰트 사이즈 적용 */
+  h1 {
+    font-size: var(--font-size-4xl);
+  }
+  h2 {
+    font-size: var(--font-size-3xl);
+  }
+  h3 {
+    font-size: var(--font-size-2xl);
+  }
+  h4 {
+    font-size: var(--font-size-xl);
+  }
+  h5 {
+    font-size: var(--font-size-lg);
+  }
+  h6 {
+    font-size: var(--font-size-base);
+  }
+  p {
+    font-size: var(--font-size-base);
+  }
+  small {
+    font-size: var(--font-size-sm);
+  }
+
+  /* 반응형 폰트 사이즈 - 뷰포트가 길어지면 글자도 커지고, 짧아지면 글자도 작아짐 */
+  :root {
+    /* 기본 폰트 사이즈 - vw가 클수록 커지도록 조정, 6xl까지 확장 */
+    --font-size-xxs: clamp(
+      0.42rem,
+      0.28rem + 0.42vw,
+      0.84rem
+    ); /* 6.72px-13.44px */
+    --font-size-xs: clamp(
+      0.525rem,
+      0.35rem + 0.525vw,
+      1.05rem
+    ); /* 8.4px-16.8px */
+    --font-size-sm: clamp(
+      0.6125rem,
+      0.4375rem + 0.6125vw,
+      1.05rem
+    ); /* 9.8px-16.8px */
+    --font-size-base: clamp(
+      0.7rem,
+      0.525rem + 0.7vw,
+      1.4rem
+    ); /* 11.2px-22.4px */
+    --font-size-lg: clamp(
+      0.7875rem,
+      0.6125rem + 0.875vw,
+      1.4rem
+    ); /* 12.6px-22.4px */
+    --font-size-xl: clamp(0.875rem, 0.7rem + 1.05vw, 1.75rem); /* 14px-28px */
+    --font-size-2xl: clamp(
+      1.05rem,
+      0.875rem + 1.225vw,
+      2.1rem
+    ); /* 16.8px-33.6px */
+    --font-size-3xl: clamp(
+      1.3125rem,
+      1.05rem + 1.4vw,
+      2.8rem
+    ); /* 21px-44.8px */
+    --font-size-4xl: clamp(
+      1.575rem,
+      1.225rem + 1.75vw,
+      3.5rem
+    ); /* 25.2px-56px */
+    --font-size-5xl: clamp(
+      2.1rem,
+      1.575rem + 2.1vw,
+      4.2rem
+    ); /* 33.6px-67.2px */
+    --font-size-6xl: clamp(
+      2.625rem,
+      1.925rem + 3.15vw,
+      5.6rem
+    ); /* 42px-89.6px */
+  }
+
+  /* 반응형 폰트 클래스 */
+  .text-responsive-xxs {
+    font-size: var(--font-size-xxs);
+  }
+  .text-responsive-xs {
+    font-size: var(--font-size-xs);
+  }
+  .text-responsive-sm {
+    font-size: var(--font-size-sm);
+  }
+  .text-responsive-base {
+    font-size: var(--font-size-base);
+  }
+  .text-responsive-lg {
+    font-size: var(--font-size-lg);
+  }
+  .text-responsive-xl {
+    font-size: var(--font-size-xl);
+  }
+  .text-responsive-2xl {
+    font-size: var(--font-size-2xl);
+  }
+  .text-responsive-3xl {
+    font-size: var(--font-size-3xl);
+  }
+  .text-responsive-4xl {
+    font-size: var(--font-size-4xl);
+  }
+  .text-responsive-5xl {
+    font-size: var(--font-size-5xl);
+  }
+  .text-responsive-6xl {
+    font-size: var(--font-size-6xl);
+  }
+
+  /* 공지작성 버튼 - 텍스트와 아이콘 흰색 */
+  button[type="submit"] {
+    color: oklch(0.985 0 0) !important;
+  }
+
+  button[type="submit"] svg {
+    color: oklch(0.985 0 0) !important;
+  }
+
+  /* 페이지네이션 현재 페이지 버튼 - 텍스트 흰색 */
+  button[aria-current="page"] {
+    color: oklch(0.985 0 0) !important;
+  }
+
+  button[aria-current="page"] svg {
+    color: oklch(0.985 0 0) !important;
+  }
+
+  /* 페이지네이션 버튼들 중 default variant (현재 페이지) */
+  .flex.items-center.gap-1 button[data-variant="default"] {
+    color: oklch(0.985 0 0) !important;
+  }
+
+  /* 공지사항 목록의 페이지네이션 현재 페이지 버튼 */
+  .space-y-3 button[data-variant="default"],
+  .space-y-4 button[data-variant="default"] {
+    color: oklch(0.985 0 0) !important;
+  }
+
+  /* 모든 default variant 버튼 (현재 페이지) */
+  button[data-variant="default"] {
+    color: oklch(0.985 0 0) !important;
+  }
+
+  /* 페이지네이션 컨테이너 내의 default variant 버튼 */
+  .flex.items-center.gap-1 button[data-variant="default"],
+  .flex.items-center.gap-1 button[data-variant="default"] * {
+    color: oklch(0.985 0 0) !important;
+  }
+
+  /* 공지사항 페이지네이션 버튼들 - 더 구체적인 선택자 */
+  .w-6.h-6[data-variant="default"],
+  .w-7.h-7[data-variant="default"],
+  .sm\\:w-7.sm\\:h-7[data-variant="default"] {
+    color: oklch(0.985 0 0) !important;
+  }
+
+  /* 페이지네이션 버튼의 텍스트 */
+  .flex.items-center.gap-1 button {
+    color: inherit;
+  }
+
+  .flex.items-center.gap-1 button[data-variant="default"] {
+    color: oklch(0.985 0 0) !important;
+  }
+
+  /* 페이지네이션 버튼 강제 흰색 - 최고 우선순위 */
+  .flex.items-center.gap-1 button[data-variant="default"],
+  .flex.items-center.gap-1 button[data-variant="default"] *,
+  .flex.items-center.gap-1 button[data-variant="default"] span {
+    color: oklch(0.985 0 0) !important;
+  }
+
+  /* 공지사항 페이지네이션 특정 선택자 */
+  .space-y-3 .flex.items-center.gap-1 button[data-variant="default"],
+  .space-y-4 .flex.items-center.gap-1 button[data-variant="default"] {
+    color: oklch(0.985 0 0) !important;
+  }
+
+  /* 최고 우선순위 - 페이지네이션 현재 페이지 버튼 */
+  div.flex.items-center.gap-1.flex-wrap button[data-variant="default"] {
+    color: oklch(0.985 0 0) !important;
+  }
+
+  /* 모든 default variant 버튼 강제 흰색 */
+  button[data-variant="default"] {
+    color: oklch(0.985 0 0) !important;
+  }
+
+  /* 페이지네이션 버튼 내부 모든 요소 */
+  button[data-variant="default"] * {
+    color: oklch(0.985 0 0) !important;
   }
 }

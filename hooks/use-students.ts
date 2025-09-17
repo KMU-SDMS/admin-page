@@ -18,13 +18,6 @@ export function useStudents(params: StudentQuery = {}) {
       const students = await api.students.getAll();
 
       // 디버깅을 위한 로그
-      console.log("API에서 받은 학생 데이터:", students);
-      console.log(
-        "첫 번째 학생의 roomId:",
-        students[0]?.roomId,
-        typeof students[0]?.roomId
-      );
-      console.log("필터링할 roomId:", params.roomId, typeof params.roomId);
 
       let filteredStudents = [...students];
 
@@ -33,7 +26,6 @@ export function useStudents(params: StudentQuery = {}) {
         filteredStudents = filteredStudents.filter(
           (student) => student.roomId === params.roomId
         );
-        console.log("필터링 후 학생 수:", filteredStudents.length);
       }
 
       // 이름 검색 필터링

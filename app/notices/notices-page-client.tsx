@@ -192,9 +192,7 @@ export function NoticesPageClient({
   };
 
   const handleDeleteNotice = (id: number) => {
-    console.log("handleDeleteNotice 호출:", id);
     const notice = displayNotices.find((n) => n.id === id);
-    console.log("찾은 공지사항:", notice);
     if (notice) {
       setSelectedNotice(notice);
       setShowDeleteDialog(true);
@@ -242,36 +240,39 @@ export function NoticesPageClient({
   }, []);
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+    <div className="flex flex-col xl:flex-row gap-3 sm:gap-4 h-full">
       {/* Notice Creation Form - Left Panel */}
       <div
-        className={`space-y-4 lg:space-y-6 transition-all duration-700 ease-in-out ${
+        className={`transition-all duration-700 ease-in-out ${
           isListExpanded
             ? "w-0 opacity-0 overflow-hidden pointer-events-none"
-            : "w-full lg:w-1/2 xl:w-3/5 opacity-100"
+            : "w-full xl:w-1/2 2xl:w-3/5 opacity-100"
         }`}
       >
-        <Card className="h-full">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Plus className="h-5 w-5" />
+        <Card className="h-full flex flex-col">
+          <CardHeader className="px-4 py-3 flex-shrink-0">
+            <CardTitle className="flex items-center gap-2 text-responsive-sm">
+              <Plus className="h-4 w-4 lg:h-5 lg:w-5" />
               공지 작성
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col h-full">
+          <CardContent className="flex flex-col flex-1 px-4 py-3 min-h-0">
             <form
               onSubmit={handleSubmit}
-              className="flex flex-col h-full space-y-4"
+              className="flex flex-col h-full space-y-3"
             >
               {/* Title */}
-              <div className="space-y-2">
-                <Label htmlFor="title">제목</Label>
+              <div className="space-y-1">
+                <Label htmlFor="title" className="text-responsive-xs">
+                  제목
+                </Label>
                 <Input
                   id="title"
                   placeholder="제목을 입력하세요"
                   value={form.title}
                   onChange={(e) => handleInputChange("title", e.target.value)}
                   maxLength={100}
+                  className="text-responsive-xs"
                 />
               </div>
 
@@ -286,50 +287,52 @@ export function NoticesPageClient({
                 />
                 <Label
                   htmlFor="is_important"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="text-responsive-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
                   중요공지
                 </Label>
               </div>
 
               {/* Content */}
-              <div className="space-y-2 flex-1 flex flex-col">
-                <Label htmlFor="content">내용</Label>
+              <div className="space-y-1 flex-1 flex flex-col min-h-0">
+                <Label htmlFor="content" className="text-responsive-xs">
+                  내용
+                </Label>
                 <Textarea
                   id="content"
                   placeholder="공지사항 내용을 입력하세요"
                   value={form.content}
                   onChange={(e) => handleInputChange("content", e.target.value)}
-                  className="flex-1 resize-none"
+                  className="flex-1 resize-none text-responsive-xs min-h-[120px] lg:min-h-[150px]"
                   maxLength={2000}
                 />
               </div>
 
               {/* Actions */}
-              <div className="flex flex-col sm:flex-row gap-2 mt-auto">
+              <div className="flex flex-col sm:flex-row gap-2 mt-auto flex-shrink-0">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setShowModal(true)}
                   disabled={!isFormValid}
-                  className="w-full sm:w-auto text-sm"
+                  className="w-full sm:w-auto text-responsive-xs h-8 lg:h-9"
                 >
-                  <Eye className="h-4 w-4 mr-2" />
+                  <Eye className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
                   미리보기
                 </Button>
                 <Button
                   type="submit"
                   disabled={!isFormValid || isSubmitting}
-                  className="w-full sm:w-auto text-sm"
+                  className="w-full sm:w-auto text-responsive-xs h-8 lg:h-9"
                 >
                   {isSubmitting ? (
                     <>
-                      <LoadingSpinner size="sm" className="mr-2" />
+                      <LoadingSpinner size="sm" className="mr-1 lg:mr-2" />
                       작성 중...
                     </>
                   ) : (
                     <>
-                      <Send className="h-4 w-4 mr-2" />
+                      <Send className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
                       공지 작성
                     </>
                   )}
@@ -342,36 +345,36 @@ export function NoticesPageClient({
 
       {/* Notice List - Right Panel */}
       <div
-        className={`space-y-4 lg:space-y-6 transition-all duration-700 ease-in-out ${
+        className={`transition-all duration-700 ease-in-out ${
           isListExpanded ? "w-full min-w-0" : "w-full lg:w-1/2 xl:w-2/5"
         }`}
       >
-        <Card className="h-full">
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-3 sm:gap-4">
-              <div className="flex items-center gap-2 flex-shrink-0">
+        <Card className="h-full flex flex-col">
+          <CardHeader className="px-3 py-2 flex-shrink-0">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-1 sm:gap-2">
+              <div className="flex items-center gap-1 flex-shrink-0">
                 <Button
                   variant="outline"
                   size="icon"
                   onClick={() => setIsListExpanded(!isListExpanded)}
                   title={isListExpanded ? "축소" : "확대"}
-                  className="transition-transform duration-300 ease-in-out"
+                  className="transition-transform duration-300 ease-in-out h-7 w-7"
                 >
                   <div className="transition-transform duration-300 ease-in-out">
                     {isListExpanded ? (
-                      <ChevronRight className="h-4 w-4" />
+                      <ChevronRight className="h-3 w-3" />
                     ) : (
-                      <ChevronLeft className="h-4 w-4" />
+                      <ChevronLeft className="h-3 w-3" />
                     )}
                   </div>
                 </Button>
-                <CardTitle className="whitespace-nowrap text-base sm:text-lg">
+                <CardTitle className="whitespace-nowrap text-responsive-sm">
                   공지 목록
                 </CardTitle>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto">
+              <div className="flex items-center gap-1 flex-shrink-0 w-full sm:w-auto">
                 <Select value={timeFilter} onValueChange={setTimeFilter}>
-                  <SelectTrigger className="w-24 sm:w-28 [&>svg]:bg-transparent [&>svg]:text-muted-foreground text-xs sm:text-sm">
+                  <SelectTrigger className="w-16 sm:w-20 md:w-24 [&>svg]:bg-transparent [&>svg]:text-muted-foreground text-responsive-xs h-7">
                     <SelectValue placeholder="7일내" />
                   </SelectTrigger>
                   <SelectContent>
@@ -381,7 +384,7 @@ export function NoticesPageClient({
                   </SelectContent>
                 </Select>
                 <Select value={sortFilter} onValueChange={setSortFilter}>
-                  <SelectTrigger className="w-24 sm:w-28 [&>svg]:bg-transparent [&>svg]:text-muted-foreground text-xs sm:text-sm">
+                  <SelectTrigger className="w-16 sm:w-20 md:w-24 [&>svg]:bg-transparent [&>svg]:text-muted-foreground text-responsive-xs h-7">
                     <SelectValue placeholder="최신순" />
                   </SelectTrigger>
                   <SelectContent>
@@ -394,40 +397,40 @@ export function NoticesPageClient({
                   size="icon"
                   onClick={handleRefresh}
                   disabled={isRefreshing}
-                  className="flex-shrink-0"
+                  className="flex-shrink-0 h-7 w-7"
                 >
                   <RefreshCw
-                    className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+                    className={`h-3 w-3 ${isRefreshing ? "animate-spin" : ""}`}
                   />
                 </Button>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="flex flex-col h-full">
-            <div className="flex flex-col overflow-x-auto min-w-0 h-[300px] sm:h-[350px] lg:h-[410px]">
+          <CardContent className="flex flex-col flex-1 px-3 py-1 min-h-0">
+            <div className="flex flex-col overflow-x-auto min-w-0 flex-1">
               <Table className="min-w-full">
                 <TableHeader>
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead className="hover:bg-transparent text-xs sm:text-sm font-medium">
+                  <TableRow className="hover:bg-transparent h-[22px]">
+                    <TableHead className="hover:bg-transparent text-responsive-xs font-medium px-2 py-1">
                       제목
                     </TableHead>
-                    <TableHead className="hover:bg-transparent text-xs sm:text-sm font-medium hidden sm:table-cell">
+                    <TableHead className="hover:bg-transparent text-responsive-xs font-medium hidden sm:table-cell px-2 py-1">
                       공지유형
                     </TableHead>
-                    <TableHead className="hover:bg-transparent text-xs sm:text-sm font-medium">
+                    <TableHead className="hover:bg-transparent text-responsive-xs font-medium px-2 py-1">
                       작성일
                     </TableHead>
-                    <TableHead className="hover:bg-transparent text-xs sm:text-sm font-medium hidden md:table-cell">
+                    <TableHead className="hover:bg-transparent text-responsive-xs font-medium hidden md:table-cell px-2 py-1">
                       작성자
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {noticesLoading ? (
-                    <TableRow className="h-[28px] sm:h-[33px]">
+                    <TableRow className="h-[25px] sm:h-[30px]">
                       <TableCell
                         colSpan={4}
-                        className="text-center h-[28px] sm:h-[33px]"
+                        className="text-center h-[25px] sm:h-[30px] px-2 py-1"
                       >
                         <LoadingSpinner />
                       </TableCell>
@@ -437,11 +440,11 @@ export function NoticesPageClient({
                       {displayNotices.map((notice) => (
                         <TableRow
                           key={notice.id}
-                          className="cursor-pointer hover:bg-gray-50 h-[28px] sm:h-[33px]"
+                          className="cursor-pointer hover:bg-gray-50 h-[25px] sm:h-[30px]"
                           onClick={() => handleNoticeClick(notice)}
                         >
-                          <TableCell className="font-medium min-w-0 text-xs sm:text-sm">
-                            <div className="flex items-center gap-2 truncate">
+                          <TableCell className="font-medium min-w-0 text-responsive-xs px-2 py-1">
+                            <div className="flex items-center gap-1 truncate">
                               <span className="truncate max-w-[120px] sm:max-w-[200px] lg:max-w-none">
                                 {notice.title.length > 15
                                   ? `${notice.title.substring(0, 15)}...`
@@ -450,10 +453,10 @@ export function NoticesPageClient({
                               {/* Mobile: Show badge inline */}
                               <span className="sm:hidden">
                                 <span
-                                  className={`px-1.5 py-0.5 rounded text-xs ${
+                                  className={`px-1 py-0.5 rounded text-responsive-xs ${
                                     notice.is_important
-                                      ? "bg-red-100 text-red-800"
-                                      : "bg-blue-100 text-blue-800"
+                                      ? "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200"
+                                      : "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200"
                                   }`}
                                 >
                                   {notice.is_important ? "중요" : "일반"}
@@ -461,21 +464,21 @@ export function NoticesPageClient({
                               </span>
                             </div>
                           </TableCell>
-                          <TableCell className="whitespace-nowrap hidden sm:table-cell">
+                          <TableCell className="whitespace-nowrap hidden sm:table-cell px-2 py-1">
                             <span
-                              className={`px-2 py-1 rounded text-xs ${
+                              className={`px-1.5 py-0.5 rounded text-responsive-xs ${
                                 notice.is_important
-                                  ? "bg-red-100 text-red-800"
-                                  : "bg-blue-100 text-blue-800"
+                                  ? "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200"
+                                  : "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200"
                               }`}
                             >
                               {notice.is_important ? "중요공지" : "일반공지"}
                             </span>
                           </TableCell>
-                          <TableCell className="whitespace-nowrap text-xs sm:text-sm">
+                          <TableCell className="whitespace-nowrap text-responsive-xs px-2 py-1">
                             {formatDate(notice.date)}
                           </TableCell>
-                          <TableCell className="whitespace-nowrap text-xs sm:text-sm hidden md:table-cell">
+                          <TableCell className="whitespace-nowrap text-xs sm:text-sm hidden md:table-cell px-2 py-1">
                             관리자
                           </TableCell>
                         </TableRow>
@@ -484,21 +487,21 @@ export function NoticesPageClient({
                       {Array.from({ length: emptyRowsCount }, (_, i) => (
                         <TableRow
                           key={`empty-${i}`}
-                          className="h-[28px] sm:h-[33px]"
+                          className="h-[25px] sm:h-[30px]"
                         >
                           <TableCell
                             colSpan={4}
-                            className="h-[28px] sm:h-[33px]"
+                            className="h-[25px] sm:h-[30px] px-2 py-1"
                           ></TableCell>
                         </TableRow>
                       ))}
                     </>
                   ) : (
                     <>
-                      <TableRow className="h-[28px] sm:h-[33px]">
+                      <TableRow className="h-[25px] sm:h-[30px]">
                         <TableCell
                           colSpan={4}
-                          className="text-center text-muted-foreground h-[28px] sm:h-[33px] text-xs sm:text-sm"
+                          className="text-center text-muted-foreground h-[25px] sm:h-[30px] text-responsive-xs px-2 py-1"
                         >
                           공지사항이 없습니다.
                         </TableCell>
@@ -507,11 +510,11 @@ export function NoticesPageClient({
                       {Array.from({ length: 9 }, (_, i) => (
                         <TableRow
                           key={`empty-${i}`}
-                          className="h-[28px] sm:h-[33px]"
+                          className="h-[25px] sm:h-[30px]"
                         >
                           <TableCell
                             colSpan={4}
-                            className="h-[28px] sm:h-[33px]"
+                            className="h-[25px] sm:h-[30px] px-2 py-1"
                           ></TableCell>
                         </TableRow>
                       ))}
@@ -522,21 +525,21 @@ export function NoticesPageClient({
             </div>
           </CardContent>
           {/* Pagination */}
-          <div className="flex flex-col sm:flex-row items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-t gap-3 sm:gap-4">
-            <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row items-center justify-between px-2 py-1 border-t gap-1 sm:gap-2 flex-shrink-0">
+            <div className="text-responsive-xs text-muted-foreground text-center sm:text-left">
               총 {totalItems}개 중 {startIndex + 1}-
               {Math.min(endIndex, totalItems)}개 표시
             </div>
             {totalPages > 1 && (
-              <div className="flex items-center gap-1 sm:gap-2 flex-wrap justify-center sm:justify-end">
+              <div className="flex items-center gap-1 flex-wrap justify-center sm:justify-end">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handlePageChange(1)}
                   disabled={displayPageInfo?.now_page === 1}
-                  className="h-7 w-7 sm:h-8 sm:w-8 p-0"
+                  className="h-6 w-6 p-0"
                 >
-                  <ChevronsLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <ChevronsLeft className="h-3 w-3" />
                 </Button>
                 <Button
                   variant="outline"
@@ -545,9 +548,9 @@ export function NoticesPageClient({
                     handlePageChange((displayPageInfo?.now_page || 1) - 1)
                   }
                   disabled={displayPageInfo?.now_page === 1}
-                  className="h-7 w-7 sm:h-8 sm:w-8 p-0"
+                  className="h-6 w-6 p-0"
                 >
-                  <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <ChevronLeft className="h-3 w-3" />
                 </Button>
                 <div className="flex items-center gap-1 flex-wrap">
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -566,7 +569,7 @@ export function NoticesPageClient({
                         }
                         size="sm"
                         onClick={() => handlePageChange(pageNum)}
-                        className="w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm"
+                        className="w-6 h-6 p-0 text-responsive-xs"
                       >
                         {pageNum}
                       </Button>
@@ -580,18 +583,18 @@ export function NoticesPageClient({
                     handlePageChange((displayPageInfo?.now_page || 1) + 1)
                   }
                   disabled={displayPageInfo?.now_page === totalPages}
-                  className="h-7 w-7 sm:h-8 sm:w-8 p-0"
+                  className="h-6 w-6 p-0"
                 >
-                  <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <ChevronRight className="h-3 w-3" />
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handlePageChange(totalPages)}
                   disabled={displayPageInfo?.now_page === totalPages}
-                  className="h-7 w-7 sm:h-8 sm:w-8 p-0"
+                  className="h-6 w-6 p-0"
                 >
-                  <ChevronsRight className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <ChevronsRight className="h-3 w-3" />
                 </Button>
               </div>
             )}
