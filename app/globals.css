@@ -159,13 +159,13 @@
     font-size: var(--font-size-base);
   }
 
-  /* text-responsive-xs - QHD에서 1.2배로 조정 */
+  /* text-responsive-xs - QHD에서 1.2배로 조정, 15% 크기 감소 */
   .text-responsive-xs {
     font-size: clamp(
-      1rem,
-      0.5rem + 1.8vw,
-      1.8rem
-    ); /* FHD 16px, QHD 28.8px (1.2배) */
+      0.85rem,
+      0.425rem + 1.53vw,
+      1.53rem
+    ); /* FHD 13.6px (15% 감소), QHD 24.48px (15% 감소) */
   }
 
   /* 공지사항 테이블 반응형 패딩 - FHD에서 px-2 py-1과 정확히 동일, QHD에서 1.5배 */
