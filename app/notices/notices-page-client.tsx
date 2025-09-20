@@ -403,10 +403,10 @@ export function NoticesPageClient({
             </div>
           </CardHeader>
           <CardContent className="flex flex-col flex-1 min-h-0 padding-compact">
-            <div className="flex flex-col overflow-x-auto min-w-0 flex-1">
+            <div className="flex flex-col overflow-x-auto min-w-0 flex-1 notice-table-container">
               <Table className="min-w-full">
                 <TableHeader>
-                  <TableRow className="hover:bg-transparent h-[22px]">
+                  <TableRow className="hover:bg-transparent notice-table-row">
                     <TableHead className="hover:bg-transparent text-responsive-xs font-medium px-2 py-1">
                       제목
                     </TableHead>
@@ -423,10 +423,10 @@ export function NoticesPageClient({
                 </TableHeader>
                 <TableBody>
                   {noticesLoading ? (
-                    <TableRow className="h-[25px] sm:h-[30px]">
+                    <TableRow className="notice-table-row">
                       <TableCell
                         colSpan={4}
-                        className="text-center h-[25px] sm:h-[30px] px-2 py-1"
+                        className="text-center notice-table-row px-2 py-1"
                       >
                         <LoadingSpinner />
                       </TableCell>
@@ -436,7 +436,7 @@ export function NoticesPageClient({
                       {displayNotices.map((notice) => (
                         <TableRow
                           key={notice.id}
-                          className="cursor-pointer hover:bg-gray-50 h-[25px] sm:h-[30px]"
+                          className="cursor-pointer hover:bg-gray-50 notice-table-row"
                           onClick={() => handleNoticeClick(notice)}
                         >
                           <TableCell className="font-medium min-w-0 text-responsive-xs px-2 py-1">
@@ -474,7 +474,7 @@ export function NoticesPageClient({
                           <TableCell className="whitespace-nowrap text-responsive-xs px-2 py-1">
                             {formatDate(notice.date)}
                           </TableCell>
-                          <TableCell className="whitespace-nowrap text-xs sm:text-sm hidden md:table-cell px-2 py-1">
+                          <TableCell className="whitespace-nowrap text-responsive-xs hidden md:table-cell px-2 py-1">
                             관리자
                           </TableCell>
                         </TableRow>
@@ -483,21 +483,21 @@ export function NoticesPageClient({
                       {Array.from({ length: emptyRowsCount }, (_, i) => (
                         <TableRow
                           key={`empty-${i}`}
-                          className="h-[25px] sm:h-[30px]"
+                          className="notice-table-row"
                         >
                           <TableCell
                             colSpan={4}
-                            className="h-[25px] sm:h-[30px] px-2 py-1"
+                            className="notice-table-row px-2 py-1"
                           ></TableCell>
                         </TableRow>
                       ))}
                     </>
                   ) : (
                     <>
-                      <TableRow className="h-[25px] sm:h-[30px]">
+                      <TableRow className="notice-table-row">
                         <TableCell
                           colSpan={4}
-                          className="text-center text-muted-foreground h-[25px] sm:h-[30px] text-responsive-xs px-2 py-1"
+                          className="text-center text-muted-foreground notice-table-row text-responsive-xs px-2 py-1"
                         >
                           공지사항이 없습니다.
                         </TableCell>
@@ -506,11 +506,11 @@ export function NoticesPageClient({
                       {Array.from({ length: 9 }, (_, i) => (
                         <TableRow
                           key={`empty-${i}`}
-                          className="h-[25px] sm:h-[30px]"
+                          className="notice-table-row"
                         >
                           <TableCell
                             colSpan={4}
-                            className="h-[25px] sm:h-[30px] px-2 py-1"
+                            className="notice-table-row px-2 py-1"
                           ></TableCell>
                         </TableRow>
                       ))}

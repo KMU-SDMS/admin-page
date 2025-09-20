@@ -45,43 +45,43 @@ export function NoticePreview({
 
   return (
     <Card className="border-2 border-dashed border-primary/20 bg-primary/5">
-      <CardHeader className="pb-3 sm:pb-6">
+      <CardHeader className="pb-4 sm:pb-6">
         <CardTitle className="flex items-center gap-2 text-responsive-base">
-          <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
+          <Eye className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
           미리보기
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3 sm:space-y-4">
+        <div className="space-y-4 sm:space-y-6">
           {/* Notice Header */}
-          <div className="space-y-2 sm:space-y-3">
+          <div className="space-y-3 sm:space-y-4">
             <div className="flex items-center gap-2">
-              <Megaphone className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-              <span className="text-responsive-xs font-medium text-primary">
+              <Megaphone className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-primary" />
+              <span className="text-responsive-base font-medium text-primary">
                 공지사항
               </span>
             </div>
-            <h2 className="text-responsive-lg font-bold text-balance leading-tight">
+            <h2 className="text-responsive-xl font-bold text-balance leading-tight">
               {title}
             </h2>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-responsive-xs text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Target className="h-3 w-3 sm:h-4 sm:w-4" />
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 text-responsive-base text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Target className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
                 <span>대상: {getTargetDisplay()}</span>
               </div>
-              <div className="flex items-center gap-1">
-                <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
                 <span>{new Date().toLocaleDateString()}</span>
               </div>
               <div className="flex items-center gap-2">{getTargetBadge()}</div>
             </div>
           </div>
 
-          <Separator />
+          <Separator className="my-4 sm:my-6" />
 
           {/* Notice Body */}
-          <div className="prose prose-sm max-w-none">
-            <div className="whitespace-pre-wrap text-responsive-xs leading-relaxed">
+          <div className="prose prose-lg max-w-none">
+            <div className="whitespace-pre-wrap text-responsive-base leading-relaxed">
               {body}
             </div>
           </div>
