@@ -168,6 +168,50 @@
     ); /* FHD 16px, QHD 28.8px (1.2배) */
   }
 
+  /* 공지사항 테이블 반응형 패딩 - FHD에서 px-2 py-1과 정확히 동일, QHD에서 1.5배 */
+  .notice-table-padding {
+    padding: 0.25rem 0.5rem; /* FHD에서 px-2 py-1과 정확히 동일 */
+  }
+
+  /* QHD에서만 1.5배로 조정 */
+  @media (min-width: 2560px) {
+    .notice-table-padding {
+      padding: 0.375rem 0.75rem; /* QHD에서 1.5배 */
+    }
+  }
+
+  /* 공지사항 테이블 반응형 마진 - FHD 기준, QHD에서 1.5배 */
+  .notice-table-margin {
+    margin: clamp(0.25rem, 0.25rem + 0.375vw, 0.375rem);
+  }
+
+  /* 공지사항 테이블 반응형 간격 - FHD 기준, QHD에서 1.5배 */
+  .notice-table-gap {
+    gap: clamp(0.25rem, 0.25rem + 0.375vw, 0.375rem);
+  }
+
+  /* 공지사항 테이블 반응형 아이콘 크기 - FHD 기준, QHD에서 1.5배 */
+  .notice-table-icon {
+    width: clamp(1rem, 1rem + 0.75vw, 1.5rem);
+    height: clamp(1rem, 1rem + 0.75vw, 1.5rem);
+  }
+
+  /* 공지사항 테이블 반응형 버튼 크기 - FHD 기준, QHD에서 1.5배 */
+  .notice-table-button {
+    height: clamp(1.5rem, 1.5rem + 0.75vw, 2.25rem);
+    padding: clamp(0.25rem, 0.25rem + 0.375vw, 0.375rem)
+      clamp(0.5rem, 0.5rem + 0.75vw, 0.75rem);
+  }
+
+  /* 공지사항 테이블 반응형 최대 너비 - FHD 기준, QHD에서 1.5배 */
+  .notice-table-max-width {
+    max-width: clamp(7.5rem, 7.5rem + 11.25vw, 11.25rem); /* 120px -> 180px */
+  }
+
+  .notice-table-max-width-lg {
+    max-width: clamp(12.5rem, 12.5rem + 18.75vw, 18.75rem); /* 200px -> 300px */
+  }
+
   /* 뷰포트 높이 기반 compact 레이아웃 */
   .compact-height {
     height: 100vh;
@@ -257,22 +301,22 @@
     height: clamp(2rem, 2rem + 1vh, 3rem);
   }
 
-  /* 공지사항 테이블 행 높이 - FHD 유지, QHD에서 1.3배로 조정 */
+  /* 공지사항 테이블 행 높이 - FHD에서 5% 감소, QHD에서 1.3배로 조정 */
   .notice-table-row {
     height: clamp(
-      1.6875rem,
-      1.6875rem + 2.275vw,
+      1.6rem,
+      1.6rem + 2.275vw,
       6.1425rem
-    ) !important; /* FHD 27px 유지, QHD 98px (1.3배) */
-    min-height: clamp(1.6875rem, 1.6875rem + 2.275vw, 6.1425rem) !important;
-    max-height: clamp(1.6875rem, 1.6875rem + 2.275vw, 6.1425rem) !important;
+    ) !important; /* FHD 25.6px (5% 감소), QHD 98px (1.3배) */
+    min-height: clamp(1.6rem, 1.6rem + 2.275vw, 6.1425rem) !important;
+    max-height: clamp(1.6rem, 1.6rem + 2.275vw, 6.1425rem) !important;
   }
 
   /* 테이블 셀 높이도 함께 조정 */
   .notice-table-row td {
-    height: clamp(1.6875rem, 1.6875rem + 2.275vw, 6.1425rem) !important;
-    min-height: clamp(1.6875rem, 1.6875rem + 2.275vw, 6.1425rem) !important;
-    max-height: clamp(1.6875rem, 1.6875rem + 2.275vw, 6.1425rem) !important;
+    height: clamp(1.6rem, 1.6rem + 2.275vw, 6.1425rem) !important;
+    min-height: clamp(1.6rem, 1.6rem + 2.275vw, 6.1425rem) !important;
+    max-height: clamp(1.6rem, 1.6rem + 2.275vw, 6.1425rem) !important;
   }
 
   /* 테이블이 컨테이너를 완전히 채우도록 설정 */

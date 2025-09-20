@@ -407,16 +407,16 @@ export function NoticesPageClient({
               <Table className="min-w-full">
                 <TableHeader>
                   <TableRow className="hover:bg-transparent notice-table-row">
-                    <TableHead className="hover:bg-transparent text-responsive-xs font-medium px-2 py-1">
+                    <TableHead className="hover:bg-transparent text-responsive-xs font-medium notice-table-padding">
                       제목
                     </TableHead>
-                    <TableHead className="hover:bg-transparent text-responsive-xs font-medium hidden sm:table-cell px-2 py-1">
+                    <TableHead className="hover:bg-transparent text-responsive-xs font-medium hidden sm:table-cell notice-table-padding">
                       공지유형
                     </TableHead>
-                    <TableHead className="hover:bg-transparent text-responsive-xs font-medium px-2 py-1">
+                    <TableHead className="hover:bg-transparent text-responsive-xs font-medium notice-table-padding">
                       작성일
                     </TableHead>
-                    <TableHead className="hover:bg-transparent text-responsive-xs font-medium hidden md:table-cell px-2 py-1">
+                    <TableHead className="hover:bg-transparent text-responsive-xs font-medium hidden md:table-cell notice-table-padding">
                       작성자
                     </TableHead>
                   </TableRow>
@@ -426,7 +426,7 @@ export function NoticesPageClient({
                     <TableRow className="notice-table-row">
                       <TableCell
                         colSpan={4}
-                        className="text-center notice-table-row px-2 py-1"
+                        className="text-center notice-table-row notice-table-padding"
                       >
                         <LoadingSpinner />
                       </TableCell>
@@ -439,9 +439,9 @@ export function NoticesPageClient({
                           className="cursor-pointer hover:bg-gray-50 notice-table-row"
                           onClick={() => handleNoticeClick(notice)}
                         >
-                          <TableCell className="font-medium min-w-0 text-responsive-xs px-2 py-1">
-                            <div className="flex items-center gap-1 truncate">
-                              <span className="truncate max-w-[120px] sm:max-w-[200px] lg:max-w-none">
+                          <TableCell className="font-medium min-w-0 text-responsive-xs notice-table-padding">
+                            <div className="flex items-center notice-table-gap truncate">
+                              <span className="truncate notice-table-max-width sm:notice-table-max-width-lg lg:max-w-none">
                                 {notice.title.length > 15
                                   ? `${notice.title.substring(0, 15)}...`
                                   : notice.title}
@@ -449,7 +449,7 @@ export function NoticesPageClient({
                               {/* Mobile: Show badge inline */}
                               <span className="sm:hidden">
                                 <span
-                                  className={`px-1 py-0.5 rounded text-responsive-xs ${
+                                  className={`notice-table-padding rounded text-responsive-xs ${
                                     notice.is_important
                                       ? "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200"
                                       : "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200"
@@ -460,9 +460,9 @@ export function NoticesPageClient({
                               </span>
                             </div>
                           </TableCell>
-                          <TableCell className="whitespace-nowrap hidden sm:table-cell px-2 py-1">
+                          <TableCell className="whitespace-nowrap hidden sm:table-cell notice-table-padding">
                             <span
-                              className={`px-1.5 py-0.5 rounded text-responsive-xs ${
+                              className={`notice-table-padding rounded text-responsive-xs ${
                                 notice.is_important
                                   ? "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200"
                                   : "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200"
@@ -471,10 +471,10 @@ export function NoticesPageClient({
                               {notice.is_important ? "중요공지" : "일반공지"}
                             </span>
                           </TableCell>
-                          <TableCell className="whitespace-nowrap text-responsive-xs px-2 py-1">
+                          <TableCell className="whitespace-nowrap text-responsive-xs notice-table-padding">
                             {formatDate(notice.date)}
                           </TableCell>
-                          <TableCell className="whitespace-nowrap text-responsive-xs hidden md:table-cell px-2 py-1">
+                          <TableCell className="whitespace-nowrap text-responsive-xs hidden md:table-cell notice-table-padding">
                             관리자
                           </TableCell>
                         </TableRow>
@@ -487,7 +487,7 @@ export function NoticesPageClient({
                         >
                           <TableCell
                             colSpan={4}
-                            className="notice-table-row px-2 py-1"
+                            className="notice-table-row notice-table-padding"
                           ></TableCell>
                         </TableRow>
                       ))}
@@ -497,7 +497,7 @@ export function NoticesPageClient({
                       <TableRow className="notice-table-row">
                         <TableCell
                           colSpan={4}
-                          className="text-center text-muted-foreground notice-table-row text-responsive-xs px-2 py-1"
+                          className="text-center text-muted-foreground notice-table-row text-responsive-xs notice-table-padding"
                         >
                           공지사항이 없습니다.
                         </TableCell>
@@ -510,7 +510,7 @@ export function NoticesPageClient({
                         >
                           <TableCell
                             colSpan={4}
-                            className="notice-table-row px-2 py-1"
+                            className="notice-table-row notice-table-padding"
                           ></TableCell>
                         </TableRow>
                       ))}
