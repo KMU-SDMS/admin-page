@@ -17,18 +17,7 @@ export function Header() {
     <header className="border-b bg-background px-3 py-3 sm:px-4 sm:py-4 lg:px-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 sm:gap-4">
-          <h1 className="text-responsive-xl sm:text-responsive-2xl font-bold">
-            공지 시스템
-          </h1>
-          <p className="hidden sm:block text-muted-foreground text-responsive-xs">
-            기숙사 공지사항 작성 및 관리
-          </p>
-          {/* 개발용 디버그 정보 - 실제 배포시 제거 */}
-          {process.env.NODE_ENV === "development" && (
-            <div className="hidden lg:block text-xs text-muted-foreground">
-              {breakpoint} ({Math.round(aspectRatio * 100) / 100})
-            </div>
-          )}
+          <h1 className="text-2xl sm:text-3xl font-bold">공지 시스템</h1>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4">

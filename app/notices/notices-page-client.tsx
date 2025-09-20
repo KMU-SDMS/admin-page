@@ -251,7 +251,7 @@ export function NoticesPageClient({
       >
         <Card className="h-full flex flex-col">
           <CardHeader className="padding-compact flex-shrink-0">
-            <CardTitle className="flex items-center gap-2 text-responsive-sm">
+            <CardTitle className="flex items-center gap-2 text-[0.9em]">
               <Plus className="h-4 w-4 lg:h-5 lg:w-5" />
               공지 작성
             </CardTitle>
@@ -259,11 +259,11 @@ export function NoticesPageClient({
           <CardContent className="flex flex-col flex-1 min-h-0 padding-compact">
             <form
               onSubmit={handleSubmit}
-              className="flex flex-col h-full spacing-compact"
+              className="flex flex-col h-full space-y-6"
             >
               {/* Title */}
-              <div className="space-y-1">
-                <Label htmlFor="title" className="text-responsive-xs">
+              <div className="space-y-2">
+                <Label htmlFor="title" className="text-[0.9em]">
                   제목
                 </Label>
                 <Input
@@ -272,12 +272,12 @@ export function NoticesPageClient({
                   value={form.title}
                   onChange={(e) => handleInputChange("title", e.target.value)}
                   maxLength={100}
-                  className="text-responsive-xs"
+                  className="text-[0.9em]"
                 />
               </div>
 
               {/* Important Notice Checkbox */}
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-3">
                 <Checkbox
                   id="is_important"
                   checked={form.is_important}
@@ -287,15 +287,15 @@ export function NoticesPageClient({
                 />
                 <Label
                   htmlFor="is_important"
-                  className="text-responsive-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="text-[0.9em] font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
                   중요공지
                 </Label>
               </div>
 
               {/* Content */}
-              <div className="space-y-1 flex-1 flex flex-col min-h-0">
-                <Label htmlFor="content" className="text-responsive-xs">
+              <div className="space-y-2 flex-1 flex flex-col min-h-0">
+                <Label htmlFor="content" className="text-[0.9em]">
                   내용
                 </Label>
                 <Textarea
@@ -303,19 +303,19 @@ export function NoticesPageClient({
                   placeholder="공지사항 내용을 입력하세요"
                   value={form.content}
                   onChange={(e) => handleInputChange("content", e.target.value)}
-                  className="flex-1 resize-none text-responsive-xs min-h-[120px] lg:min-h-[150px]"
+                  className="flex-1 resize-none text-[0.9em] min-h-[120px] lg:min-h-[150px]"
                   maxLength={2000}
                 />
               </div>
 
               {/* Actions */}
-              <div className="flex flex-col sm:flex-row gap-2 mt-auto flex-shrink-0">
+              <div className="flex flex-col sm:flex-row gap-3 mt-auto flex-shrink-0">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setShowModal(true)}
                   disabled={!isFormValid}
-                  className="w-full sm:w-auto text-responsive-xs h-8 lg:h-9"
+                  className="w-full sm:w-auto text-[0.9em] h-8 lg:h-9"
                 >
                   <Eye className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
                   미리보기
@@ -323,7 +323,7 @@ export function NoticesPageClient({
                 <Button
                   type="submit"
                   disabled={!isFormValid || isSubmitting}
-                  className="w-full sm:w-auto text-responsive-xs h-8 lg:h-9"
+                  className="w-full sm:w-auto text-[0.9em] h-8 lg:h-9"
                 >
                   {isSubmitting ? (
                     <>
