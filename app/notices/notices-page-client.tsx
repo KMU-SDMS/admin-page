@@ -379,12 +379,12 @@ export function NoticesPageClient({
                     setTimeFilter(value as "this-week" | "this-month" | "all")
                   }
                 >
-                  <SelectTrigger className="w-20 sm:w-24 md:w-28 [&>svg]:bg-transparent [&>svg]:text-muted-foreground text-responsive-xs h-7">
-                    <SelectValue placeholder="7일내" />
+                  <SelectTrigger className="w-24 sm:w-28 md:w-32 [&>svg]:bg-transparent [&>svg]:text-muted-foreground text-responsive-xs h-7">
+                    <SelectValue placeholder="7일 내" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="this-week">7일내</SelectItem>
-                    <SelectItem value="this-month">30일내</SelectItem>
+                    <SelectItem value="this-week">7일 내</SelectItem>
+                    <SelectItem value="this-month">30일 내</SelectItem>
                     <SelectItem value="all">전체</SelectItem>
                   </SelectContent>
                 </Select>
