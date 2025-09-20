@@ -111,3 +111,73 @@ export function useScreenSize() {
   const { width, height } = useViewport();
   return { width, height };
 }
+
+// 뷰포트 높이 기반 compact 레이아웃 훅
+export function useCompactLayout() {
+  const { height } = useViewport();
+
+  const isCompactHeight = height < 600; // 600px 미만은 compact
+  const isVeryCompactHeight = height < 500; // 500px 미만은 매우 compact
+  const isTallHeight = height > 900; // 900px 초과는 tall
+
+  return {
+    isCompactHeight,
+    isVeryCompactHeight,
+    isTallHeight,
+    height,
+  };
+}
+
+// 뷰포트 높이에 따른 스타일 클래스 반환
+export function useHeightBasedClasses() {
+  const { isCompactHeight, isVeryCompactHeight, isTallHeight } =
+    useCompactLayout();
+
+  const spacingClass = isVeryCompactHeight
+    ? "spacing-compact"
+    : isCompactHeight
+    ? "spacing-normal"
+    : "spacing-loose";
+
+  const paddingClass = isVeryCompactHeight
+    ? "padding-compact"
+    : isCompactHeight
+    ? "padding-normal"
+    : "padding-loose";
+
+  const marginClass = isVeryCompactHeight
+    ? "margin-compact"
+    : isCompactHeight
+    ? "margin-normal"
+    : "margin-loose";
+
+  const tableRowClass = isVeryCompactHeight
+    ? "table-row-compact"
+    : isCompactHeight
+    ? "table-row-normal"
+    : "table-row-loose";
+
+  const buttonClass = isVeryCompactHeight
+    ? "btn-compact"
+    : isCompactHeight
+    ? "btn-normal"
+    : "btn-loose";
+
+  const cardClass = isVeryCompactHeight
+    ? "card-compact"
+    : isCompactHeight
+    ? "card-normal"
+    : "card-loose";
+
+  return {
+    spacingClass,
+    paddingClass,
+    marginClass,
+    tableRowClass,
+    buttonClass,
+    cardClass,
+    isCompactHeight,
+    isVeryCompactHeight,
+    isTallHeight,
+  };
+}

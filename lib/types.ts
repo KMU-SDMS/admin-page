@@ -13,7 +13,6 @@ export interface Student {
   affiliation: string;
   major: string;
   roomId: string;
-
 }
 
 export interface Rollcall {
@@ -103,6 +102,8 @@ export interface InquiryQuery {
 export interface NoticeQuery {
   limit?: number;
   page?: number;
+  timeFilter?: "this-week" | "this-month" | "all";
+  sortFilter?: "latest" | "oldest";
 }
 
 export interface NoticePageInfo {

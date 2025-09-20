@@ -71,8 +71,9 @@ export function NoticesPageClient({
   const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [timeFilter, setTimeFilter] = useState<string>("this-week");
-  const [sortFilter, setSortFilter] = useState<string>("latest");
+  const [timeFilter, setTimeFilter] = useState<
+    "this-week" | "this-month" | "all"
+  >("this-week");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isListExpanded, setIsListExpanded] = useState(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -84,7 +85,11 @@ export function NoticesPageClient({
     isLoading: noticesLoading,
     refetch: refetchNotices,
     mutate: mutateNotice,
-  } = useNotices({ page: currentPage });
+  } = useNotices({
+    page: currentPage,
+    timeFilter: timeFilter as "this-week" | "this-month" | "all",
+    sortFilter: "latest", // 기본값으로 고정
+  });
 
   const handleInputChange = (field: keyof NoticeForm, value: any) => {
     setForm((prev) => ({
@@ -208,12 +213,7 @@ export function NoticesPageClient({
     refetchNotices();
   };
 
-  // Handle filter changes
-  useEffect(() => {
-    // Reset to first page when filters change
-    setCurrentPage(1);
-    // TODO: 서버에서 필터링을 지원하면 여기서 API 호출
-  }, [timeFilter, sortFilter]);
+  // Handle filter changes - 현재 페이지 유지
 
   // Handle F5 refresh
   useEffect(() => {
@@ -240,7 +240,7 @@ export function NoticesPageClient({
   }, []);
 
   return (
-    <div className="flex flex-col xl:flex-row gap-3 sm:gap-4 h-full">
+    <div className="flex flex-col xl:flex-row spacing-normal h-full">
       {/* Notice Creation Form - Left Panel */}
       <div
         className={`transition-all duration-700 ease-in-out ${
@@ -250,16 +250,16 @@ export function NoticesPageClient({
         }`}
       >
         <Card className="h-full flex flex-col">
-          <CardHeader className="px-4 py-3 flex-shrink-0">
+          <CardHeader className="padding-compact flex-shrink-0">
             <CardTitle className="flex items-center gap-2 text-responsive-sm">
               <Plus className="h-4 w-4 lg:h-5 lg:w-5" />
               공지 작성
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col flex-1 px-4 py-3 min-h-0">
+          <CardContent className="flex flex-col flex-1 min-h-0 padding-compact">
             <form
               onSubmit={handleSubmit}
-              className="flex flex-col h-full space-y-3"
+              className="flex flex-col h-full spacing-compact"
             >
               {/* Title */}
               <div className="space-y-1">
@@ -350,7 +350,7 @@ export function NoticesPageClient({
         }`}
       >
         <Card className="h-full flex flex-col">
-          <CardHeader className="px-3 py-2 flex-shrink-0">
+          <CardHeader className="padding-compact flex-shrink-0">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-1 sm:gap-2">
               <div className="flex items-center gap-1 flex-shrink-0">
                 <Button
@@ -373,23 +373,19 @@ export function NoticesPageClient({
                 </CardTitle>
               </div>
               <div className="flex items-center gap-1 flex-shrink-0 w-full sm:w-auto">
-                <Select value={timeFilter} onValueChange={setTimeFilter}>
-                  <SelectTrigger className="w-16 sm:w-20 md:w-24 [&>svg]:bg-transparent [&>svg]:text-muted-foreground text-responsive-xs h-7">
+                <Select
+                  value={timeFilter}
+                  onValueChange={(value: string) =>
+                    setTimeFilter(value as "this-week" | "this-month" | "all")
+                  }
+                >
+                  <SelectTrigger className="w-20 sm:w-24 md:w-28 [&>svg]:bg-transparent [&>svg]:text-muted-foreground text-responsive-xs h-7">
                     <SelectValue placeholder="7일내" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="this-week">7일내</SelectItem>
                     <SelectItem value="this-month">30일내</SelectItem>
                     <SelectItem value="all">전체</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={sortFilter} onValueChange={setSortFilter}>
-                  <SelectTrigger className="w-16 sm:w-20 md:w-24 [&>svg]:bg-transparent [&>svg]:text-muted-foreground text-responsive-xs h-7">
-                    <SelectValue placeholder="최신순" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="latest">최신순</SelectItem>
-                    <SelectItem value="oldest">오래된순</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button
@@ -406,7 +402,7 @@ export function NoticesPageClient({
               </div>
             </div>
           </CardHeader>
-          <CardContent className="flex flex-col flex-1 px-3 py-1 min-h-0">
+          <CardContent className="flex flex-col flex-1 min-h-0 padding-compact">
             <div className="flex flex-col overflow-x-auto min-w-0 flex-1">
               <Table className="min-w-full">
                 <TableHeader>

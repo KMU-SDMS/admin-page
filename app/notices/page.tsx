@@ -43,9 +43,20 @@ import { api } from "@/lib/api";
 import type { Notice } from "@/lib/types";
 import { NoticesPageClient } from "./notices-page-client";
 
-async function getNotices() {
+async function getNotices(): Promise<{
+  notices: Notice[];
+  pageInfo: {
+    total_notice: number;
+    total_page: number;
+    now_page: number;
+  };
+}> {
   try {
-    return await api.notices.getPaginated({ page: 1 });
+    const response = await api.notices.getPaginated({ page: 1 });
+    return {
+      notices: response.notices,
+      pageInfo: response.page_info,
+    };
   } catch (error) {
     console.error("Failed to fetch notices:", error);
     return {
@@ -60,7 +71,7 @@ export default async function NoticesPage() {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="h-full">
         <Suspense fallback={<div>Loading...</div>}>
           <NoticesPageClient initialNoticesData={noticesData} />
         </Suspense>

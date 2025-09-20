@@ -71,7 +71,7 @@ export function RollCallPageClient({
   };
 
   return (
-    <Tabs defaultValue="room-grid" className="space-y-4">
+    <Tabs defaultValue="room-grid" className="spacing-normal viewport-fill">
       <TabsList>
         <TabsTrigger value="room-grid" className="flex items-center gap-2">
           <Users className="h-4 w-4" />
@@ -87,15 +87,17 @@ export function RollCallPageClient({
         </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="room-grid">
-        <Card>
-          <CardHeader>
-            <CardTitle>호실별 점호 현황</CardTitle>
-            <p className="text-sm text-muted-foreground">
+      <TabsContent value="room-grid" className="viewport-fill-content">
+        <Card className="viewport-fill">
+          <CardHeader className="padding-compact flex-shrink-0">
+            <CardTitle className="text-responsive-sm">
+              호실별 점호 현황
+            </CardTitle>
+            <p className="text-responsive-xs text-muted-foreground">
               호실을 클릭하여 학생 출석 확인 및 상벌점을 부여할 수 있습니다.
             </p>
           </CardHeader>
-          <CardContent>
+          <CardContent className="padding-compact viewport-fill-content">
             <RoomGridView
               rooms={displayRooms}
               students={displayStudents}
@@ -107,7 +109,7 @@ export function RollCallPageClient({
         </Card>
       </TabsContent>
 
-      <TabsContent value="checklist">
+      <TabsContent value="checklist" className="viewport-fill-content">
         <RollCallChecklist
           students={filteredStudents}
           rollcalls={displayRollcalls}
@@ -118,7 +120,7 @@ export function RollCallPageClient({
         />
       </TabsContent>
 
-      <TabsContent value="points">
+      <TabsContent value="points" className="viewport-fill-content">
         <PointsManagement
           students={displayStudents}
           rooms={displayRooms}
