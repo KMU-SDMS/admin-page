@@ -12,6 +12,7 @@ import {
   Users,
   ChevronLeft,
   ChevronRight,
+  Receipt,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,11 @@ const navigation = [
     name: "공지 시스템",
     href: "/notices",
     icon: Megaphone,
+  },
+  {
+    name: "관리비 관리",
+    href: "/bill",
+    icon: Receipt,
   },
 ];
 
