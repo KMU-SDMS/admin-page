@@ -90,22 +90,26 @@ export function StudentListTable({
   }
 
   return (
-    <div className="rounded-md border">
+    <div className="rounded-md border overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-12">
+            <TableHead className="w-8 sm:w-12">
               <Checkbox
                 checked={selectAll}
                 onCheckedChange={handleSelectAll}
                 aria-label="전체 선택"
               />
             </TableHead>
-            <TableHead>학번</TableHead>
-            <TableHead>이름</TableHead>
-            <TableHead>소속</TableHead>
-            <TableHead>호실</TableHead>
-            <TableHead className="text-right">작업</TableHead>
+            <TableHead className="text-responsive-xs">학번</TableHead>
+            <TableHead className="text-responsive-xs">이름</TableHead>
+            <TableHead className="text-responsive-xs hidden sm:table-cell">
+              소속
+            </TableHead>
+            <TableHead className="text-responsive-xs">호실</TableHead>
+            <TableHead className="text-right text-responsive-xs">
+              작업
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -129,14 +133,18 @@ export function StudentListTable({
                     aria-label={`${student.name} 선택`}
                   />
                 </TableCell>
-                <TableCell className="font-medium">
+                <TableCell className="font-medium text-responsive-xs">
                   {student.studentIdNum}
                 </TableCell>
-                <TableCell>{student.name}</TableCell>
-                <TableCell>{`${student.affiliation || ""} ${
-                  student.major || ""
-                }`}</TableCell>
-                <TableCell>{getRoomName(student.roomId)}</TableCell>
+                <TableCell className="text-responsive-xs">
+                  {student.name}
+                </TableCell>
+                <TableCell className="text-responsive-xs hidden sm:table-cell">{`${
+                  student.affiliation || ""
+                } ${student.major || ""}`}</TableCell>
+                <TableCell className="text-responsive-xs">
+                  {getRoomName(student.roomId)}
+                </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

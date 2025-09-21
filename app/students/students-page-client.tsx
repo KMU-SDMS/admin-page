@@ -78,17 +78,17 @@ export function StudentsPageClient({
   };
 
   return (
-    <>
+    <div className="spacing-normal viewport-fill">
       {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <Card className="flex-shrink-0">
+        <CardHeader className="padding-compact">
+          <CardTitle className="flex items-center gap-2 text-responsive-sm">
             <Filter className="h-5 w-5" />
             필터 및 검색
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <CardContent className="padding-compact">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 spacing-compact">
             <div className="space-y-2">
               <Label>학생명 검색</Label>
               <div className="relative">
@@ -133,11 +133,11 @@ export function StudentsPageClient({
       </Card>
 
       {/* Students Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>학생 목록</CardTitle>
+      <Card className="viewport-fill">
+        <CardHeader className="padding-compact flex-shrink-0">
+          <CardTitle className="text-responsive-sm">학생 목록</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="padding-compact viewport-fill-content">
           <StudentListTable
             students={filteredStudents}
             rooms={roomData}
@@ -151,6 +151,6 @@ export function StudentsPageClient({
           />
         </CardContent>
       </Card>
-    </>
+    </div>
   );
 }

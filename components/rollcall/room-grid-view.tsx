@@ -44,7 +44,6 @@ export function RoomGridView({
   selectedDate,
   onUpdateRollcall,
 }: RoomGridViewProps) {
-  console.log("RoomGridView 렌더링, rollcalls:", rollcalls);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
   const [pointType, setPointType] = useState<"MERIT" | "DEMERIT">("MERIT");
@@ -103,12 +102,6 @@ export function RoomGridView({
     if (!student) return;
 
     const present = status === "PRESENT";
-    console.log("상태 변경:", {
-      studentId,
-      status,
-      present,
-      studentName: student.name,
-    });
 
     try {
       const rollcallData = {
@@ -120,13 +113,10 @@ export function RoomGridView({
         note: "",
       };
 
-      console.log("rollcallData:", rollcallData);
-
       // onUpdateRollcall을 호출하여 상태 업데이트
       await onUpdateRollcall(rollcallData);
       toast.success(`${student.name} 출석 상태가 업데이트되었습니다.`);
     } catch (error) {
-      console.error("상태 변경 에러:", error);
       toast.error("출석 상태 업데이트에 실패했습니다.");
     }
   };
@@ -164,7 +154,6 @@ export function RoomGridView({
   const getStudentRollcall = useMemo(() => {
     return (studentId: number) => {
       const rollcall = rollcalls.find((r) => r.studentId === studentId);
-      console.log(`학생 ${studentId}의 rollcall:`, rollcall);
       return rollcall;
     };
   }, [rollcalls]);
@@ -176,10 +165,10 @@ export function RoomGridView({
           .sort(([a], [b]) => Number.parseInt(b) - Number.parseInt(a))
           .map(([floor, floorRooms]) => (
             <div key={floor} className="space-y-3">
-              <h3 className="text-lg font-semibold text-muted-foreground">
+              <h3 className="text-responsive-lg font-semibold text-muted-foreground">
                 {floor}층
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-2 sm:gap-3">
                 {floorRooms
                   .sort((a, b) => a.name.localeCompare(b.name))
                   .map((room) => {
@@ -200,10 +189,10 @@ export function RoomGridView({
                         onClick={() => handleRoomClick(room)}
                       >
                         <CardContent className="p-3 text-center">
-                          <div className="font-semibold text-sm mb-1">
+                          <div className="font-semibold text-responsive-sm mb-1">
                             {room.name}
                           </div>
-                          <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mb-2">
+                          <div className="flex items-center justify-center gap-1 text-responsive-xs text-muted-foreground mb-2">
                             <Users className="h-3 w-3" />
                             {stats.total}명
                           </div>
@@ -212,14 +201,14 @@ export function RoomGridView({
                               variant={
                                 stats.present > 0 ? "default" : "secondary"
                               }
-                              className="text-xs px-1 py-0"
+                              className="text-responsive-xs px-1 py-0"
                             >
                               출석 {stats.present}
                             </Badge>
                             {stats.absent > 0 && (
                               <Badge
                                 variant="destructive"
-                                className="text-xs px-1 py-0"
+                                className="text-responsive-xs px-1 py-0"
                               >
                                 결석 {stats.absent}
                               </Badge>
@@ -270,7 +259,7 @@ export function RoomGridView({
                         <div className="flex items-center gap-2">
                           <div>
                             <div className="font-medium">{student.name}</div>
-                            <div className="text-sm text-muted-foreground">
+                            <div className="text-responsive-sm text-muted-foreground">
                               {student.studentIdNum}
                             </div>
                           </div>
@@ -387,7 +376,6 @@ export function RoomGridView({
             <div className="flex justify-center pt-4 border-t">
               <Button
                 onClick={() => {
-                  console.log("저장 및 닫기 버튼 클릭됨");
                   toast.success("저장되었습니다.", {
                     description: "학생 출석 정보가 저장되었습니다.",
                     duration: 3000,

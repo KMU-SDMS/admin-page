@@ -51,18 +51,18 @@ export function NoticePreviewModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden">
-        <DialogHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden w-[90vw] sm:w-[80vw] lg:w-[70vw] xl:w-[60vw]">
+        <DialogHeader className="pb-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
+            <div className="flex items-center gap-2 flex-wrap">
               {noticeData.id && onEdit && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => onEdit(noticeData.id!)}
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-1 text-responsive-base h-8 lg:h-9"
                 >
-                  <Edit className="h-4 w-4" />
+                  <Edit className="h-3 w-3 lg:h-4 lg:w-4" />
                   수정
                 </Button>
               )}
@@ -71,12 +71,11 @@ export function NoticePreviewModal({
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    console.log("삭제 버튼 클릭:", noticeData.id);
                     onDelete(noticeData.id!);
                   }}
-                  className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950 text-responsive-base h-8 lg:h-9"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-3 w-3 lg:h-4 lg:w-4" />
                   삭제
                 </Button>
               )}
@@ -87,9 +86,9 @@ export function NoticePreviewModal({
                   variant="outline"
                   size="sm"
                   onClick={onOpenInNewWindow}
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-1 text-responsive-base h-8 lg:h-9"
                 >
-                  <ExternalLink className="h-4 w-4" />
+                  <ExternalLink className="h-3 w-3 lg:h-4 lg:w-4" />
                   새창으로 보기
                 </Button>
               )}
@@ -97,31 +96,33 @@ export function NoticePreviewModal({
           </div>
         </DialogHeader>
 
-        <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
-          <div className="space-y-4">
+        <div className="overflow-y-auto max-h-[calc(90vh-140px)]">
+          <div className="space-y-6">
             {/* Notice Header */}
-            <div className="space-y-3">
-              <h2 className="text-xl font-bold text-balance">
+            <div className="space-y-4">
+              <h2 className="text-responsive-2xl font-bold text-balance leading-tight">
                 {noticeData.title}
               </h2>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                {getTargetBadge()}
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 text-responsive-base text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  {getTargetBadge()}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 lg:h-5 lg:w-5" />
                   <span>{new Date(noticeData.date).toLocaleDateString()}</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <User className="h-4 w-4" />
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 lg:h-5 lg:w-5" />
                   <span>관리자</span>
                 </div>
               </div>
             </div>
 
-            <Separator />
+            <Separator className="my-6" />
 
             {/* Notice Body */}
-            <div className="prose prose-sm max-w-none">
-              <div className="whitespace-pre-wrap text-sm leading-relaxed">
+            <div className="prose prose-lg max-w-none">
+              <div className="whitespace-pre-wrap text-responsive-base leading-relaxed">
                 {noticeData.body}
               </div>
             </div>

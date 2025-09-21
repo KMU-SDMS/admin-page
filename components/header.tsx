@@ -1,6 +1,6 @@
 "use client";
 
-import { User } from "lucide-react";
+import { User, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -8,21 +8,40 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useViewport } from "@/hooks/use-viewport";
 
-export function Header() {
+interface HeaderProps {
+  onMobileMenuToggle?: () => void;
+}
+
+export function Header({ onMobileMenuToggle }: HeaderProps) {
+  const { isMobile, isTablet, breakpoint, aspectRatio } = useViewport();
+
   return (
-    <header className="border-b bg-background px-6 py-4">
+    <header className="border-b bg-background px-3 py-3 sm:px-4 sm:py-4 lg:px-6">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <h1 className="text-3xl font-bold">공지 시스템</h1>
-          <p className="text-muted-foreground">기숙사 공지사항 작성 및 관리</p>
+        <div className="flex items-center gap-2 sm:gap-4">
+          {/* 모바일 메뉴 버튼 */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onMobileMenuToggle}
+            className="h-8 w-8 sm:h-9 sm:w-9 lg:hidden"
+          >
+            <Menu className="h-4 w-4" />
+          </Button>
+          <h1 className="text-2xl sm:text-3xl font-bold">공지 시스템</h1>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 sm:h-9 sm:w-9"
+              >
                 <User className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>

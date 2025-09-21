@@ -20,24 +20,25 @@ const statusConfig = {
     label: "재실",
     variant: "default" as const,
     className:
-      "bg-transparent hover:bg-green-50 text-green-600 border-green-500",
+      "bg-transparent hover:bg-green-50 text-green-600 border-green-500 dark:hover:bg-green-950 dark:text-green-400 dark:border-green-400",
     selectedClassName:
-      "!bg-gradient-to-br !from-green-50/5 !to-green-50/10 !text-green-700 !font-bold !shadow-md !ring-2 !ring-green-300/40 !border-green-600/80",
+      "!bg-gradient-to-br !from-green-50/5 !to-green-50/10 !text-green-700 !font-bold !shadow-md !ring-2 !ring-green-300/40 !border-green-600/80 dark:!from-green-950/20 dark:!to-green-950/30 dark:!text-green-300 dark:!ring-green-400/40 dark:!border-green-400/60",
   },
   LEAVE: {
     label: "외박",
     variant: "outline" as const,
     className:
-      "bg-transparent hover:bg-yellow-50 text-yellow-600 border-yellow-500",
+      "bg-transparent hover:bg-yellow-50 text-yellow-600 border-yellow-500 dark:hover:bg-yellow-950 dark:text-yellow-400 dark:border-yellow-400",
     selectedClassName:
-      "!bg-gradient-to-br !from-yellow-50/5 !to-yellow-50/10 !text-yellow-700 !font-bold !shadow-md !ring-2 !ring-yellow-300/40 !border-yellow-600/80",
+      "!bg-gradient-to-br !from-yellow-50/5 !to-yellow-50/10 !text-yellow-700 !font-bold !shadow-md !ring-2 !ring-yellow-300/40 !border-yellow-600/80 dark:!from-yellow-950/20 dark:!to-yellow-950/30 dark:!text-yellow-300 dark:!ring-yellow-400/40 dark:!border-yellow-400/60",
   },
   ABSENT: {
     label: "결석",
     variant: "destructive" as const,
-    className: "bg-transparent hover:bg-red-50 text-red-600 border-red-500",
+    className:
+      "bg-transparent hover:bg-red-50 text-red-600 border-red-500 dark:hover:bg-red-950 dark:text-red-400 dark:border-red-400",
     selectedClassName:
-      "!bg-gradient-to-br !from-red-50/5 !to-red-50/10 !text-red-700 !font-bold !shadow-md !ring-2 !ring-red-300/40 !border-red-600/80",
+      "!bg-gradient-to-br !from-red-50/5 !to-red-50/10 !text-red-700 !font-bold !shadow-md !ring-2 !ring-red-300/40 !border-red-600/80 dark:!from-red-950/20 dark:!to-red-950/30 dark:!text-red-300 dark:!ring-red-400/40 dark:!border-red-400/60",
   },
 } as const;
 
@@ -52,10 +53,6 @@ export function AttendanceStatusButtons({
 
   // 현재 상태 결정: rollcall의 status가 있으면 사용, 없으면 present 기반으로 추론
   const currentStatus = useMemo((): AttendanceStatus => {
-    console.log("AttendanceStatusButtons currentStatus 계산:", {
-      rollcall,
-      studentId: student.id,
-    });
     if (rollcall?.status) {
       return rollcall.status;
     }
@@ -74,23 +71,11 @@ export function AttendanceStatusButtons({
     }
   };
 
-  console.log("AttendanceStatusButtons 렌더링:", {
-    currentStatus,
-    studentId: student.id,
-    rollcall,
-  });
-
   return (
     <div className={cn("flex gap-1", className)}>
       {Object.entries(statusConfig).map(([status, config]) => {
         const statusKey = status as AttendanceStatus;
         const isSelected = currentStatus === statusKey;
-        console.log(
-          `버튼 ${status} (${statusKey}) isSelected:`,
-          isSelected,
-          "currentStatus:",
-          currentStatus
-        );
         return (
           <button
             key={status}

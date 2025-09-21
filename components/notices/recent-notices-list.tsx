@@ -31,20 +31,24 @@ export function RecentNoticesList({
 
   return (
     <Card className="h-fit">
-      <CardHeader>
+      <CardHeader className="pb-3 sm:pb-6">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            최근 공지사항
+          <CardTitle className="flex items-center gap-2 text-responsive-base">
+            <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="hidden sm:inline">최근 공지사항</span>
+            <span className="sm:hidden">공지사항</span>
           </CardTitle>
           <Button
             variant="ghost"
             size="sm"
             onClick={onRefresh}
             disabled={isLoading}
+            className="h-8 w-8 sm:h-9 sm:w-9 p-0"
           >
             <RefreshCw
-              className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+              className={`h-3 w-3 sm:h-4 sm:w-4 ${
+                isLoading ? "animate-spin" : ""
+              }`}
             />
           </Button>
         </div>
@@ -62,34 +66,38 @@ export function RecentNoticesList({
             className="py-8"
           />
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {notices.slice(0, 10).map((notice) => (
               <div
                 key={notice.id}
-                className="space-y-3 p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors cursor-pointer"
+                className="space-y-2 sm:space-y-3 p-3 sm:p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors cursor-pointer"
                 onClick={() => onNoticeClick?.(notice)}
               >
                 <div className="space-y-2">
-                  <h4 className="font-medium line-clamp-2 text-sm leading-relaxed">
+                  <h4 className="font-medium line-clamp-2 text-responsive-xs leading-relaxed">
                     {notice.title}
                   </h4>
-                  <div className="flex items-center justify-between">
-                    {getTargetBadge(notice)}
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      {getTargetBadge(notice)}
+                    </div>
+                    <div className="flex items-center gap-1 text-responsive-xs text-muted-foreground">
                       <Calendar className="h-3 w-3" />
-                      <span>{new Date(notice.date).toLocaleDateString()}</span>
+                      <span className="text-responsive-xs">
+                        {new Date(notice.date).toLocaleDateString()}
+                      </span>
                     </div>
                   </div>
                 </div>
                 {notice.content && (
-                  <div className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                  <div className="text-responsive-xs text-muted-foreground line-clamp-2 leading-relaxed">
                     {notice.content}
                   </div>
                 )}
               </div>
             ))}
             {notices.length > 10 && (
-              <div className="text-center text-sm text-muted-foreground pt-2">
+              <div className="text-center text-responsive-xs text-muted-foreground pt-2">
                 총 {notices.length}개의 공지사항 중 최근 10개 표시
               </div>
             )}
