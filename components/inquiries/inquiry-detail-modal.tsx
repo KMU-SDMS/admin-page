@@ -84,7 +84,7 @@ export function InquiryDetailModal({
       );
       onClose();
     } catch (error) {
-      console.error("Failed to update status:", error);
+      // 에러 처리
     } finally {
       setIsUpdating(false);
     }

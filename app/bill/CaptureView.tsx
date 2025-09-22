@@ -92,7 +92,6 @@ const CaptureView: React.FC<CaptureViewProps> = ({
     try {
       const serverUrl = process.env.NEXT_PUBLIC_API_BASE_URL  as string | undefined;
       if (!serverUrl) {
-        console.error('서버 URL이 설정되지 않았습니다.');
         return false;
       }
 
@@ -138,7 +137,6 @@ const CaptureView: React.FC<CaptureViewProps> = ({
 
       return true;
     } catch (error) {
-      console.error('사진 업로드 실패:', error);
       return false;
     }
   };
