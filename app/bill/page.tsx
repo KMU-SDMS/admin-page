@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Layout } from '@/components/layout';
 import { ViewMode } from './types';
 import ListView from './ListView';
 import CaptureView from './CaptureView';
@@ -57,28 +58,30 @@ const Bill: React.FC = () => {
   };
 
   return (
-    <div className='min-h-screen bg-gray-50'>
-      {viewMode === 'list' && (
-        <ListView
-          {...commonProps}
-          {...navigationCallbacks}
-        />
-      )}
-      {viewMode === 'capture' && selectedRoom && (
-        <CaptureView
-          {...commonProps}
-          onBack={handleBack}
-          onSaveComplete={handleSaveComplete}
-        />
-      )}
-      {viewMode === 'review' && selectedRoom && (
-        <ReviewView
-          {...commonProps}
-          onBack={handleBack}
-          onNavigateToCapture={handleNavigateToCaptureFromReview}
-        />
-      )}
-    </div>
+    <Layout>
+      <div className="h-full">
+        {viewMode === 'list' && (
+          <ListView
+            {...commonProps}
+            {...navigationCallbacks}
+          />
+        )}
+        {viewMode === 'capture' && selectedRoom && (
+          <CaptureView
+            {...commonProps}
+            onBack={handleBack}
+            onSaveComplete={handleSaveComplete}
+          />
+        )}
+        {viewMode === 'review' && selectedRoom && (
+          <ReviewView
+            {...commonProps}
+            onBack={handleBack}
+            onNavigateToCapture={handleNavigateToCaptureFromReview}
+          />
+        )}
+      </div>
+    </Layout>
   );
 };
 

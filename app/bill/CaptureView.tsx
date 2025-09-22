@@ -228,7 +228,7 @@ const CaptureView: React.FC<CaptureViewProps> = ({
   }, [selectedRoom, currentPhotoType, selectedYear, selectedMonth]);
 
   return (
-    <div className='min-h-screen bg-gray-900 text-white flex flex-col'>
+    <div className='h-full bg-gray-900 text-white flex flex-col'>
       {/* 헤더 */}
       <div className='bg-gray-800 px-4 py-3 flex items-center justify-between'>
         <button

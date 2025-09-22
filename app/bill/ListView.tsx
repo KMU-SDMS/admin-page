@@ -69,18 +69,9 @@ const ListView: React.FC<ListViewProps> = ({
   const months = Array.from({length: 12}, (_, i) => i + 1);
 
   return (
-    <div className='p-4 max-w-6xl mx-auto'>
+    <div className='p-4 max-w-6xl mx-auto h-full'>
       <div className='mb-6'>
-        <div className='flex items-center gap-4 mb-4'>
-          <button
-            onClick={() => router.push('/notices')}
-            className='flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors'
-          >
-            <ArrowLeft className='w-4 h-4' />
-            공지 시스템으로
-          </button>
-        </div>
-        <h1 className='text-2xl font-bold mb-4'>관리비 사진 관리</h1>
+        <h1 className='text-2xl font-bold mb-4'>관리비 관리</h1>
         
         {/* 년도와 월 선택기 */}
         <div className='flex gap-4 mb-4'>

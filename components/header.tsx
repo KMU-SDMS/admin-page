@@ -1,6 +1,7 @@
 "use client";
 
 import { User, Menu } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -16,6 +17,28 @@ interface HeaderProps {
 
 export function Header({ onMobileMenuToggle }: HeaderProps) {
   const { isMobile, isTablet, breakpoint, aspectRatio } = useViewport();
+  const pathname = usePathname();
+
+  const getPageTitle = () => {
+    switch (pathname) {
+      case '/':
+        return '대시보드';
+      case '/notices':
+        return '공지 시스템';
+      case '/bill':
+        return '관리비 관리';
+      case '/students':
+        return '학생 관리';
+      case '/rollcall':
+        return '출석 관리';
+      case '/packages':
+        return '택배 관리';
+      case '/inquiries':
+        return '문의 관리';
+      default:
+        return '기숙사 관리 시스템';
+    }
+  };
 
   return (
     <header className="border-b bg-background px-3 py-3 sm:px-4 sm:py-4 lg:px-6">
@@ -30,7 +53,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
           >
             <Menu className="h-4 w-4" />
           </Button>
-          <h1 className="text-2xl sm:text-3xl font-bold">공지 시스템</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">{getPageTitle()}</h1>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4">
