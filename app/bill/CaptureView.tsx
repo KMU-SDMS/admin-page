@@ -13,6 +13,7 @@ const CaptureView: React.FC<CaptureViewProps> = ({
   selectedRoom,
   selectedYear,
   selectedMonth,
+  selectedFloor,
   onBack,
   onSaveComplete,
 }) => {

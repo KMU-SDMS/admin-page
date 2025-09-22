@@ -13,6 +13,7 @@ const ReviewView: React.FC<ReviewViewProps> = ({
   selectedRoom,
   selectedYear,
   selectedMonth,
+  selectedFloor,
   onBack,
   onNavigateToCapture,
 }) => {
