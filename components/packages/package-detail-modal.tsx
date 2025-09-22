@@ -54,7 +54,7 @@ export function PackageDetailModal({
       });
       setIsEditing(false);
     } catch (error) {
-      console.error("Failed to update parcel:", error);
+      // 에러 처리
     } finally {
       setIsSaving(false);
     }
