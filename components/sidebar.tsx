@@ -45,8 +45,8 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
       className={cn(
         "border-r bg-sidebar transition-all duration-300 h-screen",
         // 모바일에서는 항상 확장된 상태, 데스크톱에서는 collapsed 상태에 따라
-        "w-44",
-        collapsed ? "lg:w-16" : "lg:w-44"
+        "w-52",
+        collapsed ? "lg:w-16" : "lg:w-52"
       )}
     >
       <div className="flex h-full flex-col">
@@ -83,7 +83,7 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
                 href={item.href}
                 onClick={onMobileClose} // 모바일에서 링크 클릭 시 사이드바 닫기
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-responsive-xxs font-medium transition-colors whitespace-nowrap",
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-[0.8em] font-medium transition-colors whitespace-nowrap",
                   isActive
                     ? "bg-sidebar-accent text-sidebar-accent-foreground"
                     : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",

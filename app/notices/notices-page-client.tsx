@@ -251,8 +251,8 @@ export function NoticesPageClient({
       >
         <Card className="h-full flex flex-col">
           <CardHeader className="padding-compact flex-shrink-0">
-            <CardTitle className="flex items-center gap-2 text-[0.9em]">
-              <Plus className="h-4 w-4 lg:h-5 lg:w-5" />
+            <CardTitle className="flex items-center gap-2 text-sm 2xl:text-base">
+              <Plus className="h-4 w-4 2xl:h-5 2xl:w-5" />
               공지 작성
             </CardTitle>
           </CardHeader>
@@ -263,7 +263,7 @@ export function NoticesPageClient({
             >
               {/* Title */}
               <div className="space-y-2">
-                <Label htmlFor="title" className="text-[0.9em]">
+                <Label htmlFor="title" className="text-sm 2xl:text-base">
                   제목
                 </Label>
                 <Input
@@ -272,7 +272,7 @@ export function NoticesPageClient({
                   value={form.title}
                   onChange={(e) => handleInputChange("title", e.target.value)}
                   maxLength={100}
-                  className="text-[0.9em]"
+                  className="text-sm 2xl:text-base"
                 />
               </div>
 
@@ -287,7 +287,7 @@ export function NoticesPageClient({
                 />
                 <Label
                   htmlFor="is_important"
-                  className="text-[0.9em] font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="text-sm 2xl:text-base font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
                   중요공지
                 </Label>
@@ -295,7 +295,7 @@ export function NoticesPageClient({
 
               {/* Content */}
               <div className="space-y-2 flex-1 flex flex-col min-h-0">
-                <Label htmlFor="content" className="text-[0.9em]">
+                <Label htmlFor="content" className="text-sm 2xl:text-base">
                   내용
                 </Label>
                 <Textarea
@@ -303,7 +303,7 @@ export function NoticesPageClient({
                   placeholder="공지사항 내용을 입력하세요"
                   value={form.content}
                   onChange={(e) => handleInputChange("content", e.target.value)}
-                  className="flex-1 resize-none text-[0.9em] min-h-[120px] lg:min-h-[150px]"
+                  className="flex-1 resize-none text-sm 2xl:text-base min-h-[120px] 2xl:min-h-[150px]"
                   maxLength={2000}
                 />
               </div>
@@ -315,24 +315,24 @@ export function NoticesPageClient({
                   variant="outline"
                   onClick={() => setShowModal(true)}
                   disabled={!isFormValid}
-                  className="w-full sm:w-auto text-[0.9em] h-8 lg:h-9"
+                  className="w-full sm:w-auto text-sm 2xl:text-base h-8 2xl:h-9"
                 >
-                  <Eye className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
+                  <Eye className="h-3 w-3 2xl:h-4 2xl:w-4 mr-1 2xl:mr-2" />
                   미리보기
                 </Button>
                 <Button
                   type="submit"
                   disabled={!isFormValid || isSubmitting}
-                  className="w-full sm:w-auto text-[0.9em] h-8 lg:h-9"
+                  className="w-full sm:w-auto text-sm 2xl:text-base h-8 2xl:h-9"
                 >
                   {isSubmitting ? (
                     <>
-                      <LoadingSpinner size="sm" className="mr-1 lg:mr-2" />
+                      <LoadingSpinner size="sm" className="mr-1 2xl:mr-2" />
                       작성 중...
                     </>
                   ) : (
                     <>
-                      <Send className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
+                      <Send className="h-3 w-3 2xl:h-4 2xl:w-4 mr-1 2xl:mr-2" />
                       공지 작성
                     </>
                   )}
@@ -368,7 +368,7 @@ export function NoticesPageClient({
                     )}
                   </div>
                 </Button>
-                <CardTitle className="whitespace-nowrap text-responsive-sm">
+                <CardTitle className="whitespace-nowrap text-sm 2xl:text-base">
                   공지 목록
                 </CardTitle>
               </div>
@@ -379,7 +379,7 @@ export function NoticesPageClient({
                     setTimeFilter(value as "this-week" | "this-month" | "all")
                   }
                 >
-                  <SelectTrigger className="w-24 sm:w-28 md:w-32 [&>svg]:bg-transparent [&>svg]:text-muted-foreground text-responsive-xs h-7">
+                  <SelectTrigger className="w-24 sm:w-28 md:w-32 [&>svg]:bg-transparent [&>svg]:text-muted-foreground text-xs 2xl:text-sm h-7 2xl:h-8">
                     <SelectValue placeholder="7일 내" />
                   </SelectTrigger>
                   <SelectContent>
@@ -393,7 +393,7 @@ export function NoticesPageClient({
                   size="icon"
                   onClick={handleRefresh}
                   disabled={isRefreshing}
-                  className="flex-shrink-0 h-7 w-7"
+                  className="flex-shrink-0 h-7 w-7 2xl:h-8 2xl:w-8"
                 >
                   <RefreshCw
                     className={`h-3 w-3 ${isRefreshing ? "animate-spin" : ""}`}
@@ -407,16 +407,16 @@ export function NoticesPageClient({
               <Table className="min-w-full">
                 <TableHeader>
                   <TableRow className="hover:bg-transparent notice-table-row">
-                    <TableHead className="hover:bg-transparent text-responsive-xs font-medium notice-table-padding">
+                    <TableHead className="hover:bg-transparent text-xs 2xl:text-sm font-medium notice-table-padding">
                       제목
                     </TableHead>
-                    <TableHead className="hover:bg-transparent text-responsive-xs font-medium hidden sm:table-cell notice-table-padding">
+                    <TableHead className="hover:bg-transparent text-xs 2xl:text-sm font-medium hidden sm:table-cell notice-table-padding">
                       공지유형
                     </TableHead>
-                    <TableHead className="hover:bg-transparent text-responsive-xs font-medium notice-table-padding">
+                    <TableHead className="hover:bg-transparent text-xs 2xl:text-sm font-medium notice-table-padding">
                       작성일
                     </TableHead>
-                    <TableHead className="hover:bg-transparent text-responsive-xs font-medium hidden md:table-cell notice-table-padding">
+                    <TableHead className="hover:bg-transparent text-xs 2xl:text-sm font-medium hidden md:table-cell notice-table-padding">
                       작성자
                     </TableHead>
                   </TableRow>
@@ -439,7 +439,7 @@ export function NoticesPageClient({
                           className="cursor-pointer hover:bg-gray-50 notice-table-row"
                           onClick={() => handleNoticeClick(notice)}
                         >
-                          <TableCell className="font-medium min-w-0 text-responsive-xs notice-table-padding">
+                          <TableCell className="font-medium min-w-0 text-xs 2xl:text-sm notice-table-padding">
                             <div className="flex items-center notice-table-gap truncate">
                               <span className="truncate notice-table-max-width sm:notice-table-max-width-lg lg:max-w-none">
                                 {notice.title.length > 8
@@ -449,7 +449,7 @@ export function NoticesPageClient({
                               {/* Mobile: Show badge inline */}
                               <span className="sm:hidden">
                                 <span
-                                  className={`notice-table-padding rounded text-responsive-xs ${
+                                  className={`notice-table-padding rounded text-xs ${
                                     notice.is_important
                                       ? "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200"
                                       : "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200"
@@ -462,7 +462,7 @@ export function NoticesPageClient({
                           </TableCell>
                           <TableCell className="whitespace-nowrap hidden sm:table-cell notice-table-padding">
                             <span
-                              className={`notice-table-padding rounded text-responsive-xs ${
+                              className={`notice-table-padding rounded text-xs ${
                                 notice.is_important
                                   ? "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200"
                                   : "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200"
@@ -471,10 +471,10 @@ export function NoticesPageClient({
                               {notice.is_important ? "중요공지" : "일반공지"}
                             </span>
                           </TableCell>
-                          <TableCell className="whitespace-nowrap text-responsive-xs notice-table-padding">
+                          <TableCell className="whitespace-nowrap text-xs 2xl:text-sm notice-table-padding">
                             {formatDate(notice.date)}
                           </TableCell>
-                          <TableCell className="whitespace-nowrap text-responsive-xs hidden md:table-cell notice-table-padding">
+                          <TableCell className="whitespace-nowrap text-xs 2xl:text-sm hidden md:table-cell notice-table-padding">
                             관리자
                           </TableCell>
                         </TableRow>
@@ -497,7 +497,7 @@ export function NoticesPageClient({
                       <TableRow className="notice-table-row">
                         <TableCell
                           colSpan={4}
-                          className="text-center text-muted-foreground notice-table-row text-responsive-xs notice-table-padding"
+                          className="text-center text-muted-foreground notice-table-row text-xs 2xl:text-sm notice-table-padding"
                         >
                           공지사항이 없습니다.
                         </TableCell>
@@ -522,7 +522,7 @@ export function NoticesPageClient({
           </CardContent>
           {/* Pagination */}
           <div className="flex flex-col sm:flex-row items-center justify-between px-2 py-1 border-t gap-1 sm:gap-2 flex-shrink-0">
-            <div className="text-responsive-xs text-muted-foreground text-center sm:text-left">
+            <div className="text-xs 2xl:text-sm text-muted-foreground text-center sm:text-left">
               총 {totalItems}개 중 {startIndex + 1}-
               {Math.min(endIndex, totalItems)}개 표시
             </div>
@@ -565,7 +565,7 @@ export function NoticesPageClient({
                         }
                         size="sm"
                         onClick={() => handlePageChange(pageNum)}
-                        className="w-6 h-6 p-0 text-responsive-xs"
+                        className="w-6 h-6 p-0 text-xs 2xl:text-sm"
                       >
                         {pageNum}
                       </Button>
