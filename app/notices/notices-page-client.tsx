@@ -442,8 +442,8 @@ export function NoticesPageClient({
                           <TableCell className="font-medium min-w-0 text-responsive-xs notice-table-padding">
                             <div className="flex items-center notice-table-gap truncate">
                               <span className="truncate notice-table-max-width sm:notice-table-max-width-lg lg:max-w-none">
-                                {notice.title.length > 15
-                                  ? `${notice.title.substring(0, 15)}...`
+                                {notice.title.length > 8
+                                  ? `${notice.title.substring(0, 8)}...`
                                   : notice.title}
                               </span>
                               {/* Mobile: Show badge inline */}
