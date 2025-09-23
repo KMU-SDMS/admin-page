@@ -119,27 +119,64 @@
   * {
     @apply border-border outline-ring/50;
   }
+}
 
-  body {
-    @apply bg-background text-foreground;
-    font-size: clamp(
-      0.75rem,
-      0.5rem + 0.5vw,
-      1.5rem
-    ); /* FHD 75% → FHD 100% → QHD 100% */
+/* 전역 폰트 크기 설정 - Tailwind CSS보다 높은 우선순위 */
+html body {
+  font-size: 0.75rem !important; /* FHD 75% 기본 */
+}
+
+/* FHD 100% */
+@media (min-width: 1920px) {
+  html body {
+    font-size: 1rem !important;
   }
+}
 
-  /* 기본 HTML 요소들 - 반응형 폰트 사이즈 (FHD 75% → FHD 100% → QHD 100%) */
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6,
-  p,
-  small {
-    @apply text-base;
-    font-size: clamp(0.75rem, 0.5rem + 0.5vw, 1.5rem);
+/* QHD 100% */
+@media (min-width: 2560px) {
+  html body {
+    font-size: 2rem !important;
+  }
+}
+
+/* 기본 HTML 요소들 - 반응형 폰트 사이즈 (브레이크포인트 형식) */
+html h1,
+html h2,
+html h3,
+html h4,
+html h5,
+html h6,
+html p,
+html small {
+  font-size: 0.75rem !important; /* FHD 75% 기본 */
+}
+
+/* FHD 100% */
+@media (min-width: 1920px) {
+  html h1,
+  html h2,
+  html h3,
+  html h4,
+  html h5,
+  html h6,
+  html p,
+  html small {
+    font-size: 1rem !important;
+  }
+}
+
+/* QHD 100% */
+@media (min-width: 2560px) {
+  html h1,
+  html h2,
+  html h3,
+  html h4,
+  html h5,
+  html h6,
+  html p,
+  html small {
+    font-size: 2rem !important;
   }
 }
 
@@ -219,19 +256,62 @@
     @apply flex-1 h-full;
   }
 
-  /* 공지사항 테이블 행 높이 (FHD 75% → FHD 100% → QHD 100%) */
+  /* 공지사항 테이블 행 높이 - 정적 브레이크포인트 */
+  table .notice-table-row,
   .notice-table-row {
-    @apply h-2 min-h-2 max-h-2;
-    height: clamp(0.6rem, 0.8rem + 0.4vw, 1.2rem) !important;
-    min-height: clamp(0.6rem, 0.8rem + 0.4vw, 1.2rem) !important;
-    max-height: clamp(0.6rem, 0.8rem + 0.4vw, 1.2rem) !important;
+    height: 2rem !important; /* FHD 75% */
+    min-height: 2rem !important;
+    max-height: 2rem !important;
+    line-height: 2rem !important;
   }
 
+  table .notice-table-row td,
   .notice-table-row td {
-    @apply h-2 min-h-2 max-h-2;
-    height: clamp(0.6rem, 0.8rem + 0.4vw, 1.2rem) !important;
-    min-height: clamp(0.6rem, 0.8rem + 0.4vw, 1.2rem) !important;
-    max-height: clamp(0.6rem, 0.8rem + 0.4vw, 1.2rem) !important;
+    height: 2rem !important; /* FHD 75% */
+    min-height: 2rem !important;
+    max-height: 2rem !important;
+    line-height: 2rem !important;
+    padding: 0.125rem 0.25rem !important;
+  }
+
+  /* FHD 100% - QHD 100% */
+  @media (min-width: 1920px) {
+    table .notice-table-row,
+    .notice-table-row {
+      height: 3rem !important;
+      min-height: 3rem !important;
+      max-height: 3rem !important;
+      line-height: 3rem !important;
+    }
+
+    table .notice-table-row td,
+    .notice-table-row td {
+      height: 3rem !important;
+      min-height: 3rem !important;
+      max-height: 3rem !important;
+      line-height: 3rem !important;
+      padding: 0.3125rem 0.625rem !important;
+    }
+  }
+
+  /* QHD 100% 이상 */
+  @media (min-width: 2560px) {
+    table .notice-table-row,
+    .notice-table-row {
+      height: 5rem !important; /* QHD 100% */
+      min-height: 5rem !important;
+      max-height: 5rem !important;
+      line-height: 5rem !important;
+    }
+
+    table .notice-table-row td,
+    .notice-table-row td {
+      height: 5rem !important; /* QHD 100% */
+      min-height: 5rem !important;
+      max-height: 5rem !important;
+      line-height: 5rem !important;
+      padding: 0.5rem 1rem !important;
+    }
   }
 
   /* 뷰포트 높이 기반 compact 레이아웃 */
@@ -263,128 +343,167 @@
     @apply flex-1 min-h-0 overflow-y-auto;
   }
 
-  /* 뷰포트 높이에 따른 간격 조정 */
+  /* 뷰포트 높이에 따른 간격 조정 (FHD 75% 기준으로 조정) */
   .spacing-compact {
     @apply gap-1;
-    gap: clamp(0.25rem, 0.25rem + 0.25vh, 0.75rem);
+    gap: clamp(0.25rem, 0.25rem + 0.125vh, 0.5rem);
   }
 
   .spacing-normal {
     @apply gap-2;
-    gap: clamp(0.5rem, 0.5rem + 0.5vh, 1.5rem);
+    gap: clamp(0.5rem, 0.5rem + 0.25vh, 1rem);
   }
 
   .spacing-loose {
     @apply gap-3;
-    gap: clamp(0.75rem, 0.75rem + 0.75vh, 2.25rem);
+    gap: clamp(0.75rem, 0.75rem + 0.375vh, 1.5rem);
   }
 
-  /* 뷰포트 높이에 따른 패딩 조정 */
+  /* 뷰포트 높이에 따른 패딩 조정 (FHD 75% 기준으로 조정) */
   .padding-compact {
     @apply p-1;
-    padding: clamp(0.25rem, 0.25rem + 0.25vh, 0.75rem);
+    padding: clamp(0.25rem, 0.25rem + 0.125vh, 0.5rem);
   }
 
   .padding-normal {
     @apply p-2;
-    padding: clamp(0.5rem, 0.5rem + 0.5vh, 1.5rem);
+    padding: clamp(0.5rem, 0.5rem + 0.25vh, 1rem);
   }
 
   .padding-loose {
     @apply p-4;
-    padding: clamp(0.75rem, 0.75rem + 0.75vh, 2.25rem);
+    padding: clamp(0.75rem, 0.75rem + 0.375vh, 1.5rem);
   }
 
-  /* 뷰포트 높이에 따른 마진 조정 */
+  /* 뷰포트 높이에 따른 마진 조정 (FHD 75% 기준으로 조정) */
   .margin-compact {
     @apply m-1;
-    margin: clamp(0.25rem, 0.25rem + 0.25vh, 0.75rem);
+    margin: clamp(0.25rem, 0.25rem + 0.125vh, 0.5rem);
   }
 
   .margin-normal {
     @apply m-2;
-    margin: clamp(0.5rem, 0.5rem + 0.5vh, 1.5rem);
+    margin: clamp(0.5rem, 0.5rem + 0.25vh, 1rem);
   }
 
   .margin-loose {
     @apply m-3;
-    margin: clamp(0.75rem, 0.75rem + 0.75vh, 2.25rem);
+    margin: clamp(0.75rem, 0.75rem + 0.375vh, 1.5rem);
   }
 
-  /* 뷰포트 높이 기반 테이블 행 높이 조정 */
+  /* 뷰포트 높이 기반 테이블 행 높이 조정 (FHD 75% 기준으로 조정) */
   .table-row-compact {
     @apply h-6;
-    height: clamp(1.5rem, 1.5rem + 0.5vh, 2rem);
+    height: clamp(1.5rem, 1.5rem + 0.25vh, 1.75rem);
   }
 
   .table-row-normal {
     @apply h-7;
-    height: clamp(1.75rem, 1.75rem + 0.75vh, 2.5rem);
+    height: clamp(1.75rem, 1.75rem + 0.375vh, 2.125rem);
   }
 
   .table-row-loose {
     @apply h-8;
-    height: clamp(2rem, 2rem + 1vh, 3rem);
+    height: clamp(2rem, 2rem + 0.5vh, 2.5rem);
   }
 
-  /* 뷰포트 높이 기반 버튼 크기 조정 */
+  /* 뷰포트 높이 기반 버튼 크기 조정 (FHD 75% 기준으로 조정) */
   .btn-compact {
     @apply h-7 px-2 py-1 text-base;
-    height: clamp(1.75rem, 1.75rem + 0.5vh, 2.25rem);
-    padding: clamp(0.25rem, 0.25rem + 0.25vh, 0.5rem)
-      clamp(0.5rem, 0.5rem + 0.5vh, 1rem);
-    font-size: clamp(1rem, 0.5rem + 1.5vw, 1.5rem);
+    height: clamp(1.75rem, 1.75rem + 0.25vh, 2rem);
+    padding: clamp(0.25rem, 0.25rem + 0.125vh, 0.375rem)
+      clamp(0.5rem, 0.5rem + 0.25vh, 0.75rem);
+    font-size: clamp(1rem, 0.75rem + 0.25vw, 1.25rem);
   }
 
   .btn-normal {
     @apply h-8 px-3 py-1.5 text-base;
-    height: clamp(2rem, 2rem + 0.75vh, 2.75rem);
-    padding: clamp(0.375rem, 0.375rem + 0.375vh, 0.75rem)
-      clamp(0.75rem, 0.75rem + 0.75vh, 1.5rem);
-    font-size: clamp(1rem, 0.5rem + 1.5vw, 1.5rem);
+    height: clamp(2rem, 2rem + 0.375vh, 2.375rem);
+    padding: clamp(0.375rem, 0.375rem + 0.1875vh, 0.5625rem)
+      clamp(0.75rem, 0.75rem + 0.375vh, 1.125rem);
+    font-size: clamp(1rem, 0.75rem + 0.25vw, 1.25rem);
   }
 
   .btn-loose {
     @apply h-9 px-4 py-2 text-base;
-    height: clamp(2.25rem, 2.25rem + 1vh, 3.25rem);
-    padding: clamp(0.5rem, 0.5rem + 0.5vh, 1rem) clamp(1rem, 1rem + 1vh, 2rem);
-    font-size: clamp(1rem, 0.5rem + 1.5vw, 1.5rem);
+    height: clamp(2.25rem, 2.25rem + 0.5vh, 2.75rem);
+    padding: clamp(0.5rem, 0.5rem + 0.25vh, 0.75rem)
+      clamp(1rem, 1rem + 0.5vh, 1.5rem);
+    font-size: clamp(1rem, 0.75rem + 0.25vw, 1.25rem);
   }
 
-  /* 뷰포트 높이 기반 카드 패딩 조정 */
+  /* 뷰포트 높이 기반 카드 패딩 조정 (FHD 75% 기준으로 조정) */
   .card-compact {
     @apply p-2;
-    padding: clamp(0.5rem, 0.5rem + 0.5vh, 1rem);
+    padding: clamp(0.5rem, 0.5rem + 0.25vh, 0.75rem);
   }
 
   .card-normal {
     @apply p-3;
-    padding: clamp(0.75rem, 0.75rem + 0.75vh, 1.5rem);
+    padding: clamp(0.75rem, 0.75rem + 0.375vh, 1.125rem);
   }
 
   .card-loose {
     @apply p-4;
-    padding: clamp(1rem, 1rem + 1vh, 2rem);
+    padding: clamp(1rem, 1rem + 0.5vh, 1.5rem);
   }
 
-  /* 반응형 폰트 클래스들 (FHD 75% → FHD 100% → QHD 100%) */
-  .text-responsive-xxs,
-  .text-responsive-sm,
-  .text-responsive-base,
-  .text-responsive-lg,
-  .text-responsive-xl,
-  .text-responsive-2xl,
-  .text-responsive-3xl,
-  .text-responsive-4xl,
-  .text-responsive-5xl,
-  .text-responsive-6xl {
-    @apply text-base;
-    font-size: clamp(0.75rem, 0.5rem + 0.5vw, 1.5rem);
+  /* 반응형 폰트 클래스들 (브레이크포인트 형식) */
+  html .text-responsive-xxs,
+  html .text-responsive-sm,
+  html .text-responsive-base,
+  html .text-responsive-lg,
+  html .text-responsive-xl,
+  html .text-responsive-2xl,
+  html .text-responsive-3xl,
+  html .text-responsive-4xl,
+  html .text-responsive-5xl,
+  html .text-responsive-6xl {
+    font-size: 0.75rem !important; /* FHD 75% 기본 */
   }
 
-  .text-responsive-xs {
-    @apply text-sm;
-    font-size: clamp(0.6375rem, 0.425rem + 0.51vw, 1.53rem);
+  html .text-responsive-xs {
+    font-size: 0.6375rem !important; /* FHD 75% 기본 */
+  }
+
+  /* FHD 100% */
+  @media (min-width: 1920px) {
+    html .text-responsive-xxs,
+    html .text-responsive-sm,
+    html .text-responsive-base,
+    html .text-responsive-lg,
+    html .text-responsive-xl,
+    html .text-responsive-2xl,
+    html .text-responsive-3xl,
+    html .text-responsive-4xl,
+    html .text-responsive-5xl,
+    html .text-responsive-6xl {
+      font-size: 1rem !important;
+    }
+
+    html .text-responsive-xs {
+      font-size: 0.85rem !important;
+    }
+  }
+
+  /* QHD 100% */
+  @media (min-width: 2560px) {
+    html .text-responsive-xxs,
+    html .text-responsive-sm,
+    html .text-responsive-base,
+    html .text-responsive-lg,
+    html .text-responsive-xl,
+    html .text-responsive-2xl,
+    html .text-responsive-3xl,
+    html .text-responsive-4xl,
+    html .text-responsive-5xl,
+    html .text-responsive-6xl {
+      font-size: 2rem !important;
+    }
+
+    html .text-responsive-xs {
+      font-size: 1.7rem !important;
+    }
   }
 
   /* 사이드바 반응형 스타일 (FHD 75% → FHD 100% → QHD 100%) */
@@ -599,5 +718,126 @@
   /* 페이지네이션 버튼 내부 모든 요소 */
   button[data-variant="default"] * {
     @apply text-white;
+  }
+}
+
+/* 최고 우선순위 폰트 크기 설정 - 모든 다른 스타일을 덮어씀 */
+html body,
+html h1,
+html h2,
+html h3,
+html h4,
+html h5,
+html h6,
+html p,
+html small,
+html div,
+html span,
+html button,
+html input,
+html textarea,
+html label {
+  font-size: 0.75rem !important; /* FHD 75% 기본 */
+}
+
+/* FHD 100% */
+@media (min-width: 1920px) {
+  html body,
+  html h1,
+  html h2,
+  html h3,
+  html h4,
+  html h5,
+  html h6,
+  html p,
+  html small,
+  html div,
+  html span,
+  html button,
+  html input,
+  html textarea,
+  html label {
+    font-size: 1rem !important;
+  }
+}
+
+/* QHD 100% */
+@media (min-width: 2560px) {
+  html body,
+  html h1,
+  html h2,
+  html h3,
+  html h4,
+  html h5,
+  html h6,
+  html p,
+  html small,
+  html div,
+  html span,
+  html button,
+  html input,
+  html textarea,
+  html label {
+    font-size: 2rem !important;
+  }
+
+  /* QHD에서 공지유형, 작성일, 작성자 열은 제외 */
+  html .notice-table-type,
+  html .notice-table-date,
+  html .notice-table-author,
+  html .notice-table-type span,
+  html .notice-table-date span,
+  html .notice-table-author span {
+    font-size: 1.5rem !important;
+  }
+
+  /* QHD에서 페이지네이션 폰트사이즈 조정 */
+  .flex.items-center.gap-1 button,
+  .flex.items-center.gap-1 button *,
+  .flex.items-center.gap-1 button span {
+    font-size: 1.5rem !important;
+  }
+
+  /* QHD에서 테이블 헤더 폰트사이즈를 테이블 행과 동일하게 조정 */
+  .notice-table-container th,
+  .notice-table-container .notice-table-padding {
+    font-size: 2rem !important;
+  }
+
+  /* QHD에서 테이블 행의 공지유형, 작성일, 작성자 열 폰트사이즈 조정 */
+  .notice-table-container .notice-table-type,
+  .notice-table-container .notice-table-date,
+  .notice-table-container .notice-table-author,
+  .notice-table-container th.notice-table-type,
+  .notice-table-container td.notice-table-type,
+  .notice-table-container th.notice-table-date,
+  .notice-table-container td.notice-table-date,
+  .notice-table-container th.notice-table-author,
+  .notice-table-container td.notice-table-author {
+    font-size: 1.5rem !important;
+  }
+
+  /* QHD에서 공지유형, 작성일, 작성자 열 강제 적용 */
+  table .notice-table-type,
+  table .notice-table-date,
+  table .notice-table-author,
+  table th.notice-table-type,
+  table td.notice-table-type,
+  table th.notice-table-date,
+  table td.notice-table-date,
+  table th.notice-table-author,
+  table td.notice-table-author,
+  table .notice-table-type span,
+  table .notice-table-date span,
+  table .notice-table-author span {
+    font-size: 1.5rem !important;
+  }
+
+  /* QHD에서 공지유형 열 내부 요소들 강제 적용 */
+  .notice-table-type span,
+  .notice-table-type .notice-table-padding,
+  td.notice-table-type span,
+  td.notice-table-type .notice-table-padding {
+    font-size: 1.5rem !important;
   }
 }
