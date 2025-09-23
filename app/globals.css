@@ -126,6 +126,30 @@ html body {
   font-size: 0.75rem !important; /* FHD 75% 기본 */
 }
 
+/* FHD 75%에서 헤더와 사이드바 폰트사이즈 설정 */
+header h1,
+.sidebar-responsive-text,
+html header h1,
+html .sidebar-responsive-text,
+html .sidebar-responsive-text span,
+html nav .sidebar-responsive-text,
+html nav .sidebar-responsive-text span {
+  font-size: 1.125rem !important; /* 0.75rem * 1.5 = 1.125rem */
+}
+
+/* FHD 75%에서 공지사항 컴포넌트 제목 폰트사이즈 설정 */
+[data-slot="card-title"] {
+  font-size: 1rem !important;
+}
+
+/* FHD 75%에서 버튼 폰트사이즈 설정 */
+button[type="button"],
+button[type="submit"],
+html button[type="button"],
+html button[type="submit"] {
+  font-size: 0.85rem !important;
+}
+
 /* FHD 100% */
 @media (min-width: 1920px) {
   html body {
@@ -668,6 +692,7 @@ html small {
   /* 공지작성 버튼 - 텍스트와 아이콘 흰색 */
   button[type="submit"] {
     @apply text-white;
+    font-size: inherit !important; /* 미리보기 버튼과 동일한 폰트사이즈 */
   }
 
   button[type="submit"] svg {
@@ -769,6 +794,26 @@ html label {
   font-size: 0.75rem !important; /* FHD 75% 기본 */
 }
 
+/* FHD 75%에서 헤더와 사이드바 강제 적용 */
+html header h1,
+html .sidebar-responsive-text,
+html .sidebar-responsive-text span,
+html nav .sidebar-responsive-text,
+html nav .sidebar-responsive-text span {
+  font-size: 1.125rem !important; /* 0.75rem * 1.5 = 1.125rem */
+}
+
+/* FHD 75%에서 공지사항 컴포넌트 제목 강제 적용 */
+[data-slot="card-title"] {
+  font-size: 1rem !important;
+}
+
+/* FHD 75%에서 버튼 폰트사이즈 강제 적용 */
+html button[type="button"],
+html button[type="submit"] {
+  font-size: 0.85rem !important;
+}
+
 /* FHD 100% */
 @media (min-width: 1920px) {
   html body,
@@ -786,6 +831,30 @@ html label {
   html input,
   html textarea,
   html label {
+    font-size: 1rem !important;
+  }
+
+  /* FHD 100%에서 테이블 헤더와 셀 폰트사이즈 동일하게 설정 */
+  .notice-table-container th,
+  .notice-table-container td,
+  .notice-table-container th.notice-table-title,
+  .notice-table-container td.notice-table-title {
+    font-size: 1rem !important;
+  }
+
+  /* FHD 100%에서 헤더와 사이드바 폰트사이즈 설정 */
+  header h1,
+  .sidebar-responsive-text,
+  html header h1,
+  html .sidebar-responsive-text,
+  html .sidebar-responsive-text span,
+  html nav .sidebar-responsive-text,
+  html nav .sidebar-responsive-text span {
+    font-size: 1.5rem !important;
+  }
+
+  /* FHD 100%에서 공지사항 컴포넌트 제목 폰트사이즈 설정 */
+  [data-slot="card-title"] {
     font-size: 1rem !important;
   }
 }
