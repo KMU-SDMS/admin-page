@@ -188,6 +188,7 @@ html small {
 
   .notice-table-type {
     @apply w-1/5;
+    width: calc(20% - 20px) !important; /* 양쪽에서 10px씩 빼서 총 20px 감소 */
   }
 
   .notice-table-date {
@@ -196,6 +197,7 @@ html small {
 
   .notice-table-author {
     @apply w-1/10;
+    width: calc(10% + 20px) !important; /* 공지유형에서 빼온 20px 추가 */
   }
 
   /* 공지사항 테이블 반응형 패딩 (FHD 75% → FHD 100% → QHD 100%) */
@@ -203,6 +205,20 @@ html small {
     @apply py-0.5 px-1;
     padding: clamp(0.075rem, 0.1rem + 0.1vw, 0.15rem)
       clamp(0.15rem, 0.2rem + 0.2vw, 0.3rem);
+  }
+
+  /* 테이블 헤더와 셀의 패딩을 동일하게 맞춤 */
+  .notice-table-container th.notice-table-padding,
+  .notice-table-container td.notice-table-padding {
+    padding: clamp(0.075rem, 0.1rem + 0.1vw, 0.15rem)
+      clamp(0.15rem, 0.2rem + 0.2vw, 0.3rem) !important;
+  }
+
+  /* 테이블 각 요소의 margin 설정 */
+  .notice-table-container th,
+  .notice-table-container td,
+  .notice-table-container .notice-table-row {
+    margin: 10px !important;
   }
 
   /* 공지사항 테이블 반응형 마진 (FHD 75% → FHD 100% → QHD 100%) */
@@ -632,6 +648,19 @@ html small {
       @apply py-1.5 px-3;
       padding: 0.15rem 0.3rem; /* QHD 100% */
     }
+
+    /* QHD에서 테이블 헤더와 셀의 패딩을 동일하게 맞춤 */
+    .notice-table-container th.notice-table-padding,
+    .notice-table-container td.notice-table-padding {
+      padding: 0.15rem 0.3rem !important; /* QHD 100% */
+    }
+
+    /* QHD에서 테이블 각 요소의 margin 설정 */
+    .notice-table-container th,
+    .notice-table-container td,
+    .notice-table-container .notice-table-row {
+      margin: 10px !important;
+    }
   }
 }
 
@@ -781,7 +810,7 @@ html label {
     font-size: 2rem !important;
   }
 
-  /* QHD에서 공지유형, 작성일, 작성자 열은 제외 */
+  /* QHD에서 공지유형, 작성일, 작성자 열은 제외 (테이블 헤더 제외) */
   html .notice-table-type,
   html .notice-table-date,
   html .notice-table-author,
@@ -789,6 +818,18 @@ html label {
   html .notice-table-date span,
   html .notice-table-author span {
     font-size: 1.5rem !important;
+  }
+
+  /* QHD에서 모든 테이블 헤더는 2rem으로 통일 */
+  html th.notice-table-type,
+  html th.notice-table-date,
+  html th.notice-table-author,
+  html th.notice-table-title,
+  html table th.notice-table-type,
+  html table th.notice-table-date,
+  html table th.notice-table-author,
+  html table th.notice-table-title {
+    font-size: 2rem !important;
   }
 
   /* QHD에서 페이지네이션 폰트사이즈 조정 */
@@ -801,6 +842,19 @@ html label {
   /* QHD에서 테이블 헤더 폰트사이즈를 테이블 행과 동일하게 조정 */
   .notice-table-container th,
   .notice-table-container .notice-table-padding {
+    font-size: 2rem !important;
+  }
+
+  /* QHD에서 모든 테이블 헤더를 2rem으로 통일 */
+  .notice-table-container th.notice-table-type,
+  .notice-table-container th.notice-table-date,
+  .notice-table-container th.notice-table-author,
+  table th.notice-table-type,
+  table th.notice-table-date,
+  table th.notice-table-author,
+  .notice-table-container th[class*="notice-table-type"],
+  .notice-table-container th[class*="notice-table-date"],
+  .notice-table-container th[class*="notice-table-author"] {
     font-size: 2rem !important;
   }
 
@@ -839,5 +893,13 @@ html label {
   td.notice-table-type span,
   td.notice-table-type .notice-table-padding {
     font-size: 1.5rem !important;
+  }
+
+  /* QHD에서 테이블 헤더 강제 적용 - 최고 우선순위 */
+  .notice-table-container th[class*="notice-table"],
+  table th[class*="notice-table"],
+  .notice-table-container th.notice-table-padding,
+  table th.notice-table-padding {
+    font-size: 2rem !important;
   }
 }
