@@ -124,20 +124,21 @@ export function NoticeEditModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
-          <DialogTitle>공지사항 수정</DialogTitle>
+          <DialogTitle className="text-sm 2xl:text-base">공지사항 수정</DialogTitle>
         </DialogHeader>
 
         <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Title */}
             <div className="space-y-2">
-              <Label htmlFor="edit-title">제목</Label>
+              <Label htmlFor="edit-title" className="text-sm 2xl:text-base">제목</Label>
               <Input
                 id="edit-title"
                 placeholder="제목을 입력하세요"
                 value={form.title}
                 onChange={(e) => handleInputChange("title", e.target.value)}
                 maxLength={100}
+                className="text-sm 2xl:text-base"
               />
             </div>
 
@@ -152,7 +153,7 @@ export function NoticeEditModal({
               />
               <Label
                 htmlFor="edit-is_important"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                className="text-sm 2xl:text-base font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
                 중요공지
               </Label>
@@ -160,7 +161,7 @@ export function NoticeEditModal({
 
             {/* Content */}
             <div className="space-y-2">
-              <Label htmlFor="edit-content">내용</Label>
+              <Label htmlFor="edit-content" className="text-sm 2xl:text-base">내용</Label>
               <Textarea
                 id="edit-content"
                 placeholder="공지사항 내용을 입력하세요"
@@ -168,6 +169,7 @@ export function NoticeEditModal({
                 onChange={(e) => handleInputChange("content", e.target.value)}
                 rows={8}
                 maxLength={2000}
+                className="text-sm 2xl:text-base"
               />
             </div>
 
@@ -178,10 +180,11 @@ export function NoticeEditModal({
                 variant="outline"
                 onClick={onClose}
                 disabled={isSubmitting}
+                className="text-sm 2xl:text-base h-8 2xl:h-9"
               >
                 취소
               </Button>
-              <Button type="submit" disabled={!isFormValid || isSubmitting}>
+              <Button type="submit" disabled={!isFormValid || isSubmitting} className="text-sm 2xl:text-base h-8 2xl:h-9">
                 {isSubmitting ? (
                   <>
                     <LoadingSpinner size="sm" className="mr-2" />

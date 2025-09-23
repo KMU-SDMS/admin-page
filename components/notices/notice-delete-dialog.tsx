@@ -64,8 +64,8 @@ export function NoticeDeleteDialog({
     <AlertDialog open={isOpen} onOpenChange={onClose}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>공지사항 삭제</AlertDialogTitle>
-          <AlertDialogDescription>
+          <AlertDialogTitle className="text-sm 2xl:text-base">공지사항 삭제</AlertDialogTitle>
+          <AlertDialogDescription className="text-sm 2xl:text-base">
             정말로 이 공지사항을 삭제하시겠습니까?
             <br />
             <br />
@@ -76,11 +76,11 @@ export function NoticeDeleteDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>취소</AlertDialogCancel>
+          <AlertDialogCancel disabled={isDeleting} className="text-sm 2xl:text-base h-8 2xl:h-9">취소</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleDelete}
             disabled={isDeleting}
-            className="bg-red-600 hover:bg-red-700"
+            className="bg-red-600 hover:bg-red-700 text-sm 2xl:text-base h-8 2xl:h-9"
           >
             {isDeleting ? (
               <>

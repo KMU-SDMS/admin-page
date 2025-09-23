@@ -407,16 +407,16 @@ export function NoticesPageClient({
               <Table className="min-w-full">
                 <TableHeader>
                   <TableRow className="hover:bg-transparent notice-table-row">
-                    <TableHead className="hover:bg-transparent text-xs 2xl:text-sm font-medium notice-table-padding">
+                    <TableHead className="hover:bg-transparent text-xs 2xl:text-sm font-medium notice-table-padding notice-table-title">
                       제목
                     </TableHead>
-                    <TableHead className="hover:bg-transparent text-xs 2xl:text-sm font-medium hidden sm:table-cell notice-table-padding">
+                    <TableHead className="hover:bg-transparent text-xs 2xl:text-sm font-medium hidden sm:table-cell notice-table-padding notice-table-type">
                       공지유형
                     </TableHead>
-                    <TableHead className="hover:bg-transparent text-xs 2xl:text-sm font-medium notice-table-padding">
+                    <TableHead className="hover:bg-transparent text-xs 2xl:text-sm font-medium notice-table-padding notice-table-date">
                       작성일
                     </TableHead>
-                    <TableHead className="hover:bg-transparent text-xs 2xl:text-sm font-medium hidden md:table-cell notice-table-padding">
+                    <TableHead className="hover:bg-transparent text-xs 2xl:text-sm font-medium hidden md:table-cell notice-table-padding notice-table-author">
                       작성자
                     </TableHead>
                   </TableRow>
@@ -439,9 +439,9 @@ export function NoticesPageClient({
                           className="cursor-pointer hover:bg-gray-50 notice-table-row"
                           onClick={() => handleNoticeClick(notice)}
                         >
-                          <TableCell className="font-medium min-w-0 text-xs 2xl:text-sm notice-table-padding">
+                          <TableCell className="font-medium min-w-0 text-xs 2xl:text-sm notice-table-padding notice-table-title">
                             <div className="flex items-center notice-table-gap truncate">
-                              <span className="truncate notice-table-max-width sm:notice-table-max-width-lg lg:max-w-none">
+                              <span className="truncate">
                                 {notice.title.length > 8
                                   ? `${notice.title.substring(0, 8)}...`
                                   : notice.title}
@@ -460,7 +460,7 @@ export function NoticesPageClient({
                               </span>
                             </div>
                           </TableCell>
-                          <TableCell className="whitespace-nowrap hidden sm:table-cell notice-table-padding">
+                          <TableCell className="whitespace-nowrap hidden sm:table-cell notice-table-padding notice-table-type">
                             <span
                               className={`notice-table-padding rounded text-xs ${
                                 notice.is_important
@@ -471,10 +471,10 @@ export function NoticesPageClient({
                               {notice.is_important ? "중요공지" : "일반공지"}
                             </span>
                           </TableCell>
-                          <TableCell className="whitespace-nowrap text-xs 2xl:text-sm notice-table-padding">
+                          <TableCell className="whitespace-nowrap text-xs 2xl:text-sm notice-table-padding notice-table-date">
                             {formatDate(notice.date)}
                           </TableCell>
-                          <TableCell className="whitespace-nowrap text-xs 2xl:text-sm hidden md:table-cell notice-table-padding">
+                          <TableCell className="whitespace-nowrap text-xs 2xl:text-sm hidden md:table-cell notice-table-padding notice-table-author">
                             관리자
                           </TableCell>
                         </TableRow>

@@ -46,12 +46,14 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
         "border-r bg-sidebar transition-all duration-300 h-screen",
         // 모바일에서는 항상 확장된 상태, 데스크톱에서는 collapsed 상태에 따라
         "w-52",
-        collapsed ? "lg:w-16" : "lg:w-52"
+        collapsed
+          ? "lg:w-16 sidebar-responsive-collapsed"
+          : "lg:w-52 sidebar-responsive"
       )}
     >
       <div className="flex h-full flex-col">
         {/* Toggle Button */}
-        <div className="flex justify-end p-2">
+        <div className="flex justify-end sidebar-responsive-padding">
           <Button
             variant="ghost"
             size="icon"
@@ -63,18 +65,18 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
                 setCollapsed(!collapsed);
               }
             }}
-            className="h-8 w-8"
+            className="sidebar-responsive-button"
           >
             {collapsed ? (
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="sidebar-responsive-icon" />
             ) : (
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="sidebar-responsive-icon" />
             )}
           </Button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 space-y-1 p-2">
+        <nav className="flex-1 space-y-1 sidebar-responsive-padding">
           {navigation.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -83,7 +85,7 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
                 href={item.href}
                 onClick={onMobileClose} // 모바일에서 링크 클릭 시 사이드바 닫기
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-[0.8em] font-medium transition-colors whitespace-nowrap",
+                  "flex items-center sidebar-responsive-gap rounded-lg sidebar-responsive-padding sidebar-responsive-text font-medium transition-colors whitespace-nowrap",
                   isActive
                     ? "bg-sidebar-accent text-sidebar-accent-foreground"
                     : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
@@ -92,7 +94,7 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
                   collapsed && "lg:justify-center"
                 )}
               >
-                <item.icon className="h-4 w-4 flex-shrink-0" />
+                <item.icon className="sidebar-responsive-icon flex-shrink-0" />
                 <span className={cn("block", collapsed && "lg:hidden")}>
                   {item.name}
                 </span>
