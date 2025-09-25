@@ -263,7 +263,9 @@ export function NoticesPageClient({
             >
               {/* Title */}
               <div className="space-y-2">
-                <Label htmlFor="title">제목</Label>
+                <Label htmlFor="title" className="[font-size:1rem !important]">
+                  제목
+                </Label>
                 <Input
                   id="title"
                   placeholder="제목을 입력하세요"
@@ -285,7 +287,7 @@ export function NoticesPageClient({
                 />
                 <Label
                   htmlFor="is_important"
-                  className="font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 [font-size:1rem!important]"
                 >
                   중요공지
                 </Label>
@@ -293,7 +295,9 @@ export function NoticesPageClient({
 
               {/* Content */}
               <div className="space-y-2 flex-1 flex flex-col min-h-0">
-                <Label htmlFor="content">내용</Label>
+                <Label htmlFor="content" className="[font-size:1rem!important]">
+                  내용
+                </Label>
                 <Textarea
                   id="content"
                   placeholder="공지사항 내용을 입력하세요"
@@ -305,7 +309,7 @@ export function NoticesPageClient({
               </div>
 
               {/* Actions */}
-              <div className="flex flex-col sm:flex-row gap-3 mt-auto flex-shrink-0">
+              <div className="flex flex-col sm:flex-row gap-3 mt-auto flex-shrink-0 notice-form-buttons">
                 <Button
                   type="button"
                   variant="outline"
