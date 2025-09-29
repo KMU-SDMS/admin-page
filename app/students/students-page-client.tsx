@@ -64,17 +64,14 @@ export function StudentsPageClient({
 
   const handleEditStudent = (student: Student) => {
     // TODO: 학생 수정 모달 열기
-    console.log("Edit student:", student);
   };
 
   const handleDeleteStudent = (student: Student) => {
     // TODO: 학생 삭제 확인 다이얼로그 열기
-    console.log("Delete student:", student);
   };
 
   const handleBulkDelete = (studentIds: number[]) => {
     // TODO: 다중 삭제 확인 다이얼로그 열기
-    console.log("Bulk delete students:", studentIds);
   };
 
   return (
