@@ -104,7 +104,9 @@ export function RoomGridView({
     const present = status === "PRESENT";
 
     try {
-      const rollcallData = {
+      const existingRollcall = rollcalls.find((r) => r.studentId === studentId);
+      const rollcallData: Rollcall = {
+        id: existingRollcall?.id || Date.now(),
         studentId: student.id,
         roomId: student.roomId,
         date: selectedDate,
