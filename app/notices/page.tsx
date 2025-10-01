@@ -1,8 +1,6 @@
 import type React from "react";
 import { Suspense } from "react";
 
-// 동적 렌더링 강제
-export const dynamic = "force-dynamic";
 import {
   Plus,
   Eye,

@@ -1,0 +1,56 @@
+name: Deploy to Surge
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Next.js app
+        run: pnpm run build
+        env:
+          NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+
+      - name: Build Storybook
+        run: pnpm run build-storybook
+
+      - name: Deploy Next.js app to Surge
+        run: npx surge ./out kmu-sdbms-admin-page.surge.sh --token ${{ secrets.SURGE_TOKEN }}
+
+      - name: Deploy Storybook to Surge
+        run: npx surge ./storybook-static kmu-sdbms-admin-storybook.surge.sh --token ${{ secrets.SURGE_TOKEN }}
+
+      - name: Comment deployment URLs
+        uses: actions/github-script@v7
+        if: github.event_name == 'push'
+        with:
+          script: |
+            const output = `### 🚀 배포 완료!
+
+            - **메인 앱**: https://kmu-sdbms-admin-page.surge.sh
+            - **Storybook**: https://kmu-sdbms-admin-storybook.surge.sh
+
+            배포 시간: ${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}`;
+
+            console.log(output);

@@ -1,8 +1,6 @@
 import { Suspense } from "react";
 import { Users, Filter, RefreshCw, Plus, Search } from "lucide-react";
 
-// 동적 렌더링 강제
-export const dynamic = "force-dynamic";
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
