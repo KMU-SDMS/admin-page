@@ -12,8 +12,10 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: [],
   },
-  // 동적 렌더링을 위한 설정
-  output: "standalone",
+  // Surge 정적 배포를 위한 설정
+  output: "export",
+  // 정적 내보내기시 trailing slash 추가
+  trailingSlash: true,
 };
 
 export default nextConfig;

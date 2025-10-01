@@ -37,6 +37,85 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* ⚠️ Atomic Tokens - 임시 스캐폴딩 전용 */
+  /* 컴포넌트에서 직접 사용하지 마세요. Semantic 토큰을 통해서만 사용하세요. */
+
+  /* Blue Atomic Tokens */
+  --atomic-blue-100: #070913;
+  --atomic-blue-200: #0e1225;
+  --atomic-blue-300: #141c38;
+  --atomic-blue-400: #1c2549;
+  --atomic-blue-500: #212e5d;
+  --atomic-blue-600: #293770;
+  --atomic-blue-700: #304082;
+  --atomic-blue-800: #374a95;
+  --atomic-blue-900: #4158b1;
+  --atomic-blue-1000: #576dc1;
+  --atomic-blue-1100: #7385cb;
+  --atomic-blue-1200: #8f9dd6;
+  --atomic-blue-1300: #abb6e0;
+  --atomic-blue-1400: #c7ceea;
+  --atomic-blue-1500: #e3e7f5;
+
+  /* Common Atomic Tokens */
+  --atomic-common-0: #000000;
+  --atomic-common-2200: #ffffff;
+
+  /* Purple Atomic Tokens */
+  --atomic-purple-100: #0d002f;
+  --atomic-purple-200: #1b005f;
+  --atomic-purple-300: #28008e;
+  --atomic-purple-400: #3600bf;
+  --atomic-purple-500: #4300ee;
+  --atomic-purple-600: #5d1eff;
+  --atomic-purple-700: #7f4eff;
+  --atomic-purple-800: #a17dff;
+  --atomic-purple-900: #c3acff;
+  --atomic-purple-1000: #d9ccff;
+  --atomic-purple-1100: #e5dcff;
+  --atomic-purple-1200: #ece2ff;
+  --atomic-purple-1300: #f2edff;
+  --atomic-purple-1400: #f0eaff;
+
+  /* Neutral Atomic Tokens */
+  --atomic-neutral-100: #0f0f10;
+  --atomic-neutral-200: #141415;
+  --atomic-neutral-300: #171719;
+  --atomic-neutral-400: #1b1c1e;
+  --atomic-neutral-500: #212225;
+  --atomic-neutral-600: #292a2d;
+  --atomic-neutral-700: #2e2f33;
+  --atomic-neutral-800: #333438;
+  --atomic-neutral-900: #37383c;
+  --atomic-neutral-1000: #46474c;
+  --atomic-neutral-1100: #5a5c63;
+  --atomic-neutral-1200: #70737c;
+  --atomic-neutral-1300: #878a93;
+  --atomic-neutral-1400: #989ba2;
+  --atomic-neutral-1500: #aeb0b6;
+  --atomic-neutral-1600: #c2c4c8;
+  --atomic-neutral-1700: #dbdcdf;
+  --atomic-neutral-1800: #e1e2e4;
+  --atomic-neutral-1900: #eaebec;
+  --atomic-neutral-2000: #f4f4f5;
+  --atomic-neutral-2100: #f7f7f8;
+
+  /* Warm Neutral Atomic Tokens */
+  --atomic-warmneutral-100: #09090c;
+  --atomic-warmneutral-200: #0d0d12;
+  --atomic-warmneutral-300: #111118;
+  --atomic-warmneutral-400: #16161d;
+  --atomic-warmneutral-500: #1a1a23;
+  --atomic-warmneutral-600: #1e1e29;
+  --atomic-warmneutral-700: #23232f;
+  --atomic-warmneutral-800: #39394e;
+  --atomic-warmneutral-900: #50506d;
+  --atomic-warmneutral-1000: #67678b;
+  --atomic-warmneutral-1100: #8484a4;
+  --atomic-warmneutral-1200: #a3a3bb;
+  --atomic-warmneutral-1300: #c1c1d1;
+  --atomic-warmneutral-1400: #e0e0e8;
 }
 
 .dark {

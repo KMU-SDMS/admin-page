@@ -172,7 +172,7 @@ export function RoomGridView({
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-2 sm:gap-3">
                 {floorRooms
-                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
                   .map((room) => {
                     const stats = getRoomStats(room.id);
                     const attendanceRate =
