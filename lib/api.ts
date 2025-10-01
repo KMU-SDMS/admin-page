@@ -6,10 +6,12 @@ import type {
 } from "./types";
 
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001/";
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
 
 export async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const url = `${API_BASE}${path}`;
+  // path가 /로 시작하지 않으면 추가
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const url = `${API_BASE}${normalizedPath}`;
 
   try {
     const response = await fetch(url, {

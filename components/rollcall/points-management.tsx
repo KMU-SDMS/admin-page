@@ -160,7 +160,7 @@ export function PointsManagement({
               />
             ) : (
               filteredStudents.map((student) => {
-                const room = rooms.find((r) => r.id === student.roomId);
+                const room = rooms.find((r) => r.id === student.roomNumber);
                 const isSelected = selectedStudentId === student.id;
 
                 return (
@@ -176,7 +176,7 @@ export function PointsManagement({
                     <div className="font-medium">{student.name}</div>
                     <div className="text-sm text-muted-foreground">
                       {student.studentIdNum} •{" "}
-                      {room?.name || `호실 ${student.roomId}`}
+                      {room?.name || `호실 ${student.roomNumber}`}
                     </div>
                   </div>
                 );

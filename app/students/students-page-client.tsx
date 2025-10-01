@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Filter, RefreshCw, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,17 +15,14 @@ import {
 } from "@/components/ui/select";
 import { StudentListTable } from "@/components/students/student-list-table";
 import { useStudents } from "@/hooks/use-students";
-import { useRooms } from "@/hooks/use-rooms";
 import { Student } from "@/lib/types";
 
 interface StudentsPageClientProps {
   initialStudents: Student[];
-  initialRooms: any[];
 }
 
 export function StudentsPageClient({
   initialStudents,
-  initialRooms,
 }: StudentsPageClientProps) {
   const [nameSearch, setNameSearch] = useState("");
   const [roomFilter, setRoomFilter] = useState("all");
@@ -38,43 +35,37 @@ export function StudentsPageClient({
     refetch: refetchStudents,
   } = useStudents({
     name: nameSearch || undefined,
-    roomId: roomFilter === "all" ? undefined : roomFilter,
+    roomNumber: roomFilter === "all" ? undefined : Number(roomFilter),
   });
-
-  const { data: rooms } = useRooms();
 
   // Use initial data if hooks haven't loaded yet
   const displayStudents = students.length > 0 ? students : initialStudents;
-  const displayRooms = rooms.length > 0 ? rooms : initialRooms;
 
   // Filter students (no status filtering needed)
   const filteredStudents = displayStudents;
 
-  // Get unique room names for filter
-  const roomOptions = displayRooms.map((room) => ({
-    value: room.id.toString(),
-    label: room.name,
-  }));
+  // Get unique room numbers from students for filter
+  const roomOptions = useMemo(() => {
+    const uniqueRooms = Array.from(
+      new Set(displayStudents.map((s) => s.roomNumber))
+    ).sort((a, b) => a - b);
 
-  // Room data for table component
-  const roomData = displayRooms.map((room) => ({
-    id: room.id,
-    name: room.name,
-  }));
+    return uniqueRooms.map((roomNumber) => ({
+      value: roomNumber.toString(),
+      label: `${roomNumber}호`,
+    }));
+  }, [displayStudents]);
 
   const handleEditStudent = (student: Student) => {
     // TODO: 학생 수정 모달 열기
-    console.log("Edit student:", student);
   };
 
   const handleDeleteStudent = (student: Student) => {
     // TODO: 학생 삭제 확인 다이얼로그 열기
-    console.log("Delete student:", student);
   };
 
   const handleBulkDelete = (studentIds: number[]) => {
     // TODO: 다중 삭제 확인 다이얼로그 열기
-    console.log("Bulk delete students:", studentIds);
   };
 
   return (
@@ -140,7 +131,6 @@ export function StudentsPageClient({
         <CardContent className="padding-compact viewport-fill-content">
           <StudentListTable
             students={filteredStudents}
-            rooms={roomData}
             isLoading={studentsLoading}
             error={studentsError}
             onEdit={handleEditStudent}

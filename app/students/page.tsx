@@ -22,22 +22,12 @@ async function getStudents() {
   try {
     return await api.students.getAll();
   } catch (error) {
-    console.error("Failed to fetch students:", error);
-    return [];
-  }
-}
-
-async function getRooms() {
-  try {
-    return await api.get("/rooms");
-  } catch (error) {
-    console.error("Failed to fetch rooms:", error);
     return [];
   }
 }
 
 export default async function StudentsPage() {
-  const [students, rooms] = await Promise.all([getStudents(), getRooms()]);
+  const students = await getStudents();
 
   return (
     <Layout>
@@ -71,7 +61,7 @@ export default async function StudentsPage() {
 
         {/* Client Component for Interactive Features */}
         <Suspense fallback={<div>Loading...</div>}>
-          <StudentsPageClient initialStudents={students} initialRooms={rooms} />
+          <StudentsPageClient initialStudents={students} />
         </Suspense>
       </div>
     </Layout>
