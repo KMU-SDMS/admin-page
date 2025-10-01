@@ -310,6 +310,16 @@ html small {
     width: calc(10% + 20px); /* 공지유형에서 빼온 20px 추가 */
   }
 
+  /* 공지사항 테이블 헤더 폰트 크기 - FHD 75% */
+  .notice-table-container th {
+    font-size: 0.8625rem; /* 0.75rem * 1.15 */
+  }
+
+  /* 공지사항 테이블 행 폰트 크기 - FHD 75% */
+  .notice-table-container td {
+    font-size: 0.75rem;
+  }
+
   /* 공지사항 테이블 반응형 패딩 (FHD 75% → FHD 100% → QHD 100%) */
   .notice-table-padding {
     @apply py-0.5 px-1;
@@ -929,9 +939,6 @@ html button[type="submit"] {
 
   /* FHD 100%에서 공지사항 관련 요소들만 20% 증가 */
   .notice-table-container,
-  .notice-table-container *,
-  .notice-table-container th,
-  .notice-table-container td,
   .notice-table-container .notice-table-type,
   .notice-table-container .notice-table-date,
   .notice-table-container .notice-table-author,
@@ -958,10 +965,13 @@ html button[type="submit"] {
     font-size: 1.2rem;
   }
 
-  /* FHD 100%에서 테이블 제목 열은 1.2rem 유지 */
-  .notice-table-container .notice-table-title,
-  .notice-table-container th.notice-table-title,
-  .notice-table-container td.notice-table-title {
+  /* FHD 100%에서 테이블 헤더 폰트 크기 (행보다 15% 큼) */
+  .notice-table-container th {
+    font-size: 1.38rem; /* 1.2rem * 1.15 */
+  }
+
+  /* FHD 100%에서 테이블 행 폰트 크기 */
+  .notice-table-container td {
     font-size: 1.2rem;
   }
 
@@ -1007,6 +1017,16 @@ html button[type="submit"] {
 
   /* QHD에서 공지사항 컴포넌트 제목 폰트사이즈 설정 */
   [data-slot="card-title"] {
+    font-size: 2rem;
+  }
+
+  /* QHD 100%에서 테이블 헤더 폰트 크기 (행보다 15% 큼) */
+  .notice-table-container th {
+    font-size: 2.3rem; /* 2rem * 1.15 */
+  }
+
+  /* QHD 100%에서 테이블 행 폰트 크기 */
+  .notice-table-container td {
     font-size: 2rem;
   }
 }
