@@ -11,7 +11,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,9 +27,6 @@ interface StudentListTableProps {
   error: string | null;
   onEdit?: (student: Student) => void;
   onDelete?: (student: Student) => void;
-  onBulkDelete?: (studentIds: number[]) => void;
-  selectedStudents?: number[];
-  onSelectionChange?: (selectedIds: number[]) => void;
 }
 
 export function StudentListTable({
@@ -39,29 +35,7 @@ export function StudentListTable({
   error,
   onEdit,
   onDelete,
-  onBulkDelete,
-  selectedStudents = [],
-  onSelectionChange,
 }: StudentListTableProps) {
-  const [selectAll, setSelectAll] = useState(false);
-
-  const handleSelectAll = (checked: boolean) => {
-    setSelectAll(checked);
-    if (checked) {
-      onSelectionChange?.(students.map((s) => s.id));
-    } else {
-      onSelectionChange?.([]);
-    }
-  };
-
-  const handleSelectStudent = (studentId: number, checked: boolean) => {
-    if (checked) {
-      onSelectionChange?.([...selectedStudents, studentId]);
-    } else {
-      onSelectionChange?.(selectedStudents.filter((id) => id !== studentId));
-    }
-  };
-
   const handleEdit = (student: Student) => {
     onEdit?.(student);
   };
@@ -87,26 +61,18 @@ export function StudentListTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-8 sm:w-12">
-              <Checkbox
-                checked={selectAll}
-                onCheckedChange={handleSelectAll}
-                aria-label="전체 선택"
-              />
-            </TableHead>
-            <TableHead className="text-responsive-xs">학번</TableHead>
-            <TableHead className="text-responsive-xs">이름</TableHead>
-            <TableHead className="text-responsive-xs">호실</TableHead>
-            <TableHead className="text-right text-responsive-xs">
-              작업
-            </TableHead>
+            <TableHead className="w-[60px]"></TableHead>
+            <TableHead className="2xl:text-base">학번</TableHead>
+            <TableHead className="2xl:text-base">이름</TableHead>
+            <TableHead className="2xl:text-base">호실</TableHead>
+            <TableHead className="text-right 2xl:text-base">작업</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {students.length === 0 ? (
             <TableRow>
               <TableCell colSpan={5} className="text-center py-8">
-                <div className="text-muted-foreground">
+                <div className="text-muted-foreground 2xl:text-base">
                   등록된 학생이 없습니다.
                 </div>
               </TableCell>
@@ -114,22 +80,12 @@ export function StudentListTable({
           ) : (
             students.map((student) => (
               <TableRow key={student.id}>
-                <TableCell>
-                  <Checkbox
-                    checked={selectedStudents.includes(student.id)}
-                    onCheckedChange={(checked) =>
-                      handleSelectStudent(student.id, checked as boolean)
-                    }
-                    aria-label={`${student.name} 선택`}
-                  />
-                </TableCell>
-                <TableCell className="font-medium text-responsive-xs">
+                <TableCell className="w-[60px]"></TableCell>
+                <TableCell className="font-medium 2xl:text-base">
                   {student.studentIdNum}
                 </TableCell>
-                <TableCell className="text-responsive-xs">
-                  {student.name}
-                </TableCell>
-                <TableCell className="text-responsive-xs">
+                <TableCell className="2xl:text-base">{student.name}</TableCell>
+                <TableCell className="2xl:text-base">
                   {student.roomNumber}호
                 </TableCell>
                 <TableCell className="text-right">
