@@ -251,7 +251,7 @@ export function NoticesPageClient({
       >
         <Card className="h-full flex flex-col">
           <CardHeader className="padding-compact flex-shrink-0">
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-responsive-sm">
               <Plus className="h-4 w-4 2xl:h-5 2xl:w-5" />
               공지 작성
             </CardTitle>
@@ -263,9 +263,7 @@ export function NoticesPageClient({
             >
               {/* Title */}
               <div className="space-y-2">
-                <Label htmlFor="title" className="[font-size:1rem !important]">
-                  제목
-                </Label>
+                <Label htmlFor="title">제목</Label>
                 <Input
                   id="title"
                   placeholder="제목을 입력하세요"
@@ -287,7 +285,7 @@ export function NoticesPageClient({
                 />
                 <Label
                   htmlFor="is_important"
-                  className="font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 [font-size:1rem!important]"
+                  className="font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
                   중요공지
                 </Label>
@@ -295,9 +293,7 @@ export function NoticesPageClient({
 
               {/* Content */}
               <div className="space-y-2 flex-1 flex flex-col min-h-0">
-                <Label htmlFor="content" className="[font-size:1rem!important]">
-                  내용
-                </Label>
+                <Label htmlFor="content">내용</Label>
                 <Textarea
                   id="content"
                   placeholder="공지사항 내용을 입력하세요"
@@ -368,7 +364,9 @@ export function NoticesPageClient({
                     )}
                   </div>
                 </Button>
-                <CardTitle className="whitespace-nowrap">공지 목록</CardTitle>
+                <CardTitle className="whitespace-nowrap text-responsive-sm">
+                  공지 목록
+                </CardTitle>
               </div>
               <div className="flex items-center gap-1 flex-shrink-0 w-full sm:w-auto">
                 <Select
@@ -405,16 +403,16 @@ export function NoticesPageClient({
               <Table className="min-w-full">
                 <TableHeader>
                   <TableRow className="hover:bg-transparent notice-table-row">
-                    <TableHead className="hover:bg-transparent font-medium notice-table-padding notice-table-title text-left">
+                    <TableHead className="hover:bg-transparent font-medium notice-table-padding notice-table-title text-left text-responsive-xs">
                       제목
                     </TableHead>
-                    <TableHead className="hover:bg-transparent font-medium hidden sm:table-cell notice-table-padding notice-table-type text-right">
+                    <TableHead className="hover:bg-transparent font-medium hidden sm:table-cell notice-table-padding notice-table-type text-right text-responsive-xs">
                       공지유형
                     </TableHead>
-                    <TableHead className="hover:bg-transparent font-medium notice-table-padding notice-table-date text-right">
+                    <TableHead className="hover:bg-transparent font-medium notice-table-padding notice-table-date text-right text-responsive-xs">
                       작성일
                     </TableHead>
-                    <TableHead className="hover:bg-transparent font-medium hidden md:table-cell notice-table-padding notice-table-author text-right">
+                    <TableHead className="hover:bg-transparent font-medium hidden md:table-cell notice-table-padding notice-table-author text-right text-responsive-xs">
                       작성자
                     </TableHead>
                   </TableRow>
@@ -437,7 +435,7 @@ export function NoticesPageClient({
                           className="cursor-pointer hover:bg-gray-50 notice-table-row"
                           onClick={() => handleNoticeClick(notice)}
                         >
-                          <TableCell className="font-medium min-w-0 notice-table-padding notice-table-title text-left">
+                          <TableCell className="font-medium min-w-0 notice-table-padding notice-table-title text-left text-responsive-xs">
                             <div className="flex items-center notice-table-gap truncate">
                               <span className="truncate">
                                 {notice.title.length > 12
@@ -458,7 +456,7 @@ export function NoticesPageClient({
                               </span>
                             </div>
                           </TableCell>
-                          <TableCell className="whitespace-nowrap hidden sm:table-cell notice-table-padding notice-table-type text-right">
+                          <TableCell className="whitespace-nowrap hidden sm:table-cell notice-table-padding notice-table-type text-right text-responsive-xs">
                             <span
                               className={`notice-table-padding rounded ${
                                 notice.is_important
@@ -469,10 +467,10 @@ export function NoticesPageClient({
                               {notice.is_important ? "중요공지" : "일반공지"}
                             </span>
                           </TableCell>
-                          <TableCell className="whitespace-nowrap notice-table-padding notice-table-date text-right">
+                          <TableCell className="whitespace-nowrap notice-table-padding notice-table-date text-right text-responsive-xs">
                             {formatDate(notice.date)}
                           </TableCell>
-                          <TableCell className="whitespace-nowrap hidden md:table-cell notice-table-padding notice-table-author text-right">
+                          <TableCell className="whitespace-nowrap hidden md:table-cell notice-table-padding notice-table-author text-right text-responsive-xs">
                             관리자
                           </TableCell>
                         </TableRow>
