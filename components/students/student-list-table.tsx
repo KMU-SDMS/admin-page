@@ -24,7 +24,6 @@ import { Student } from "@/lib/types";
 
 interface StudentListTableProps {
   students: Student[];
-  rooms: Array<{ id: number; name: string }>;
   isLoading: boolean;
   error: string | null;
   onEdit?: (student: Student) => void;
@@ -36,7 +35,6 @@ interface StudentListTableProps {
 
 export function StudentListTable({
   students,
-  rooms,
   isLoading,
   error,
   onEdit,
@@ -46,11 +44,6 @@ export function StudentListTable({
   onSelectionChange,
 }: StudentListTableProps) {
   const [selectAll, setSelectAll] = useState(false);
-
-  const getRoomName = (roomId: string) => {
-    const room = rooms.find((r) => r.id.toString() === roomId);
-    return room ? room.name : `호실 ${roomId}`;
-  };
 
   const handleSelectAll = (checked: boolean) => {
     setSelectAll(checked);
@@ -103,9 +96,6 @@ export function StudentListTable({
             </TableHead>
             <TableHead className="text-responsive-xs">학번</TableHead>
             <TableHead className="text-responsive-xs">이름</TableHead>
-            <TableHead className="text-responsive-xs hidden sm:table-cell">
-              소속
-            </TableHead>
             <TableHead className="text-responsive-xs">호실</TableHead>
             <TableHead className="text-right text-responsive-xs">
               작업
@@ -115,7 +105,7 @@ export function StudentListTable({
         <TableBody>
           {students.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="text-center py-8">
+              <TableCell colSpan={5} className="text-center py-8">
                 <div className="text-muted-foreground">
                   등록된 학생이 없습니다.
                 </div>
@@ -139,11 +129,8 @@ export function StudentListTable({
                 <TableCell className="text-responsive-xs">
                   {student.name}
                 </TableCell>
-                <TableCell className="text-responsive-xs hidden sm:table-cell">{`${
-                  student.affiliation || ""
-                } ${student.major || ""}`}</TableCell>
                 <TableCell className="text-responsive-xs">
-                  {getRoomName(student.roomId)}
+                  {student.roomNumber}호
                 </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>

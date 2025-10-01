@@ -90,7 +90,7 @@ export function RollCallChecklist({
       await onUpdateRollcall({
         date: selectedDate,
         studentId: student.id,
-        roomId: student.roomId,
+        roomId: student.roomNumber,
         present,
         status,
         note: note.trim() || undefined,
@@ -197,7 +197,7 @@ export function RollCallChecklist({
             </TableHeader>
             <TableBody>
               {students.map((student) => {
-                const room = rooms.find((r) => r.id === student.roomId);
+                const room = rooms.find((r) => r.id === student.roomNumber);
                 const rollcallData = getRollcallData(student.id);
 
                 return (
@@ -207,7 +207,7 @@ export function RollCallChecklist({
                     </TableCell>
                     <TableCell>{student.studentIdNum}</TableCell>
                     <TableCell>
-                      {room?.name || `호실 ${student.roomId}`}
+                      {room?.name || `호실 ${student.roomNumber}`}
                     </TableCell>
                     <TableCell>
                       {(() => {

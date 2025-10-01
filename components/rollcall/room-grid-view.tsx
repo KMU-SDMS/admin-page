@@ -62,7 +62,7 @@ export function RoomGridView({
 
   // 호실별 학생 수와 출석 상태 계산
   const getRoomStats = (roomId: number) => {
-    const roomStudents = students.filter((s) => s.roomId === roomId);
+    const roomStudents = students.filter((s) => s.roomNumber === roomId);
     const presentCount = roomStudents.filter((s) => {
       const rollcall = rollcalls.find((r) => r.studentId === s.id);
       return rollcall?.present;
@@ -104,9 +104,11 @@ export function RoomGridView({
     const present = status === "PRESENT";
 
     try {
-      const rollcallData = {
+      const existingRollcall = rollcalls.find((r) => r.studentId === studentId);
+      const rollcallData: Rollcall = {
+        id: existingRollcall?.id || Date.now(),
         studentId: student.id,
-        roomId: student.roomId,
+        roomId: student.roomNumber,
         date: selectedDate,
         present,
         status,
@@ -147,7 +149,7 @@ export function RoomGridView({
   };
 
   const selectedRoomStudents = selectedRoom
-    ? students.filter((s) => s.roomId === selectedRoom.id)
+    ? students.filter((s) => s.roomNumber === selectedRoom.id)
     : [];
 
   // 각 학생의 rollcall 데이터를 메모이제이션
