@@ -104,6 +104,24 @@ export const studentsApi = {
     return apiGet<Student[]>("/students");
   },
   getById: (id: number) => apiGet<Student>(`/students/${id}`),
+  create: (data: {
+    name: string;
+    studentIdNum: string;
+    roomNumber: number;
+    checkInDate: string;
+  }) => apiPost<Student>("/student", data),
+  update: (data: {
+    studentIdNum: string;
+    name: string;
+    roomNumber: number;
+    checkInDate: string;
+  }) =>
+    request<Student>("/student", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+  delete: (studentIdNum: string) =>
+    apiDelete<{ message: string }>(`/student?studentIdNum=${studentIdNum}`),
 };
 
 // Rooms API

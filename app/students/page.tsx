@@ -28,10 +28,6 @@ export default async function StudentsPage() {
               기숙사 학생 정보 관리 및 현황 확인
             </p>
           </div>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            학생 추가
-          </Button>
         </div>
 
         {/* Client Component for Interactive Features */}
