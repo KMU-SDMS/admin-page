@@ -405,16 +405,16 @@ export function NoticesPageClient({
               <Table className="min-w-full">
                 <TableHeader>
                   <TableRow className="hover:bg-transparent notice-table-row">
-                    <TableHead className="hover:bg-transparent font-medium notice-table-padding notice-table-title text-left">
+                    <TableHead className="hover:bg-transparent font-medium notice-table-padding notice-table-title text-left 2xl:text-2xl">
                       제목
                     </TableHead>
-                    <TableHead className="hover:bg-transparent font-medium hidden sm:table-cell notice-table-padding notice-table-type text-right">
+                    <TableHead className="hover:bg-transparent font-medium hidden sm:table-cell notice-table-padding notice-table-type text-right 2xl:text-xl">
                       공지유형
                     </TableHead>
-                    <TableHead className="hover:bg-transparent font-medium notice-table-padding notice-table-date text-right">
+                    <TableHead className="hover:bg-transparent font-medium notice-table-padding notice-table-date text-right 2xl:text-xl">
                       작성일
                     </TableHead>
-                    <TableHead className="hover:bg-transparent font-medium hidden md:table-cell notice-table-padding notice-table-author text-right">
+                    <TableHead className="hover:bg-transparent font-medium hidden md:table-cell notice-table-padding notice-table-author text-right 2xl:text-xl">
                       작성자
                     </TableHead>
                   </TableRow>
@@ -439,7 +439,7 @@ export function NoticesPageClient({
                         >
                           <TableCell className="font-medium min-w-0 notice-table-padding notice-table-title text-left">
                             <div className="flex items-center notice-table-gap truncate">
-                              <span className="truncate">
+                              <span className="truncate 2xl:text-2xl">
                                 {notice.title.length > 12
                                   ? `${notice.title.substring(0, 12)}...`
                                   : notice.title}
@@ -447,7 +447,7 @@ export function NoticesPageClient({
                               {/* Mobile: Show badge inline */}
                               <span className="sm:hidden">
                                 <span
-                                  className={`notice-table-padding rounded text-xs ${
+                                  className={`notice-table-padding rounded ${
                                     notice.is_important
                                       ? "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200"
                                       : "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200"
@@ -460,7 +460,7 @@ export function NoticesPageClient({
                           </TableCell>
                           <TableCell className="whitespace-nowrap hidden sm:table-cell notice-table-padding notice-table-type text-right">
                             <span
-                              className={`notice-table-padding rounded text-xs ${
+                              className={`notice-table-padding rounded 2xl:text-xl ${
                                 notice.is_important
                                   ? "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200"
                                   : "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200"
@@ -469,10 +469,10 @@ export function NoticesPageClient({
                               {notice.is_important ? "중요공지" : "일반공지"}
                             </span>
                           </TableCell>
-                          <TableCell className="whitespace-nowrap notice-table-padding notice-table-date text-right">
+                          <TableCell className="whitespace-nowrap notice-table-padding notice-table-date text-right 2xl:text-xl">
                             {formatDate(notice.date)}
                           </TableCell>
-                          <TableCell className="whitespace-nowrap hidden md:table-cell notice-table-padding notice-table-author text-right">
+                          <TableCell className="whitespace-nowrap hidden md:table-cell notice-table-padding notice-table-author text-right 2xl:text-xl">
                             관리자
                           </TableCell>
                         </TableRow>
