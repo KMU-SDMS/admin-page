@@ -30,3 +30,5 @@ next-env.d.ts
 .vscode/
 task.md
 tasks.md
+*storybook.log
+storybook-static
