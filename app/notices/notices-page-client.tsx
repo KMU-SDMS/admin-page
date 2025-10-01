@@ -375,7 +375,7 @@ export function NoticesPageClient({
                     setTimeFilter(value as "this-week" | "this-month" | "all")
                   }
                 >
-                  <SelectTrigger className="w-24 sm:w-28 md:w-32 [&>svg]:bg-transparent [&>svg]:text-muted-foreground h-7 2xl:h-8">
+                  <SelectTrigger className="w-24 sm:w-28 md:w-32 h-7 2xl:h-8">
                     <SelectValue placeholder="7일 내" />
                   </SelectTrigger>
                   <SelectContent>
