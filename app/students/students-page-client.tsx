@@ -16,11 +16,11 @@ import {
 import { StudentListTable } from "@/components/students/student-list-table";
 import { useStudents } from "@/hooks/use-students";
 import { useRooms } from "@/hooks/use-rooms";
-import { Student } from "@/lib/types";
+import { Student, Room } from "@/lib/types";
 
 interface StudentsPageClientProps {
   initialStudents: Student[];
-  initialRooms: any[];
+  initialRooms: Room[];
 }
 
 export function StudentsPageClient({
