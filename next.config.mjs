@@ -12,10 +12,11 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: [],
   },
-  // Surge 정적 배포를 위한 설정
-  output: "export",
-  // 정적 내보내기시 trailing slash 추가
-  trailingSlash: true,
+  // 개발 환경에서는 정적 내보내기 비활성화
+  ...(process.env.NODE_ENV === "production" && {
+    output: "export",
+    trailingSlash: true,
+  }),
 };
 
 export default nextConfig;

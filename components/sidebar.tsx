@@ -48,7 +48,7 @@ export function Sidebar({ onMobileClose }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "border-r bg-sidebar transition-all duration-300 h-screen",
+        "border-r border-border bg-sidebar transition-all duration-300 h-screen",
         // 모바일에서는 항상 확장된 상태, 데스크톱에서는 collapsed 상태에 따라
         "w-52",
         collapsed

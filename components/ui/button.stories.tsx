@@ -19,6 +19,8 @@ const meta = {
         "secondary",
         "ghost",
         "link",
+        "success",
+        "warning",
       ],
       description: "버튼의 시각적 스타일",
     },
@@ -54,6 +56,8 @@ export const Variants: Story = {
       <Button variant="secondary">Secondary</Button>
       <Button variant="ghost">Ghost</Button>
       <Button variant="link">Link</Button>
+      <Button variant="success">Success</Button>
+      <Button variant="warning">Warning</Button>
     </div>
   ),
 };
