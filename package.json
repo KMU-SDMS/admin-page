@@ -9,7 +9,9 @@
     "start": "next start",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "deploy": "npm run build && surge ./out"
+    "deploy": "pnpm run build && npx surge ./out kmu-sdbms-admin-page.surge.sh",
+    "deploy:storybook": "pnpm run build-storybook && npx surge ./storybook-static kmu-sdbms-admin-storybook.surge.sh",
+    "deploy:all": "pnpm run deploy && pnpm run deploy:storybook"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

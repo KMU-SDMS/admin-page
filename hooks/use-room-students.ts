@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
-import type { RoomStudent } from "@/lib/types";
+import type { Student } from "@/lib/types";
 
-export function useRoomStudents(roomId: string) {
-  const [data, setData] = useState<RoomStudent[]>([]);
+export function useRoomStudents(roomId: number) {
+  const [data, setData] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,7 +15,7 @@ export function useRoomStudents(roomId: string) {
       setError(null);
 
       // API 호출
-      const students = await api.get<RoomStudent[]>(`/students/${roomId}`);
+      const students = await api.get<Student[]>(`/students/${roomId}`);
       setData(students);
     } catch (err) {
       setError(

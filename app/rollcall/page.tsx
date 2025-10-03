@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { Users, Award } from "lucide-react";
 
-// 정적 내보내기를 위한 설정 제거
 import { Layout } from "@/components/layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

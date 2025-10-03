@@ -1,7 +1,6 @@
 import type React from "react";
 import { Suspense } from "react";
 
-// 정적 내보내기를 위한 설정 제거
 import {
   Plus,
   Eye,
