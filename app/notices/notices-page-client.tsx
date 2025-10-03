@@ -37,6 +37,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { NoticePreviewModal } from "@/components/notices/notice-preview-modal";
 import { NoticeEditModal } from "@/components/notices/notice-edit-modal";
 import { NoticeDeleteDialog } from "@/components/notices/notice-delete-dialog";
+import { Typography } from "@/components/ui/typography";
 import { useNotices } from "@/hooks/use-notices";
 import { useToast } from "@/hooks/use-toast";
 import type { Notice } from "@/lib/types";
@@ -250,20 +251,20 @@ export function NoticesPageClient({
         }`}
       >
         <Card className="h-full flex flex-col">
-          <CardHeader className="padding-compact flex-shrink-0">
+          <CardHeader className="p-4 flex-shrink-0">
             <CardTitle className="flex items-center gap-2">
               <Plus className="h-4 w-4 2xl:h-5 2xl:w-5" />
               공지 작성
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col flex-1 min-h-0 padding-compact">
+          <CardContent className="flex flex-col flex-1 min-h-0 p-4">
             <form
               onSubmit={handleSubmit}
               className="flex flex-col h-full space-y-6"
             >
               {/* Title */}
               <div className="space-y-2">
-                <Label htmlFor="title" className="[font-size:1rem !important]">
+                <Label htmlFor="title" className="text-body-1">
                   제목
                 </Label>
                 <Input
@@ -287,7 +288,7 @@ export function NoticesPageClient({
                 />
                 <Label
                   htmlFor="is_important"
-                  className="font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 [font-size:1rem!important]"
+                  className="font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-body-1"
                 >
                   중요공지
                 </Label>
@@ -295,7 +296,7 @@ export function NoticesPageClient({
 
               {/* Content */}
               <div className="space-y-2 flex-1 flex flex-col min-h-0">
-                <Label htmlFor="content" className="[font-size:1rem!important]">
+                <Label htmlFor="content" className="text-body-1">
                   내용
                 </Label>
                 <Textarea
@@ -350,7 +351,7 @@ export function NoticesPageClient({
         }`}
       >
         <Card className="h-full flex flex-col">
-          <CardHeader className="padding-compact flex-shrink-0">
+          <CardHeader className="p-4 flex-shrink-0">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-1 sm:gap-2">
               <div className="flex items-center gap-2 flex-shrink-0">
                 <Button
@@ -400,32 +401,29 @@ export function NoticesPageClient({
               </div>
             </div>
           </CardHeader>
-          <CardContent className="flex flex-col flex-1 min-h-0 padding-compact">
-            <div className="flex flex-col overflow-x-auto min-w-0 flex-1 notice-table-container">
+          <CardContent className="flex flex-col flex-1 min-h-0 p-4">
+            <div className="flex flex-col overflow-x-auto min-w-0 flex-1">
               <Table className="min-w-full">
                 <TableHeader>
-                  <TableRow className="hover:bg-transparent notice-table-row">
-                    <TableHead className="hover:bg-transparent font-medium notice-table-padding notice-table-title text-left 2xl:text-2xl">
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="hover:bg-transparent font-medium text-label-1 text-left">
                       제목
                     </TableHead>
-                    <TableHead className="hover:bg-transparent font-medium hidden sm:table-cell notice-table-padding notice-table-type text-right 2xl:text-xl">
+                    <TableHead className="hover:bg-transparent font-medium hidden sm:table-cell text-label-1 text-right">
                       공지유형
                     </TableHead>
-                    <TableHead className="hover:bg-transparent font-medium notice-table-padding notice-table-date text-right 2xl:text-xl">
+                    <TableHead className="hover:bg-transparent font-medium text-label-1 text-right">
                       작성일
                     </TableHead>
-                    <TableHead className="hover:bg-transparent font-medium hidden md:table-cell notice-table-padding notice-table-author text-right 2xl:text-xl">
+                    <TableHead className="hover:bg-transparent font-medium hidden md:table-cell text-label-1 text-right">
                       작성자
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {noticesLoading ? (
-                    <TableRow className="notice-table-row">
-                      <TableCell
-                        colSpan={4}
-                        className="text-center notice-table-row notice-table-padding"
-                      >
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center">
                         <LoadingSpinner />
                       </TableCell>
                     </TableRow>
@@ -434,12 +432,12 @@ export function NoticesPageClient({
                       {displayNotices.map((notice) => (
                         <TableRow
                           key={notice.id}
-                          className="cursor-pointer hover:bg-gray-50 notice-table-row"
+                          className="cursor-pointer hover:bg-gray-50"
                           onClick={() => handleNoticeClick(notice)}
                         >
-                          <TableCell className="font-medium min-w-0 notice-table-padding notice-table-title text-left">
-                            <div className="flex items-center notice-table-gap truncate">
-                              <span className="truncate 2xl:text-2xl">
+                          <TableCell className="font-medium min-w-0 text-left">
+                            <div className="flex items-center gap-2 truncate">
+                              <span className="truncate text-body-1">
                                 {notice.title.length > 12
                                   ? `${notice.title.substring(0, 12)}...`
                                   : notice.title}
@@ -447,10 +445,10 @@ export function NoticesPageClient({
                               {/* Mobile: Show badge inline */}
                               <span className="sm:hidden">
                                 <span
-                                  className={`notice-table-padding rounded ${
+                                  className={`px-2 py-1 rounded-md text-caption-1 font-medium ${
                                     notice.is_important
-                                      ? "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200"
-                                      : "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200"
+                                      ? "bg-destructive/10 text-destructive"
+                                      : "bg-primary/10 text-primary"
                                   }`}
                                 >
                                   {notice.is_important ? "중요" : "일반"}
@@ -458,58 +456,46 @@ export function NoticesPageClient({
                               </span>
                             </div>
                           </TableCell>
-                          <TableCell className="whitespace-nowrap hidden sm:table-cell notice-table-padding notice-table-type text-right">
+                          <TableCell className="whitespace-nowrap hidden sm:table-cell text-right">
                             <span
-                              className={`notice-table-padding rounded 2xl:text-xl ${
+                              className={`px-2 py-1 rounded-md text-caption-1 font-medium ${
                                 notice.is_important
-                                  ? "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200"
-                                  : "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200"
+                                  ? "bg-destructive/10 text-destructive"
+                                  : "bg-primary/10 text-primary"
                               }`}
                             >
                               {notice.is_important ? "중요공지" : "일반공지"}
                             </span>
                           </TableCell>
-                          <TableCell className="whitespace-nowrap notice-table-padding notice-table-date text-right 2xl:text-xl">
+                          <TableCell className="whitespace-nowrap text-right text-body-1">
                             {formatDate(notice.date)}
                           </TableCell>
-                          <TableCell className="whitespace-nowrap hidden md:table-cell notice-table-padding notice-table-author text-right 2xl:text-xl">
+                          <TableCell className="whitespace-nowrap hidden md:table-cell text-right text-body-1">
                             관리자
                           </TableCell>
                         </TableRow>
                       ))}
                       {/* Fill remaining rows to maintain height */}
                       {Array.from({ length: emptyRowsCount }, (_, i) => (
-                        <TableRow
-                          key={`empty-${i}`}
-                          className="notice-table-row"
-                        >
-                          <TableCell
-                            colSpan={4}
-                            className="notice-table-row notice-table-padding"
-                          ></TableCell>
+                        <TableRow key={`empty-${i}`}>
+                          <TableCell colSpan={4}></TableCell>
                         </TableRow>
                       ))}
                     </>
                   ) : (
                     <>
-                      <TableRow className="notice-table-row">
+                      <TableRow>
                         <TableCell
                           colSpan={4}
-                          className="text-center text-muted-foreground notice-table-row notice-table-padding"
+                          className="text-center text-muted-foreground"
                         >
                           공지사항이 없습니다.
                         </TableCell>
                       </TableRow>
                       {/* Fill remaining rows to maintain height */}
                       {Array.from({ length: 9 }, (_, i) => (
-                        <TableRow
-                          key={`empty-${i}`}
-                          className="notice-table-row"
-                        >
-                          <TableCell
-                            colSpan={4}
-                            className="notice-table-row notice-table-padding"
-                          ></TableCell>
+                        <TableRow key={`empty-${i}`}>
+                          <TableCell colSpan={4}></TableCell>
                         </TableRow>
                       ))}
                     </>

@@ -1,8 +1,7 @@
 import { Suspense } from "react";
 import { MessageSquare, Filter, RefreshCw } from "lucide-react";
 
-// 동적 렌더링 강제
-export const dynamic = "force-dynamic";
+// 정적 내보내기를 위한 설정 제거
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
