@@ -33,7 +33,6 @@ export type TypographyColor =
   | "strong"
   | "disable"
   | "primary"
-  | "secondary"
   | "success"
   | "warning"
   | "destructive"
@@ -80,11 +79,10 @@ const weightClasses: Record<TypographyWeight, string> = {
 const colorClasses: Record<TypographyColor, string> = {
   normal: "text-foreground",
   muted: "text-muted-foreground",
-  secondary: "text-foreground-secondary",
+  secondary: "text-secondary",
   strong: "text-foreground",
   disable: "text-foreground/opacity-35",
   primary: "text-primary",
-  secondary: "text-secondary",
   success: "text-success",
   warning: "text-warning",
   destructive: "text-destructive",

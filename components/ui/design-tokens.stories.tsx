@@ -49,7 +49,7 @@ function ColorPalette({
 }
 
 // 의미론적 색상 컴포넌트
-function SemanticColors({
+function SemanticColorPalette({
   title,
   colors,
 }: {
@@ -135,7 +135,10 @@ export const AtomicColors: Story = {
 export const SemanticColors: Story = {
   render: () => (
     <div className="space-y-8">
-      <SemanticColors title="Semantic Colors" colors={designTokens.semantic} />
+      <SemanticColorPalette
+        title="Semantic Colors"
+        colors={designTokens.semantic}
+      />
     </div>
   ),
 };
