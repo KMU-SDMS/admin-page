@@ -19,22 +19,10 @@ export default async function StudentsPage() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">학생 관리</h1>
-            <p className="text-muted-foreground">
-              기숙사 학생 정보 관리 및 현황 확인
-            </p>
-          </div>
-        </div>
-
-        {/* Client Component for Interactive Features */}
-        <Suspense fallback={<div>Loading...</div>}>
-          <StudentsPageClient initialStudents={students} />
-        </Suspense>
-      </div>
+      {/* Client Component for Interactive Features */}
+      <Suspense fallback={<div>Loading...</div>}>
+        <StudentsPageClient initialStudents={students} />
+      </Suspense>
     </Layout>
   );
 }
