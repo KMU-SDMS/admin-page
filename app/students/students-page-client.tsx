@@ -32,7 +32,6 @@ export function StudentsPageClient({
 }: StudentsPageClientProps) {
   const [nameSearch, setNameSearch] = useState("");
   const [roomFilter, setRoomFilter] = useState("all");
-  const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
@@ -148,10 +147,6 @@ export function StudentsPageClient({
     }
   };
 
-  const handleBulkDelete = (studentIds: number[]) => {
-    // TODO: 다중 삭제 확인 다이얼로그 열기
-  };
-
   return (
     <>
       {/* Add Student Button - Floating */}
@@ -228,9 +223,6 @@ export function StudentsPageClient({
               error={studentsError}
               onEdit={handleEditStudent}
               onDelete={handleDeleteStudent}
-              onBulkDelete={handleBulkDelete}
-              selectedStudents={selectedStudents}
-              onSelectionChange={setSelectedStudents}
             />
           </CardContent>
         </Card>
