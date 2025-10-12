@@ -3,7 +3,6 @@
 import type React from "react";
 import { useState } from "react";
 
-import { Header } from "./header";
 import { Sidebar } from "./sidebar";
 
 interface LayoutProps {
@@ -39,9 +38,6 @@ export function Layout({ children }: LayoutProps) {
       </div>
 
       <div className="flex flex-1 flex-col overflow-hidden">
-        <Header
-          onMobileMenuToggle={() => setMobileSidebarOpen(!mobileSidebarOpen)}
-        />
         <main className="compact-main bg-background">{children}</main>
       </div>
     </div>
