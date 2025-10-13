@@ -83,7 +83,7 @@ export function NoticePreviewModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
         showCloseButton={false}
-        className="fixed translate-x-0 translate-y-0 max-w-none max-h-none p-0 gap-0 transition-all duration-300 flex flex-col"
+        className="fixed translate-x-0 translate-y-0 max-w-none max-h-none p-0 gap-0 transition-all duration-300 flex flex-col rounded-[10px] overflow-hidden"
         style={{
           ...modalStyles,
           backgroundColor: "var(--color-semantic-background-normal-normal)",
@@ -97,6 +97,8 @@ export function NoticePreviewModal({
             height: "48px",
             minHeight: "48px",
             maxHeight: "48px",
+            backgroundColor:
+              "var(--color-semantic-background-normal-alternative)",
             borderBottomColor: "var(--color-semantic-line-normal-normal)",
           }}
         >
@@ -111,7 +113,7 @@ export function NoticePreviewModal({
               letterSpacing: "0.252px",
             }}
           >
-            {noticeData.id && `#${noticeData.id}`}
+            {noticeData.id && `No. ${noticeData.id}`}
           </div>
           <div className="flex items-center">
             <Button
