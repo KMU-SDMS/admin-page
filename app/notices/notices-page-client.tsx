@@ -165,7 +165,10 @@ export function NoticesPageClient({
   }, []);
 
   return (
-    <div className="flex flex-col h-full">
+    <div
+      className="flex flex-col h-full"
+      style={{ backgroundColor: "#f7f7f8" }}
+    >
       {/* Search Box Area */}
       <div className="flex items-center px-20 pt-[48px]">
         {/* Page Title */}
@@ -180,6 +183,7 @@ export function NoticesPageClient({
           <Input
             placeholder="공지 이름, 대상자명 검색"
             className="flex-1 h-full"
+            style={{ backgroundColor: "#67678b0d", color: "#39394e9c" }}
           />
         </div>
       </div>
@@ -190,7 +194,10 @@ export function NoticesPageClient({
         <div className="w-[176px] flex-shrink-0">
           {/* Create Button */}
           <Button
-            onClick={() => setShowEditModal(true)}
+            onClick={() => {
+              setSelectedNotice(null);
+              setShowEditModal(true);
+            }}
             className="w-[131px] h-[48px] text-[17px] font-bold leading-[24.004px] tracking-[0px]"
             style={{
               backgroundColor: "#374a95",
@@ -224,7 +231,7 @@ export function NoticesPageClient({
           </div>
 
           {/* Filters Card */}
-          <Card className="w-[176px] h-[616px] mt-4">
+          <Card className="w-[176px] h-[616px] mt-4 bg-transparent border-none shadow-none">
             <CardContent className="px-4 space-y-6 overflow-y-auto h-full">
               {/* Status Filter */}
               <div className="space-y-3">
@@ -380,7 +387,7 @@ export function NoticesPageClient({
             <div className="overflow-auto flex-1">
               <Table>
                 <TableHeader>
-                  <TableRow>
+                  <TableRow style={{ height: "80px", borderBottom: "none" }}>
                     <TableHead
                       className="w-12"
                       style={{
@@ -480,7 +487,7 @@ export function NoticesPageClient({
                 </TableHeader>
                 <TableBody style={{ marginTop: "8px" }}>
                   {noticesLoading ? (
-                    <TableRow>
+                    <TableRow style={{ height: "76px", borderBottom: "none" }}>
                       <TableCell colSpan={6} className="text-center">
                         <LoadingSpinner />
                       </TableCell>
@@ -492,6 +499,7 @@ export function NoticesPageClient({
                           key={notice.id}
                           className="cursor-pointer"
                           onClick={() => handleNoticeClick(notice)}
+                          style={{ height: "76px", borderBottom: "none" }}
                         >
                           <TableCell>
                             {notice.is_important ? (
@@ -566,14 +574,19 @@ export function NoticesPageClient({
                         </TableRow>
                       ))}
                       {Array.from({ length: emptyRowsCount }, (_, i) => (
-                        <TableRow key={`empty-${i}`}>
+                        <TableRow
+                          key={`empty-${i}`}
+                          style={{ height: "76px", borderBottom: "none" }}
+                        >
                           <TableCell colSpan={6}></TableCell>
                         </TableRow>
                       ))}
                     </>
                   ) : (
                     <>
-                      <TableRow>
+                      <TableRow
+                        style={{ height: "76px", borderBottom: "none" }}
+                      >
                         <TableCell
                           colSpan={6}
                           className="text-center text-muted-foreground"
@@ -582,7 +595,10 @@ export function NoticesPageClient({
                         </TableCell>
                       </TableRow>
                       {Array.from({ length: 9 }, (_, i) => (
-                        <TableRow key={`empty-${i}`}>
+                        <TableRow
+                          key={`empty-${i}`}
+                          style={{ height: "76px", borderBottom: "none" }}
+                        >
                           <TableCell colSpan={6}></TableCell>
                         </TableRow>
                       ))}
@@ -594,64 +610,149 @@ export function NoticesPageClient({
           </CardContent>
 
           {/* Pagination */}
-          <div className="border-t p-4 flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">
+          <div className="border-t p-4 flex items-center relative">
+            <div className="text-sm text-muted-foreground absolute left-4">
               총 {totalItems}건 중 {startIndex + 1}-{endIndex}건 표시
             </div>
             {totalPages > 1 && (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 mx-auto">
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() => handlePageChange(1)}
                   disabled={displayPageInfo?.now_page === 1}
+                  className="h-8 w-8 rounded-full p-0"
+                  style={{
+                    backgroundColor: "transparent",
+                    border: "none",
+                  }}
                 >
-                  <ChevronsLeft className="h-4 w-4" />
+                  <ChevronsLeft
+                    className="h-4 w-4"
+                    style={{
+                      color:
+                        displayPageInfo?.now_page === 1
+                          ? "#37383c29"
+                          : "#16161d",
+                    }}
+                  />
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() =>
                     handlePageChange((displayPageInfo?.now_page || 1) - 1)
                   }
                   disabled={displayPageInfo?.now_page === 1}
+                  className="h-8 w-8 rounded-full p-0"
+                  style={{
+                    backgroundColor: "transparent",
+                    border: "none",
+                  }}
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft
+                    className="h-4 w-4"
+                    style={{
+                      color:
+                        displayPageInfo?.now_page === 1
+                          ? "#37383c29"
+                          : "#16161d",
+                    }}
+                  />
                 </Button>
-                {Array.from({ length: Math.min(10, totalPages) }, (_, i) => {
-                  const pageNum = i + 1;
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={
-                        displayPageInfo?.now_page === pageNum
-                          ? "default"
-                          : "outline"
-                      }
-                      size="sm"
-                      onClick={() => handlePageChange(pageNum)}
-                    >
-                      {pageNum}
-                    </Button>
+                {(() => {
+                  const currentPage = displayPageInfo?.now_page || 1;
+                  const maxVisiblePages = 10;
+                  let startPage = 1;
+                  let endPage = Math.min(maxVisiblePages, totalPages);
+
+                  // 현재 페이지가 중간에 위치하도록 계산
+                  if (totalPages > maxVisiblePages) {
+                    const halfVisible = Math.floor(maxVisiblePages / 2);
+                    startPage = Math.max(1, currentPage - halfVisible);
+                    endPage = Math.min(
+                      totalPages,
+                      startPage + maxVisiblePages - 1
+                    );
+
+                    // 끝에 가까우면 시작점을 조정
+                    if (endPage === totalPages) {
+                      startPage = Math.max(1, totalPages - maxVisiblePages + 1);
+                    }
+                  }
+
+                  return Array.from(
+                    { length: endPage - startPage + 1 },
+                    (_, i) => {
+                      const pageNum = startPage + i;
+                      const isSelected = currentPage === pageNum;
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handlePageChange(pageNum)}
+                          className="h-8 w-8 rounded-full p-0"
+                          style={{
+                            backgroundColor: "transparent",
+                            border: "none",
+                            fontSize: "14px",
+                            fontWeight: isSelected ? 700 : 500,
+                            lineHeight: "20.006px",
+                            letterSpacing: "0.203px",
+                            color: isSelected ? "#16161d" : "#39394e9c",
+                            fontFamily: "Pretendard, system-ui, sans-serif",
+                          }}
+                        >
+                          {pageNum}
+                        </Button>
+                      );
+                    }
                   );
-                })}
+                })()}
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() =>
                     handlePageChange((displayPageInfo?.now_page || 1) + 1)
                   }
                   disabled={displayPageInfo?.now_page === totalPages}
+                  className="h-8 w-8 rounded-full p-0"
+                  style={{
+                    backgroundColor: "transparent",
+                    border: "none",
+                  }}
                 >
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight
+                    className="h-4 w-4"
+                    style={{
+                      color:
+                        displayPageInfo?.now_page === totalPages
+                          ? "#37383c29"
+                          : "#16161d",
+                    }}
+                  />
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() => handlePageChange(totalPages)}
                   disabled={displayPageInfo?.now_page === totalPages}
+                  className="h-8 w-8 rounded-full p-0"
+                  style={{
+                    backgroundColor: "transparent",
+                    border: "none",
+                  }}
                 >
-                  <ChevronsRight className="h-4 w-4" />
+                  <ChevronsRight
+                    className="h-4 w-4"
+                    style={{
+                      color:
+                        displayPageInfo?.now_page === totalPages
+                          ? "#37383c29"
+                          : "#16161d",
+                    }}
+                  />
                 </Button>
               </div>
             )}
