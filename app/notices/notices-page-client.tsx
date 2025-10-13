@@ -167,14 +167,19 @@ export function NoticesPageClient({
   return (
     <div
       className="flex flex-col h-full"
-      style={{ backgroundColor: "#f7f7f8" }}
+      style={{ backgroundColor: "var(--color-background-normal-alternative)" }}
     >
       {/* Search Box Area */}
       <div className="flex items-center px-20 pt-[48px]">
         {/* Page Title */}
         <h1
-          className="text-[28px] font-bold leading-[38.024px] tracking-[-0.661px]"
-          style={{ color: "#16161d" }}
+          style={{
+            color: "var(--color-label-normal)",
+            fontSize: "var(--typography-title-2-bold-fontSize)",
+            fontWeight: "var(--typography-title-2-bold-fontWeight)",
+            lineHeight: "var(--typography-title-2-bold-lineHeight)",
+            letterSpacing: "var(--typography-title-2-bold-letterSpacing)",
+          }}
         >
           공지사항
         </h1>
@@ -183,7 +188,10 @@ export function NoticesPageClient({
           <Input
             placeholder="공지 이름, 대상자명 검색"
             className="flex-1 h-full"
-            style={{ backgroundColor: "#67678b0d", color: "#39394e9c" }}
+            style={{
+              backgroundColor: "var(--color-fill-alternative)",
+              color: "var(--color-label-alternative)",
+            }}
           />
         </div>
       </div>
@@ -198,15 +206,22 @@ export function NoticesPageClient({
               setSelectedNotice(null);
               setShowEditModal(true);
             }}
-            className="w-[131px] h-[48px] text-[17px] font-bold leading-[24.004px] tracking-[0px]"
+            className="w-[131px] h-[48px]"
             style={{
-              backgroundColor: "#374a95",
-              color: "#f7f7f8",
-              border: "1px solid #67678b38",
+              backgroundColor: "var(--color-primary-normal)",
+              color: "var(--color-static-white)",
+              border: "1px solid var(--color-line-normal-normal)",
+              fontSize: "var(--typography-headline-2-bold-fontSize)",
+              fontWeight: "var(--typography-headline-2-bold-fontWeight)",
+              lineHeight: "var(--typography-headline-2-bold-lineHeight)",
+              letterSpacing: "var(--typography-headline-2-bold-letterSpacing)",
             }}
           >
             신규 작성
-            <Plus className="h-4 w-4 mr-2" style={{ color: "#ffffff" }} />
+            <Plus
+              className="h-4 w-4 mr-2"
+              style={{ color: "var(--color-static-white)" }}
+            />
           </Button>
 
           {/* Total Count with Refresh Button */}
@@ -223,8 +238,14 @@ export function NoticesPageClient({
               />
             </Button>
             <div
-              className="text-[16px] font-bold leading-[26px] tracking-[0.091px]"
-              style={{ color: "#16161d" }}
+              style={{
+                color: "var(--color-label-normal)",
+                fontSize: "var(--typography-body-1-normal-bold-fontSize)",
+                fontWeight: "var(--typography-body-1-normal-bold-fontWeight)",
+                lineHeight: "var(--typography-body-1-normal-bold-lineHeight)",
+                letterSpacing:
+                  "var(--typography-body-1-normal-bold-letterSpacing)",
+              }}
             >
               총 {totalItems}건
             </div>

@@ -62,10 +62,37 @@ export function NoticeDeleteDialog({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent>
+      <AlertDialogContent
+        className="w-[560px] h-[700px] fixed bottom-[20px] right-[64px] top-auto left-auto translate-x-0 translate-y-0 max-w-none max-h-none"
+        style={{
+          backgroundColor: "var(--color-semantic-background-normal-normal)",
+          border: "1px solid var(--color-semantic-line-normal-normal)",
+          color: "var(--color-semantic-label-normal)",
+        }}
+      >
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-sm 2xl:text-base">공지사항 삭제</AlertDialogTitle>
-          <AlertDialogDescription className="text-sm 2xl:text-base">
+          <AlertDialogTitle
+            style={{
+              color: "var(--color-semantic-label-normal)",
+              fontSize: "17px",
+              fontWeight: 700,
+              fontFamily: "Pretendard",
+              lineHeight: "24.004px",
+              letterSpacing: "0px",
+            }}
+          >
+            공지사항 삭제
+          </AlertDialogTitle>
+          <AlertDialogDescription
+            style={{
+              color: "var(--color-semantic-label-neutral)",
+              fontSize: "15px",
+              fontWeight: 500,
+              fontFamily: "Pretendard",
+              lineHeight: "24px",
+              letterSpacing: "0.144px",
+            }}
+          >
             정말로 이 공지사항을 삭제하시겠습니까?
             <br />
             <br />
@@ -76,11 +103,24 @@ export function NoticeDeleteDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting} className="text-sm 2xl:text-base h-8 2xl:h-9">취소</AlertDialogCancel>
+          <AlertDialogCancel
+            disabled={isDeleting}
+            className="text-sm 2xl:text-base h-8 2xl:h-9"
+            style={{
+              borderColor: "var(--color-semantic-line-normal-normal)",
+              color: "var(--color-semantic-label-normal)",
+            }}
+          >
+            취소
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleDelete}
             disabled={isDeleting}
-            className="bg-red-600 hover:bg-red-700 text-sm 2xl:text-base h-8 2xl:h-9"
+            className="text-sm 2xl:text-base h-8 2xl:h-9"
+            style={{
+              backgroundColor: "var(--color-semantic-status-negative)",
+              color: "var(--color-semantic-static-white)",
+            }}
           >
             {isDeleting ? (
               <>

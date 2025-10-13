@@ -51,7 +51,14 @@ export function NoticePreviewModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden w-[90vw] sm:w-[80vw] lg:w-[70vw] xl:w-[60vw]">
+      <DialogContent
+        className="w-[560px] h-[700px] fixed bottom-[20px] right-[64px] top-auto left-auto translate-x-0 translate-y-0 max-w-none max-h-none"
+        style={{
+          backgroundColor: "var(--color-semantic-background-normal-normal)",
+          border: "1px solid var(--color-semantic-line-normal-normal)",
+          color: "var(--color-semantic-label-normal)",
+        }}
+      >
         <DialogHeader className="pb-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
             <div className="flex items-center gap-2 flex-wrap">
@@ -61,6 +68,10 @@ export function NoticePreviewModal({
                   size="sm"
                   onClick={() => onEdit(noticeData.id!)}
                   className="flex items-center gap-1 text-sm 2xl:text-base h-8 2xl:h-9"
+                  style={{
+                    borderColor: "var(--color-semantic-line-normal-normal)",
+                    color: "var(--color-semantic-label-normal)",
+                  }}
                 >
                   <Edit className="h-3 w-3 2xl:h-4 2xl:w-4" />
                   수정
@@ -74,6 +85,10 @@ export function NoticePreviewModal({
                     onDelete(noticeData.id!);
                   }}
                   className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950 text-sm 2xl:text-base h-8 2xl:h-9"
+                  style={{
+                    borderColor: "var(--color-semantic-line-normal-normal)",
+                    color: "var(--color-semantic-status-negative)",
+                  }}
                 >
                   <Trash2 className="h-3 w-3 2xl:h-4 2xl:w-4" />
                   삭제
@@ -87,6 +102,10 @@ export function NoticePreviewModal({
                   size="sm"
                   onClick={onOpenInNewWindow}
                   className="flex items-center gap-1 text-sm 2xl:text-base h-8 2xl:h-9"
+                  style={{
+                    borderColor: "var(--color-semantic-line-normal-normal)",
+                    color: "var(--color-semantic-label-normal)",
+                  }}
                 >
                   <ExternalLink className="h-3 w-3 2xl:h-4 2xl:w-4" />
                   새창으로 보기
@@ -96,14 +115,27 @@ export function NoticePreviewModal({
           </div>
         </DialogHeader>
 
-        <div className="overflow-y-auto max-h-[calc(90vh-140px)]">
+        <div className="overflow-y-auto h-[calc(100%-120px)]">
           <div className="space-y-6">
             {/* Notice Header */}
             <div className="space-y-4">
-              <h2 className="text-lg 2xl:text-2xl font-bold text-balance leading-tight">
+              <h2
+                className="text-balance leading-tight"
+                style={{
+                  color: "var(--color-semantic-label-normal)",
+                  fontSize: "17px",
+                  fontWeight: 700,
+                  fontFamily: "Pretendard",
+                  lineHeight: "24.004px",
+                  letterSpacing: "0px",
+                }}
+              >
                 {noticeData.title}
               </h2>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 text-sm 2xl:text-base text-muted-foreground">
+              <div
+                className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 text-sm 2xl:text-base"
+                style={{ color: "var(--color-semantic-label-neutral)" }}
+              >
                 <div className="flex items-center gap-2">
                   {getTargetBadge()}
                 </div>
@@ -118,11 +150,26 @@ export function NoticePreviewModal({
               </div>
             </div>
 
-            <Separator className="my-6" />
+            <Separator
+              className="my-6"
+              style={{
+                backgroundColor: "var(--color-semantic-line-normal-normal)",
+              }}
+            />
 
             {/* Notice Body */}
             <div className="prose prose-lg max-w-none">
-              <div className="whitespace-pre-wrap text-sm 2xl:text-base leading-relaxed">
+              <div
+                className="whitespace-pre-wrap leading-relaxed"
+                style={{
+                  color: "var(--color-semantic-label-normal)",
+                  fontSize: "15px",
+                  fontWeight: 500,
+                  fontFamily: "Pretendard",
+                  lineHeight: "24px",
+                  letterSpacing: "0.144px",
+                }}
+              >
                 {noticeData.body}
               </div>
             </div>
