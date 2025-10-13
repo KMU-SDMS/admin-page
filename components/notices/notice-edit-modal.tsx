@@ -16,6 +16,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
 import type { Notice } from "@/lib/types";
 import { noticesApi } from "@/lib/api";
+import { X, MoreHorizontal, Maximize2, Minimize2 } from "lucide-react";
 
 interface NoticeEditModalProps {
   isOpen: boolean;
@@ -42,6 +43,7 @@ export function NoticeEditModal({
     is_important: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const { toast } = useToast();
 
@@ -123,26 +125,120 @@ export function NoticeEditModal({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
+  const modalStyles = isExpanded
+    ? {
+        width: "1558px",
+        height: "880px",
+        top: "100px",
+        left: "181px",
+        bottom: "auto",
+        right: "auto",
+      }
+    : {
+        width: "560px",
+        height: "700px",
+        bottom: "20px",
+        right: "64px",
+        top: "auto",
+        left: "auto",
+      };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="w-[560px] h-[700px] fixed bottom-[20px] right-[64px] top-auto left-auto translate-x-0 translate-y-0 max-w-none max-h-none"
+        showCloseButton={false}
+        className="fixed translate-x-0 translate-y-0 max-w-none max-h-none p-0 transition-all duration-300"
         style={{
+          ...modalStyles,
           backgroundColor: "var(--color-semantic-background-normal-normal)",
           border: "1px solid var(--color-semantic-line-normal-normal)",
           color: "var(--color-semantic-label-normal)",
         }}
       >
-        <DialogHeader>
+        <DialogHeader
+          className="h-[48px] flex flex-row items-center justify-between px-0 py-0 m-0 border-b"
+          style={{
+            borderBottomColor: "var(--color-semantic-line-normal-normal)",
+          }}
+        >
           <DialogTitle
-            className="text-sm 2xl:text-base"
-            style={{ color: "var(--color-semantic-label-normal)" }}
+            className="pl-8"
+            style={{
+              color: "var(--color-semantic-label-neutral)",
+              fontSize: "13px",
+              fontWeight: 500,
+              fontFamily: "Pretendard",
+              lineHeight: "18.005px",
+              letterSpacing: "0.252px",
+            }}
           >
-            공지사항 수정
+            {notice?.id ? `공지 #${notice.id}` : "새 공지"}
           </DialogTitle>
+          <div className="flex items-center">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="w-8 h-8 p-0 hover:bg-transparent"
+              style={{
+                color: "var(--color-semantic-label-alternative)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color =
+                  "var(--color-semantic-label-neutral)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color =
+                  "var(--color-semantic-label-alternative)";
+              }}
+            >
+              {isExpanded ? (
+                <Minimize2 className="w-4 h-4" />
+              ) : (
+                <Maximize2 className="w-4 h-4" />
+              )}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-8 h-8 p-0 hover:bg-transparent"
+              style={{
+                color: "var(--color-semantic-label-alternative)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color =
+                  "var(--color-semantic-label-neutral)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color =
+                  "var(--color-semantic-label-alternative)";
+              }}
+            >
+              <MoreHorizontal className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="w-8 h-8 p-0 hover:bg-transparent mr-4"
+              style={{
+                color: "var(--color-semantic-label-alternative)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color =
+                  "var(--color-semantic-label-neutral)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color =
+                  "var(--color-semantic-label-alternative)";
+              }}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
         </DialogHeader>
 
-        <div className="overflow-y-auto h-[calc(100%-120px)]">
+        <div className="overflow-y-auto h-[calc(100%-48px)] p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Title */}
             <div className="space-y-2">

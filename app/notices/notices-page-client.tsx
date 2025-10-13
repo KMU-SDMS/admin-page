@@ -208,9 +208,9 @@ export function NoticesPageClient({
             }}
             className="w-[131px] h-[48px]"
             style={{
-              backgroundColor: "var(--color-primary-normal)",
-              color: "var(--color-static-white)",
-              border: "1px solid var(--color-line-normal-normal)",
+              backgroundColor: "var(--color-semantic-primary-normal)",
+              color: "var(--color-semantic-static-white)",
+              border: "1px solid var(--color-semantic-line-normal-normal)",
               fontSize: "var(--typography-headline-2-bold-fontSize)",
               fontWeight: "var(--typography-headline-2-bold-fontWeight)",
               lineHeight: "var(--typography-headline-2-bold-lineHeight)",
@@ -220,7 +220,7 @@ export function NoticesPageClient({
             신규 작성
             <Plus
               className="h-4 w-4 mr-2"
-              style={{ color: "var(--color-static-white)" }}
+              style={{ color: "var(--color-semantic-static-white)" }}
             />
           </Button>
 
