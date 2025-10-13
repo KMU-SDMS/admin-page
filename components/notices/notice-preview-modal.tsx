@@ -8,6 +8,8 @@ import {
   MoreHorizontal,
   Maximize2,
   Minimize2,
+  Star,
+  User,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -221,50 +223,161 @@ export function NoticePreviewModal({
           </div>
         </DialogHeader>
         {/* 스크롤 시 나타나는 고정 헤더 */}
-        {showScrollHeader && (
-          <div
-            className="h-[44px] flex items-center border-b absolute top-[48px] left-0 right-0 z-10"
-            style={{
-              borderBottomColor: "var(--color-semantic-line-normal-normal)",
-              backgroundColor: "var(--color-semantic-background-normal-normal)",
-            }}
-          >
-            <div style={{ marginLeft: "32px" }}>
-              <div style={{ width: "24px" }}>{getTargetBadge()}</div>
-            </div>
-            <div
-              style={{
-                marginLeft: "16px",
-                width: "178px",
-                color: "var(--color-semantic-label-normal)",
-                fontSize: "15px",
-                fontWeight: 500,
-                fontFamily: "Pretendard",
-                lineHeight: "24px",
-                letterSpacing: "0.144px",
-              }}
-            >
-              관리자 · {new Date(noticeData.date).toLocaleDateString("ko-KR")}
-            </div>
-            <div style={{ marginLeft: "117px", width: "124px" }}>
-              <span
+        <div
+          className="h-[44px] flex items-center border-b absolute top-[48px] left-0 right-0 z-10 transition-all duration-300 ease-in-out"
+          style={{
+            borderBottomColor: "var(--color-semantic-line-normal-normal)",
+            backgroundColor: "var(--color-semantic-background-normal-normal)",
+            opacity: showScrollHeader ? 1 : 0,
+            transform: showScrollHeader ? "translateY(0)" : "translateY(-10px)",
+            pointerEvents: showScrollHeader ? "auto" : "none",
+          }}
+        >
+          {/* 중요공지 별 아이콘 */}
+          <div style={{ marginLeft: "32px" }}>
+            {noticeData.is_important && (
+              <Star
+                className="w-5 h-5"
+                style={{ color: "#3b82f6" }}
+                fill="#3b82f6"
+              />
+            )}
+          </div>
+
+          {/* 중요공지/일반공지 배지 */}
+          <div style={{ marginLeft: "16px" }}>
+            {noticeData.is_important ? (
+              <div
                 style={{
-                  color: "var(--color-semantic-label-neutral)",
-                  fontSize: "15px",
-                  fontWeight: 500,
-                  fontFamily: "Pretendard",
-                  lineHeight: "24px",
-                  letterSpacing: "0.144px",
+                  width: "50px",
+                  height: "24px",
+                  backgroundColor: "var(--color-semantic-status-positive)",
+                  borderRadius: "32px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
-                안읽은 사람 0명
+                <span
+                  style={{
+                    fontSize: "var(--typography-caption-1-bold-fontSize)",
+                    fontWeight: "var(--typography-caption-1-bold-fontWeight)",
+                    lineHeight: "var(--typography-caption-1-bold-lineHeight)",
+                    letterSpacing:
+                      "var(--typography-caption-1-bold-letterSpacing)",
+                    color: "var(--color-semantic-label-inverse)",
+                  }}
+                >
+                  중요
+                </span>
+              </div>
+            ) : (
+              <span
+                style={{
+                  fontSize: "var(--typography-caption-1-bold-fontSize)",
+                  fontWeight: "var(--typography-caption-1-bold-fontWeight)",
+                  lineHeight: "var(--typography-caption-1-bold-lineHeight)",
+                  letterSpacing:
+                    "var(--typography-caption-1-bold-letterSpacing)",
+                  color: "var(--color-semantic-label-inverse)",
+                }}
+              >
+                일반공지
+              </span>
+            )}
+          </div>
+
+          {/* 작성자 정보 */}
+          <div
+            style={{
+              marginLeft: "16px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            <div
+              style={{
+                width: "20px",
+                height: "20px",
+                backgroundColor:
+                  "var(--color-semantic-background-interaction-disable)",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <User
+                className="w-2.5 h-2.5"
+                style={{ color: "var(--color-semantic-label-normal)" }}
+              />
+            </div>
+            <span
+              style={{
+                fontSize: "var(--typography-label-1-normal-bold-fontSize)",
+                fontWeight: "var(--typography-label-1-normal-bold-fontWeight)",
+                lineHeight: "var(--typography-label-1-normal-bold-lineHeight)",
+                letterSpacing:
+                  "var(--typography-label-1-normal-bold-letterSpacing)",
+                color: "var(--color-semantic-label-neutral)",
+              }}
+            >
+              관리자
+            </span>
+            <span
+              style={{
+                fontSize: "var(--typography-label-2-medium-fontSize)",
+                fontWeight: "var(--typography-label-2-medium-fontWeight)",
+                lineHeight: "var(--typography-label-2-medium-lineHeight)",
+                letterSpacing: "var(--typography-label-2-medium-letterSpacing)",
+                color: "var(--color-semantic-label-neutral)",
+              }}
+            >
+              · {new Date(noticeData.date).toLocaleDateString("ko-KR")}
+            </span>
+          </div>
+
+          {/* 조회 현황 */}
+          <div style={{ marginLeft: "auto", marginRight: "32px" }}>
+            <div
+              style={{
+                width: "124px",
+                height: "24px",
+                backgroundColor: "var(--color-semantic-fill-normal)",
+                borderRadius: "32px",
+                display: "flex",
+                alignItems: "center",
+                paddingLeft: "6px",
+                paddingRight: "8px",
+                gap: "2px",
+              }}
+            >
+              <User
+                className="w-3.5 h-3.5"
+                style={{ color: "var(--color-semantic-label-alternative)" }}
+              />
+              <span
+                style={{
+                  fontSize: "var(--typography-caption-1-medium-fontSize)",
+                  fontWeight: "var(--typography-caption-1-medium-fontWeight)",
+                  lineHeight: "var(--typography-caption-1-medium-lineHeight)",
+                  letterSpacing:
+                    "var(--typography-caption-1-medium-letterSpacing)",
+                  color: "var(--color-semantic-label-alternative)",
+                }}
+              >
+                45명중 3명 안읽음
               </span>
             </div>
           </div>
-        )}
-        <div className="flex flex-col h-[calc(100%-48px)] w-full">
-          {/* 정보 컨테이너 - 264px 고정 */}
-          <div className="h-[264px] w-full flex-shrink-0">
+        </div>
+        <div
+          className="overflow-y-auto h-[calc(100%-48px)] w-full"
+          onScroll={handleScroll}
+        >
+          {/* 정보 컨테이너 - 264px */}
+          <div className="h-[264px] w-full">
             {/* 작성자 */}
             <div
               className="h-[44px] flex items-center px-6 border-b"
@@ -469,10 +582,8 @@ export function NoticePreviewModal({
               </span>
             </div>
           </div>
-          {/* 제목 및 내용 컨테이너 - 나머지 공간 채우기 */}
+          {/* 제목 및 내용 컨테이너 */}
           <div
-            className="overflow-y-auto flex-1"
-            onScroll={handleScroll}
             style={{
               paddingTop: "25px",
               paddingBottom: "22px",

@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/table";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { NoticePreviewModal } from "@/components/notices/notice-preview-modal";
+import { NoticeCreateModal } from "@/components/notices/notice-create-modal";
 import { NoticeEditModal } from "@/components/notices/notice-edit-modal";
 import { NoticeDeleteDialog } from "@/components/notices/notice-delete-dialog";
 import { useNotices } from "@/hooks/use-notices";
@@ -52,6 +53,7 @@ export function NoticesPageClient({
 }: NoticesPageClientProps) {
   const [showModal, setShowModal] = useState(false);
   const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [timeFilter, setTimeFilter] = useState<
@@ -130,6 +132,10 @@ export function NoticesPageClient({
     }
   };
 
+  const handleCreateSuccess = () => {
+    refetchNotices();
+  };
+
   const handleEditSuccess = () => {
     refetchNotices();
   };
@@ -203,8 +209,7 @@ export function NoticesPageClient({
           {/* Create Button */}
           <Button
             onClick={() => {
-              setSelectedNotice(null);
-              setShowEditModal(true);
+              setShowCreateModal(true);
             }}
             className="w-[131px] h-[48px]"
             style={{
@@ -801,7 +806,16 @@ export function NoticesPageClient({
         />
       )}
 
-      {/* Notice Edit/Create Modal */}
+      {/* Notice Create Modal */}
+      <NoticeCreateModal
+        isOpen={showCreateModal}
+        onClose={() => {
+          setShowCreateModal(false);
+        }}
+        onSuccess={handleCreateSuccess}
+      />
+
+      {/* Notice Edit Modal */}
       <NoticeEditModal
         isOpen={showEditModal}
         onClose={() => {
