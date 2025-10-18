@@ -11,7 +11,6 @@ import {
   ChevronsRight,
   Check,
   Clock,
-  X,
   Calendar,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -272,7 +271,7 @@ export function NoticesPageClient({
                         htmlFor="published"
                         className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]"
                       >
-                        공지 완료
+                        임시 저장
                       </Label>
                     </div>
                     <Check className="h-4 w-4 text-muted-foreground" />
@@ -288,18 +287,6 @@ export function NoticesPageClient({
                       </Label>
                     </div>
                     <Clock className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="deleted" defaultChecked />
-                      <Label
-                        htmlFor="deleted"
-                        className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]"
-                      >
-                        공지 삭제
-                      </Label>
-                    </div>
-                    <X className="h-4 w-4 text-muted-foreground" />
                   </div>
                 </div>
               </div>
