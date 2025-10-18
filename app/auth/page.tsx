@@ -7,12 +7,12 @@ import { Button } from "@/components/ui/button";
  * 로그인 페이지
  * 간단한 로그인 버튼만 있는 페이지
  */
-export default function LoginPage() {
+export default function AuthPage() {
   const router = useRouter();
 
   const handleLogin = () => {
     // 로그인 처리 (추후 구현)
-    router.push("/");
+    router.push("/home");
   };
 
   return (

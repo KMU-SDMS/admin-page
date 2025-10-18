@@ -9,7 +9,7 @@ export const metadata: Metadata = {
  * 로그인 페이지 전용 레이아웃
  * 사이드바 없이 중앙 정렬된 로그인 폼만 표시
  */
-export default function LoginLayout({
+export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
