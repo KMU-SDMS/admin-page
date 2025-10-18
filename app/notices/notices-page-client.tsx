@@ -55,9 +55,6 @@ export function NoticesPageClient({
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [timeFilter, setTimeFilter] = useState<
-    "this-week" | "this-month" | "all"
-  >("all");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
@@ -70,8 +67,6 @@ export function NoticesPageClient({
     mutate: mutateNotice,
   } = useNotices({
     page: currentPage,
-    timeFilter: timeFilter as "this-week" | "this-month" | "all",
-    sortFilter: "latest", // 기본값으로 고정
   });
 
   const formatDate = (dateString: string) => {

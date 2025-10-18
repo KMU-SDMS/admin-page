@@ -6,19 +6,25 @@ import type {
 } from "./types";
 
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
 
 export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   // path가 /로 시작하지 않으면 추가
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   const url = `${API_BASE}${normalizedPath}`;
 
+  // 인증 토큰 가져오기
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
+
   try {
     const response = await fetch(url, {
       headers: {
         "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
         ...init?.headers,
       },
+      credentials: "include", // 쿠키 포함
       ...init,
     });
 
@@ -74,24 +80,24 @@ function apiDelete<T>(path: string) {
 
 // Notices API
 export const noticesApi = {
-  getAll: () => apiGet<Notice[]>("/notices"),
+  getAll: () => apiGet<Notice[]>("/api/notices"),
   getPaginated: (params?: NoticeQuery) =>
-    apiGet<NoticePaginatedResponse>("/notices", params),
-  getById: (id: number) => apiGet<Notice>(`/notices/${id}`),
+    apiGet<NoticePaginatedResponse>("/api/notices", params),
+  getById: (id: number) => apiGet<Notice>(`/api/notices/${id}`),
   create: (data: { title: string; content: string; is_important: boolean }) =>
-    apiPost<Notice>("/notice", data),
+    apiPost<Notice>("/api/notice", data),
   update: (data: {
     id: number;
     title: string;
     content: string;
     is_important: boolean;
   }) =>
-    request<Notice>("/notice", {
+    request<Notice>("/api/notice", {
       method: "PUT",
       body: JSON.stringify(data),
     }),
   delete: (id: number) => {
-    return request<{ message: string }>("/notice", {
+    return request<{ message: string }>("/api/notice", {
       method: "DELETE",
       body: JSON.stringify({ id }),
     });
@@ -101,51 +107,51 @@ export const noticesApi = {
 // Students API
 export const studentsApi = {
   getAll: () => {
-    return apiGet<Student[]>("/students");
+    return apiGet<Student[]>("/api/students");
   },
-  getById: (id: number) => apiGet<Student>(`/students/${id}`),
+  getById: (id: number) => apiGet<Student>(`/api/students/${id}`),
   create: (data: {
     name: string;
     studentIdNum: string;
     roomNumber: number;
     checkInDate: string;
-  }) => apiPost<Student>("/student", data),
+  }) => apiPost<Student>("/api/student", data),
   update: (data: {
     studentIdNum: string;
     name: string;
     roomNumber: number;
     checkInDate: string;
   }) =>
-    request<Student>("/student", {
+    request<Student>("/api/student", {
       method: "PUT",
       body: JSON.stringify(data),
     }),
   delete: (studentIdNum: string) =>
-    apiDelete<{ message: string }>(`/student?studentIdNum=${studentIdNum}`),
+    apiDelete<{ message: string }>(`/api/student?studentIdNum=${studentIdNum}`),
 };
 
 // Rooms API
 export const roomsApi = {
-  getAll: () => apiGet<any[]>("/rooms"),
-  getById: (id: number) => apiGet<any>(`/rooms/${id}`),
+  getAll: () => apiGet<any[]>("/api/rooms"),
+  getById: (id: number) => apiGet<any>(`/api/rooms/${id}`),
 };
 
 // Inquiries API
 export const inquiriesApi = {
-  getAll: () => apiGet<any[]>("/inquiries"),
-  getById: (id: number) => apiGet<any>(`/inquiries/${id}`),
+  getAll: () => apiGet<any[]>("/api/inquiries"),
+  getById: (id: number) => apiGet<any>(`/api/inquiries/${id}`),
 };
 
 // Parcels API
 export const parcelsApi = {
-  getAll: () => apiGet<any[]>("/parcels"),
-  getById: (id: number) => apiGet<any>(`/parcels/${id}`),
+  getAll: () => apiGet<any[]>("/api/parcels"),
+  getById: (id: number) => apiGet<any>(`/api/parcels/${id}`),
 };
 
 // Rollcalls API
 export const rollcallsApi = {
-  getAll: () => apiGet<any[]>("/rollcalls"),
-  getById: (id: number) => apiGet<any>(`/rollcalls/${id}`),
+  getAll: () => apiGet<any[]>("/api/rollcalls"),
+  getById: (id: number) => apiGet<any>(`/api/rollcalls/${id}`),
 };
 
 export const api = {
