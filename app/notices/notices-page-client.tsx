@@ -11,7 +11,6 @@ import {
   ChevronsRight,
   Check,
   Clock,
-  X,
   Calendar,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -30,6 +29,7 @@ import {
 } from "@/components/ui/table";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { NoticePreviewModal } from "@/components/notices/notice-preview-modal";
+import { NoticeCreateModal } from "@/components/notices/notice-create-modal";
 import { NoticeEditModal } from "@/components/notices/notice-edit-modal";
 import { NoticeDeleteDialog } from "@/components/notices/notice-delete-dialog";
 import { useNotices } from "@/hooks/use-notices";
@@ -52,6 +52,7 @@ export function NoticesPageClient({
 }: NoticesPageClientProps) {
   const [showModal, setShowModal] = useState(false);
   const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [timeFilter, setTimeFilter] = useState<
@@ -130,6 +131,10 @@ export function NoticesPageClient({
     }
   };
 
+  const handleCreateSuccess = () => {
+    refetchNotices();
+  };
+
   const handleEditSuccess = () => {
     refetchNotices();
   };
@@ -167,14 +172,19 @@ export function NoticesPageClient({
   return (
     <div
       className="flex flex-col h-full"
-      style={{ backgroundColor: "#f7f7f8" }}
+      style={{ backgroundColor: "var(--color-background-normal-alternative)" }}
     >
       {/* Search Box Area */}
       <div className="flex items-center px-20 pt-[48px]">
         {/* Page Title */}
         <h1
-          className="text-[28px] font-bold leading-[38.024px] tracking-[-0.661px]"
-          style={{ color: "#16161d" }}
+          style={{
+            color: "var(--color-label-normal)",
+            fontSize: "var(--typography-title-2-bold-fontSize)",
+            fontWeight: "var(--typography-title-2-bold-fontWeight)",
+            lineHeight: "var(--typography-title-2-bold-lineHeight)",
+            letterSpacing: "var(--typography-title-2-bold-letterSpacing)",
+          }}
         >
           공지사항
         </h1>
@@ -183,7 +193,10 @@ export function NoticesPageClient({
           <Input
             placeholder="공지 이름, 대상자명 검색"
             className="flex-1 h-full"
-            style={{ backgroundColor: "#67678b0d", color: "#39394e9c" }}
+            style={{
+              backgroundColor: "var(--color-fill-alternative)",
+              color: "var(--color-label-alternative)",
+            }}
           />
         </div>
       </div>
@@ -195,18 +208,24 @@ export function NoticesPageClient({
           {/* Create Button */}
           <Button
             onClick={() => {
-              setSelectedNotice(null);
-              setShowEditModal(true);
+              setShowCreateModal(true);
             }}
-            className="w-[131px] h-[48px] text-[17px] font-bold leading-[24.004px] tracking-[0px]"
+            className="w-[131px] h-[48px]"
             style={{
-              backgroundColor: "#374a95",
-              color: "#f7f7f8",
-              border: "1px solid #67678b38",
+              backgroundColor: "var(--color-semantic-primary-normal)",
+              color: "var(--color-semantic-static-white)",
+              border: "1px solid var(--color-semantic-line-normal-normal)",
+              fontSize: "var(--typography-headline-2-bold-fontSize)",
+              fontWeight: "var(--typography-headline-2-bold-fontWeight)",
+              lineHeight: "var(--typography-headline-2-bold-lineHeight)",
+              letterSpacing: "var(--typography-headline-2-bold-letterSpacing)",
             }}
           >
             신규 작성
-            <Plus className="h-4 w-4 mr-2" style={{ color: "#ffffff" }} />
+            <Plus
+              className="h-4 w-4 mr-2"
+              style={{ color: "var(--color-semantic-static-white)" }}
+            />
           </Button>
 
           {/* Total Count with Refresh Button */}
@@ -223,8 +242,14 @@ export function NoticesPageClient({
               />
             </Button>
             <div
-              className="text-[16px] font-bold leading-[26px] tracking-[0.091px]"
-              style={{ color: "#16161d" }}
+              style={{
+                color: "var(--color-label-normal)",
+                fontSize: "var(--typography-body-1-normal-bold-fontSize)",
+                fontWeight: "var(--typography-body-1-normal-bold-fontWeight)",
+                lineHeight: "var(--typography-body-1-normal-bold-lineHeight)",
+                letterSpacing:
+                  "var(--typography-body-1-normal-bold-letterSpacing)",
+              }}
             >
               총 {totalItems}건
             </div>
@@ -246,7 +271,7 @@ export function NoticesPageClient({
                         htmlFor="published"
                         className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]"
                       >
-                        공지 완료
+                        임시 저장
                       </Label>
                     </div>
                     <Check className="h-4 w-4 text-muted-foreground" />
@@ -262,18 +287,6 @@ export function NoticesPageClient({
                       </Label>
                     </div>
                     <Clock className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="deleted" defaultChecked />
-                      <Label
-                        htmlFor="deleted"
-                        className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]"
-                      >
-                        공지 삭제
-                      </Label>
-                    </div>
-                    <X className="h-4 w-4 text-muted-foreground" />
                   </div>
                 </div>
               </div>
@@ -780,7 +793,16 @@ export function NoticesPageClient({
         />
       )}
 
-      {/* Notice Edit/Create Modal */}
+      {/* Notice Create Modal */}
+      <NoticeCreateModal
+        isOpen={showCreateModal}
+        onClose={() => {
+          setShowCreateModal(false);
+        }}
+        onSuccess={handleCreateSuccess}
+      />
+
+      {/* Notice Edit Modal */}
       <NoticeEditModal
         isOpen={showEditModal}
         onClose={() => {

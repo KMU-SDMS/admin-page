@@ -2,32 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  Megaphone,
-  Receipt,
-  Bell,
-  Settings,
-  ChevronDown,
-  User,
-} from "lucide-react";
+import { Megaphone, Bell, Settings, ChevronDown, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigation = [
   {
-    name: "대시보드",
-    href: "/",
-    icon: LayoutDashboard,
-  },
-  {
     name: "공지사항",
     href: "/notices",
     icon: Megaphone,
-  },
-  {
-    name: "납부관리",
-    href: "/bill",
-    icon: Receipt,
   },
 ];
 

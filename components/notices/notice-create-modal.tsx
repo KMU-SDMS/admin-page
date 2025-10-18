@@ -14,30 +14,27 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
-import type { Notice } from "@/lib/types";
 import { noticesApi } from "@/lib/api";
 import { X, MoreHorizontal, Maximize2, Minimize2 } from "lucide-react";
 
-interface NoticeEditModalProps {
+interface NoticeCreateModalProps {
   isOpen: boolean;
   onClose: () => void;
-  notice: Notice | null;
   onSuccess: () => void;
 }
 
-interface EditForm {
+interface CreateForm {
   title: string;
   content: string;
   is_important: boolean;
 }
 
-export function NoticeEditModal({
+export function NoticeCreateModal({
   isOpen,
   onClose,
-  notice,
   onSuccess,
-}: NoticeEditModalProps) {
-  const [form, setForm] = useState<EditForm>({
+}: NoticeCreateModalProps) {
+  const [form, setForm] = useState<CreateForm>({
     title: "",
     content: "",
     is_important: false,
@@ -49,17 +46,17 @@ export function NoticeEditModal({
 
   // 폼 초기화
   useEffect(() => {
-    if (notice) {
+    if (isOpen) {
       setForm({
-        title: notice.title,
-        content: notice.content,
-        is_important: notice.is_important,
+        title: "",
+        content: "",
+        is_important: false,
       });
     }
-  }, [notice]);
+  }, [isOpen]);
 
   const handleInputChange = (
-    field: keyof EditForm,
+    field: keyof CreateForm,
     value: string | boolean
   ) => {
     setForm((prev) => ({
@@ -80,30 +77,27 @@ export function NoticeEditModal({
       return;
     }
 
-    if (!notice) return;
-
     setIsSubmitting(true);
 
     try {
-      await noticesApi.update({
-        id: notice.id,
+      await noticesApi.create({
         title: form.title.trim(),
         content: form.content.trim(),
         is_important: form.is_important,
       });
 
       toast({
-        title: "공지 수정 완료",
-        description: "공지사항이 성공적으로 수정되었습니다.",
+        title: "공지 작성 완료",
+        description: "공지사항이 성공적으로 작성되었습니다.",
       });
 
       onSuccess();
       onClose();
     } catch (error) {
       toast({
-        title: "공지 수정 실패",
+        title: "공지 작성 실패",
         description:
-          error instanceof Error ? error.message : "공지 수정에 실패했습니다.",
+          error instanceof Error ? error.message : "공지 작성에 실패했습니다.",
         variant: "destructive",
       });
     } finally {
@@ -172,7 +166,7 @@ export function NoticeEditModal({
               letterSpacing: "0.252px",
             }}
           >
-            공지 수정 #{notice?.id}
+            새 공지 작성
           </DialogTitle>
           <div className="flex items-center">
             <Button
@@ -243,7 +237,7 @@ export function NoticeEditModal({
             {/* Title */}
             <div className="space-y-2">
               <Label
-                htmlFor="edit-title"
+                htmlFor="create-title"
                 style={{
                   color: "var(--color-semantic-label-normal)",
                   fontSize: "17px",
@@ -256,7 +250,7 @@ export function NoticeEditModal({
                 제목
               </Label>
               <Input
-                id="edit-title"
+                id="create-title"
                 placeholder="제목을 입력하세요"
                 value={form.title}
                 onChange={(e) => handleInputChange("title", e.target.value)}
@@ -274,14 +268,14 @@ export function NoticeEditModal({
             {/* Important Notice Checkbox */}
             <div className="flex items-center space-x-2">
               <Checkbox
-                id="edit-is_important"
+                id="create-is_important"
                 checked={form.is_important}
                 onCheckedChange={(checked) =>
                   handleInputChange("is_important", checked)
                 }
               />
               <Label
-                htmlFor="edit-is_important"
+                htmlFor="create-is_important"
                 className="font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 style={{
                   color: "var(--color-semantic-label-normal)",
@@ -299,7 +293,7 @@ export function NoticeEditModal({
             {/* Content */}
             <div className="space-y-2">
               <Label
-                htmlFor="edit-content"
+                htmlFor="create-content"
                 style={{
                   color: "var(--color-semantic-label-normal)",
                   fontSize: "17px",
@@ -312,7 +306,7 @@ export function NoticeEditModal({
                 내용
               </Label>
               <Textarea
-                id="edit-content"
+                id="create-content"
                 placeholder="공지사항 내용을 입력하세요"
                 value={form.content}
                 onChange={(e) => handleInputChange("content", e.target.value)}
@@ -355,10 +349,10 @@ export function NoticeEditModal({
                 {isSubmitting ? (
                   <>
                     <LoadingSpinner size="sm" className="mr-2" />
-                    수정 중...
+                    작성 중...
                   </>
                 ) : (
-                  "수정 완료"
+                  "작성 완료"
                 )}
               </Button>
             </div>
