@@ -43,7 +43,19 @@ export interface CommonProps {
   selectedRoom: string | null;
   selectedYear: number;
   selectedMonth: number;
+  selectedFloor: number;
   onRoomChange: (roomNumber: string | null) => void;
   onYearChange: (year: number) => void;
   onMonthChange: (month: number) => void;
+  onFloorChange: (floor: number) => void;
+}
+
+// 납부 상태 타입
+export type PaymentStatus = 'paid' | 'unpaid' | 'action_required';
+
+// 호실 납부 정보 타입
+export interface RoomPaymentInfo {
+  roomNumber: string;
+  status: PaymentStatus;
+  hasPhotos: boolean;
 }

@@ -22,9 +22,9 @@ export function useStudents(params: StudentQuery = {}) {
       let filteredStudents = [...students];
 
       // 호실 필터링
-      if (params.roomId) {
+      if (params.roomNumber) {
         filteredStudents = filteredStudents.filter(
-          (student) => student.roomId === params.roomId
+          (student) => student.roomNumber === params.roomNumber
         );
       }
 
@@ -45,7 +45,7 @@ export function useStudents(params: StudentQuery = {}) {
 
   useEffect(() => {
     fetchStudents();
-  }, [params.roomId, params.name]);
+  }, [params.roomNumber, params.name]);
 
   return {
     data,

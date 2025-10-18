@@ -10,9 +10,10 @@ export interface Student {
   id: number;
   name: string;
   studentIdNum: string;
-  affiliation: string;
-  major: string;
-  roomId: string;
+  affiliation?: string;
+  major?: string;
+  roomNumber: number;
+  checkInDate?: string;
 }
 
 export interface Rollcall {
@@ -75,7 +76,7 @@ export interface ApiResponse<T> {
 
 // Query parameter types
 export interface StudentQuery {
-  roomId?: string;
+  roomNumber?: number;
   name?: string;
 }
 

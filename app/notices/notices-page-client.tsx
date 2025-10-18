@@ -4,27 +4,21 @@ import type React from "react";
 import { useState, useEffect } from "react";
 import {
   Plus,
-  Eye,
-  Send,
   RefreshCw,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Check,
+  Clock,
+  Calendar,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -35,17 +29,12 @@ import {
 } from "@/components/ui/table";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { NoticePreviewModal } from "@/components/notices/notice-preview-modal";
+import { NoticeCreateModal } from "@/components/notices/notice-create-modal";
 import { NoticeEditModal } from "@/components/notices/notice-edit-modal";
 import { NoticeDeleteDialog } from "@/components/notices/notice-delete-dialog";
 import { useNotices } from "@/hooks/use-notices";
 import { useToast } from "@/hooks/use-toast";
 import type { Notice } from "@/lib/types";
-
-interface NoticeForm {
-  title: string;
-  content: string;
-  is_important: boolean;
-}
 
 interface NoticesPageClientProps {
   initialNoticesData: {
@@ -61,21 +50,15 @@ interface NoticesPageClientProps {
 export function NoticesPageClient({
   initialNoticesData,
 }: NoticesPageClientProps) {
-  const [form, setForm] = useState<NoticeForm>({
-    title: "",
-    content: "",
-    is_important: false,
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [timeFilter, setTimeFilter] = useState<
     "this-week" | "this-month" | "all"
-  >("this-week");
+  >("all");
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isListExpanded, setIsListExpanded] = useState(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   const { toast } = useToast();
@@ -90,61 +73,6 @@ export function NoticesPageClient({
     timeFilter: timeFilter as "this-week" | "this-month" | "all",
     sortFilter: "latest", // 기본값으로 고정
   });
-
-  const handleInputChange = (field: keyof NoticeForm, value: any) => {
-    setForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!form.title.trim() || !form.content.trim()) {
-      toast({
-        title: "입력 오류",
-        description: "제목과 내용을 모두 입력해주세요.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      await mutateNotice({
-        title: form.title.trim(),
-        content: form.content.trim(),
-        is_important: form.is_important,
-      });
-
-      // Refresh the notices list
-      await refetchNotices();
-
-      toast({
-        title: "공지 작성 완료",
-        description: "공지사항이 성공적으로 작성되었습니다.",
-      });
-
-      // Reset form
-      setForm({
-        title: "",
-        content: "",
-        is_important: false,
-      });
-      setShowModal(false);
-    } catch (error) {
-      toast({
-        title: "공지 작성 실패",
-        description:
-          error instanceof Error ? error.message : "공지 작성에 실패했습니다.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -170,8 +98,6 @@ export function NoticesPageClient({
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
-
-  const isFormValid = form.title.trim() && form.content.trim();
 
   const handleNoticeClick = (notice: Notice) => {
     setSelectedNotice(notice);
@@ -203,6 +129,10 @@ export function NoticesPageClient({
       setShowDeleteDialog(true);
       setShowModal(false);
     }
+  };
+
+  const handleCreateSuccess = () => {
+    refetchNotices();
   };
 
   const handleEditSuccess = () => {
@@ -240,194 +170,338 @@ export function NoticesPageClient({
   }, []);
 
   return (
-    <div className="flex flex-col xl:flex-row spacing-normal h-full">
-      {/* Notice Creation Form - Left Panel */}
-      <div
-        className={`transition-all duration-700 ease-in-out ${
-          isListExpanded
-            ? "w-0 opacity-0 overflow-hidden pointer-events-none"
-            : "w-full xl:w-1/2 2xl:w-3/5 opacity-100"
-        }`}
-      >
-        <Card className="h-full flex flex-col">
-          <CardHeader className="padding-compact flex-shrink-0">
-            <CardTitle className="flex items-center gap-2 text-[0.9em]">
-              <Plus className="h-4 w-4 lg:h-5 lg:w-5" />
-              공지 작성
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col flex-1 min-h-0 padding-compact">
-            <form
-              onSubmit={handleSubmit}
-              className="flex flex-col h-full space-y-6"
-            >
-              {/* Title */}
-              <div className="space-y-2">
-                <Label htmlFor="title" className="text-[0.9em]">
-                  제목
-                </Label>
-                <Input
-                  id="title"
-                  placeholder="제목을 입력하세요"
-                  value={form.title}
-                  onChange={(e) => handleInputChange("title", e.target.value)}
-                  maxLength={100}
-                  className="text-[0.9em]"
-                />
-              </div>
-
-              {/* Important Notice Checkbox */}
-              <div className="flex items-center space-x-3">
-                <Checkbox
-                  id="is_important"
-                  checked={form.is_important}
-                  onCheckedChange={(checked) =>
-                    handleInputChange("is_important", checked)
-                  }
-                />
-                <Label
-                  htmlFor="is_important"
-                  className="text-[0.9em] font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  중요공지
-                </Label>
-              </div>
-
-              {/* Content */}
-              <div className="space-y-2 flex-1 flex flex-col min-h-0">
-                <Label htmlFor="content" className="text-[0.9em]">
-                  내용
-                </Label>
-                <Textarea
-                  id="content"
-                  placeholder="공지사항 내용을 입력하세요"
-                  value={form.content}
-                  onChange={(e) => handleInputChange("content", e.target.value)}
-                  className="flex-1 resize-none text-[0.9em] min-h-[120px] lg:min-h-[150px]"
-                  maxLength={2000}
-                />
-              </div>
-
-              {/* Actions */}
-              <div className="flex flex-col sm:flex-row gap-3 mt-auto flex-shrink-0">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowModal(true)}
-                  disabled={!isFormValid}
-                  className="w-full sm:w-auto text-[0.9em] h-8 lg:h-9"
-                >
-                  <Eye className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
-                  미리보기
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={!isFormValid || isSubmitting}
-                  className="w-full sm:w-auto text-[0.9em] h-8 lg:h-9"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <LoadingSpinner size="sm" className="mr-1 lg:mr-2" />
-                      작성 중...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="h-3 w-3 lg:h-4 lg:w-4 mr-1 lg:mr-2" />
-                      공지 작성
-                    </>
-                  )}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+    <div
+      className="flex flex-col h-full"
+      style={{ backgroundColor: "var(--color-background-normal-alternative)" }}
+    >
+      {/* Search Box Area */}
+      <div className="flex items-center px-20 pt-[48px]">
+        {/* Page Title */}
+        <h1
+          style={{
+            color: "var(--color-label-normal)",
+            fontSize: "var(--typography-title-2-bold-fontSize)",
+            fontWeight: "var(--typography-title-2-bold-fontWeight)",
+            lineHeight: "var(--typography-title-2-bold-lineHeight)",
+            letterSpacing: "var(--typography-title-2-bold-letterSpacing)",
+          }}
+        >
+          공지사항
+        </h1>
+        {/* Search Box */}
+        <div className="flex items-center gap-2 w-[614px] h-[48px] ml-[161px]">
+          <Input
+            placeholder="공지 이름, 대상자명 검색"
+            className="flex-1 h-full"
+            style={{
+              backgroundColor: "var(--color-fill-alternative)",
+              color: "var(--color-label-alternative)",
+            }}
+          />
+        </div>
       </div>
 
-      {/* Notice List - Right Panel */}
-      <div
-        className={`transition-all duration-700 ease-in-out ${
-          isListExpanded ? "w-full min-w-0" : "w-full lg:w-1/2 xl:w-2/5"
-        }`}
-      >
-        <Card className="h-full flex flex-col">
-          <CardHeader className="padding-compact flex-shrink-0">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-1 sm:gap-2">
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setIsListExpanded(!isListExpanded)}
-                  title={isListExpanded ? "축소" : "확대"}
-                  className="transition-transform duration-300 ease-in-out h-7 w-7"
-                >
-                  <div className="transition-transform duration-300 ease-in-out">
-                    {isListExpanded ? (
-                      <ChevronRight className="h-3 w-3" />
-                    ) : (
-                      <ChevronLeft className="h-3 w-3" />
-                    )}
-                  </div>
-                </Button>
-                <CardTitle className="whitespace-nowrap text-responsive-sm">
-                  공지 목록
-                </CardTitle>
-              </div>
-              <div className="flex items-center gap-1 flex-shrink-0 w-full sm:w-auto">
-                <Select
-                  value={timeFilter}
-                  onValueChange={(value: string) =>
-                    setTimeFilter(value as "this-week" | "this-month" | "all")
-                  }
-                >
-                  <SelectTrigger className="w-24 sm:w-28 md:w-32 [&>svg]:bg-transparent [&>svg]:text-muted-foreground text-responsive-xs h-7">
-                    <SelectValue placeholder="7일 내" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="this-week">7일 내</SelectItem>
-                    <SelectItem value="this-month">30일 내</SelectItem>
-                    <SelectItem value="all">전체</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handleRefresh}
-                  disabled={isRefreshing}
-                  className="flex-shrink-0 h-7 w-7"
-                >
-                  <RefreshCw
-                    className={`h-3 w-3 ${isRefreshing ? "animate-spin" : ""}`}
-                  />
-                </Button>
-              </div>
+      {/* Main Content */}
+      <div className="flex flex-col lg:flex-row gap-20 flex-1 min-h-0 px-20 pb-[30px] pt-4">
+        {/* Left Sidebar Container */}
+        <div className="w-[176px] flex-shrink-0">
+          {/* Create Button */}
+          <Button
+            onClick={() => {
+              setShowCreateModal(true);
+            }}
+            className="w-[131px] h-[48px]"
+            style={{
+              backgroundColor: "var(--color-semantic-primary-normal)",
+              color: "var(--color-semantic-static-white)",
+              border: "1px solid var(--color-semantic-line-normal-normal)",
+              fontSize: "var(--typography-headline-2-bold-fontSize)",
+              fontWeight: "var(--typography-headline-2-bold-fontWeight)",
+              lineHeight: "var(--typography-headline-2-bold-lineHeight)",
+              letterSpacing: "var(--typography-headline-2-bold-letterSpacing)",
+            }}
+          >
+            신규 작성
+            <Plus
+              className="h-4 w-4 mr-2"
+              style={{ color: "var(--color-semantic-static-white)" }}
+            />
+          </Button>
+
+          {/* Total Count with Refresh Button */}
+          <div className="flex items-center gap-[10px] mt-8">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="h-[32px] w-[32px] rounded-full flex-shrink-0"
+            >
+              <RefreshCw
+                className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+              />
+            </Button>
+            <div
+              style={{
+                color: "var(--color-label-normal)",
+                fontSize: "var(--typography-body-1-normal-bold-fontSize)",
+                fontWeight: "var(--typography-body-1-normal-bold-fontWeight)",
+                lineHeight: "var(--typography-body-1-normal-bold-lineHeight)",
+                letterSpacing:
+                  "var(--typography-body-1-normal-bold-letterSpacing)",
+              }}
+            >
+              총 {totalItems}건
             </div>
-          </CardHeader>
-          <CardContent className="flex flex-col flex-1 min-h-0 padding-compact">
-            <div className="flex flex-col overflow-x-auto min-w-0 flex-1 notice-table-container">
-              <Table className="min-w-full">
+          </div>
+
+          {/* Filters Card */}
+          <Card className="w-[176px] h-[616px] mt-4 bg-transparent border-none shadow-none">
+            <CardContent className="px-4 space-y-6 overflow-y-auto h-full">
+              {/* Status Filter */}
+              <div className="space-y-3">
+                <Label className="text-[14px] font-bold leading-[20.006px] tracking-[0.203px]">
+                  게시 상태
+                </Label>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox id="published" defaultChecked />
+                      <Label
+                        htmlFor="published"
+                        className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]"
+                      >
+                        임시 저장
+                      </Label>
+                    </div>
+                    <Check className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox id="scheduled" defaultChecked />
+                      <Label
+                        htmlFor="scheduled"
+                        className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]"
+                      >
+                        작성 예약
+                      </Label>
+                    </div>
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t" />
+
+              {/* Toggle Options */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Switch defaultChecked />
+                  <Label className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]">
+                    중요공지 맨 앞
+                  </Label>
+                </div>
+                <div className="flex items-center justify-between">
+                  <Switch defaultChecked />
+                  <Label className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]">
+                    만료 공지 표시
+                  </Label>
+                </div>
+              </div>
+
+              <div className="border-t" />
+
+              {/* Date Filter */}
+              <div className="space-y-2">
+                <Label className="text-[14px] font-bold leading-[20.006px] tracking-[0.203px]">
+                  날짜
+                </Label>
+                <Button
+                  variant="outline"
+                  className="w-[75px] h-[32px] rounded-md justify-start text-[15px] font-medium leading-[22.005px] tracking-[0.144px] px-2"
+                  onClick={() => {}}
+                >
+                  <Calendar className="h-4 w-4 mr-1" />
+                  전체
+                </Button>
+              </div>
+
+              <div className="border-t" />
+
+              {/* Target Group Filter */}
+              <div className="space-y-3">
+                <Label className="text-[14px] font-bold leading-[20.006px] tracking-[0.203px]">
+                  대상 그룹
+                </Label>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="retired" defaultChecked />
+                    <Label
+                      htmlFor="retired"
+                      className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]"
+                    >
+                      퇴사생
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="freshman" defaultChecked />
+                    <Label
+                      htmlFor="freshman"
+                      className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]"
+                    >
+                      신입생
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="year1" defaultChecked />
+                    <Label
+                      htmlFor="year1"
+                      className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]"
+                    >
+                      1학년
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="year2" defaultChecked />
+                    <Label
+                      htmlFor="year2"
+                      className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]"
+                    >
+                      2학년
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="year3" defaultChecked />
+                    <Label
+                      htmlFor="year3"
+                      className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]"
+                    >
+                      3학년
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="year4" defaultChecked />
+                    <Label
+                      htmlFor="year4"
+                      className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]"
+                    >
+                      4학년
+                    </Label>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Table Area */}
+        <Card className="flex-1 flex flex-col min-h-0 w-[1187px] h-[938px]">
+          <CardContent className="px-4 py-0 flex flex-col flex-1 min-h-0 overflow-hidden">
+            <div className="overflow-auto flex-1">
+              <Table>
                 <TableHeader>
-                  <TableRow className="hover:bg-transparent notice-table-row">
-                    <TableHead className="hover:bg-transparent text-responsive-xs font-medium notice-table-padding">
-                      제목
+                  <TableRow style={{ height: "80px", borderBottom: "none" }}>
+                    <TableHead
+                      className="w-12"
+                      style={{
+                        paddingTop: "14px",
+                        paddingBottom: "14px",
+                        paddingLeft: "19.5px",
+                        paddingRight: "19.5px",
+                        fontSize: "14px",
+                        fontWeight: 700,
+                        lineHeight: "20.006px",
+                        letterSpacing: "0.203px",
+                        color: "#16161d",
+                      }}
+                    >
+                      상태
                     </TableHead>
-                    <TableHead className="hover:bg-transparent text-responsive-xs font-medium hidden sm:table-cell notice-table-padding">
-                      공지유형
+                    <TableHead
+                      style={{
+                        paddingTop: "14px",
+                        paddingBottom: "14px",
+                        paddingLeft: "19.5px",
+                        paddingRight: "19.5px",
+                        fontSize: "14px",
+                        fontWeight: 700,
+                        lineHeight: "20.006px",
+                        letterSpacing: "0.203px",
+                        color: "#16161d",
+                      }}
+                    >
+                      제목/내용
                     </TableHead>
-                    <TableHead className="hover:bg-transparent text-responsive-xs font-medium notice-table-padding">
-                      작성일
+                    <TableHead
+                      className="hidden md:table-cell"
+                      style={{
+                        paddingTop: "14px",
+                        paddingBottom: "14px",
+                        paddingLeft: "19.5px",
+                        paddingRight: "19.5px",
+                        fontSize: "14px",
+                        fontWeight: 700,
+                        lineHeight: "20.006px",
+                        letterSpacing: "0.203px",
+                        color: "#16161d",
+                      }}
+                    >
+                      작성자/작성일
                     </TableHead>
-                    <TableHead className="hover:bg-transparent text-responsive-xs font-medium hidden md:table-cell notice-table-padding">
-                      작성자
+                    <TableHead
+                      className="hidden lg:table-cell"
+                      style={{
+                        paddingTop: "14px",
+                        paddingBottom: "14px",
+                        paddingLeft: "19.5px",
+                        paddingRight: "19.5px",
+                        fontSize: "14px",
+                        fontWeight: 700,
+                        lineHeight: "20.006px",
+                        letterSpacing: "0.203px",
+                        color: "#16161d",
+                      }}
+                    >
+                      대상
+                    </TableHead>
+                    <TableHead
+                      className="hidden xl:table-cell"
+                      style={{
+                        paddingTop: "14px",
+                        paddingBottom: "14px",
+                        paddingLeft: "19.5px",
+                        paddingRight: "19.5px",
+                        fontSize: "14px",
+                        fontWeight: 700,
+                        lineHeight: "20.006px",
+                        letterSpacing: "0.203px",
+                        color: "#16161d",
+                      }}
+                    >
+                      조회 현황
+                    </TableHead>
+                    <TableHead
+                      className="w-24"
+                      style={{
+                        paddingTop: "14px",
+                        paddingBottom: "14px",
+                        paddingLeft: "19.5px",
+                        paddingRight: "19.5px",
+                        fontSize: "14px",
+                        fontWeight: 700,
+                        lineHeight: "20.006px",
+                        letterSpacing: "0.203px",
+                        color: "#16161d",
+                      }}
+                    >
+                      작업
                     </TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody style={{ marginTop: "8px" }}>
                   {noticesLoading ? (
-                    <TableRow className="notice-table-row">
-                      <TableCell
-                        colSpan={4}
-                        className="text-center notice-table-row notice-table-padding"
-                      >
+                    <TableRow style={{ height: "76px", borderBottom: "none" }}>
+                      <TableCell colSpan={6} className="text-center">
                         <LoadingSpinner />
                       </TableCell>
                     </TableRow>
@@ -436,82 +510,109 @@ export function NoticesPageClient({
                       {displayNotices.map((notice) => (
                         <TableRow
                           key={notice.id}
-                          className="cursor-pointer hover:bg-gray-50 notice-table-row"
+                          className="cursor-pointer"
                           onClick={() => handleNoticeClick(notice)}
+                          style={{ height: "76px", borderBottom: "none" }}
                         >
-                          <TableCell className="font-medium min-w-0 text-responsive-xs notice-table-padding">
-                            <div className="flex items-center notice-table-gap truncate">
-                              <span className="truncate notice-table-max-width sm:notice-table-max-width-lg lg:max-w-none">
-                                {notice.title.length > 15
-                                  ? `${notice.title.substring(0, 15)}...`
-                                  : notice.title}
-                              </span>
-                              {/* Mobile: Show badge inline */}
-                              <span className="sm:hidden">
-                                <span
-                                  className={`notice-table-padding rounded text-responsive-xs ${
-                                    notice.is_important
-                                      ? "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200"
-                                      : "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200"
-                                  }`}
-                                >
-                                  {notice.is_important ? "중요" : "일반"}
+                          <TableCell>
+                            {notice.is_important ? (
+                              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100">
+                                <span className="text-green-600 text-xs">
+                                  ★
                                 </span>
-                              </span>
+                              </div>
+                            ) : (
+                              <div className="w-8 h-8"></div>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <div
+                                style={{
+                                  fontSize: "15px",
+                                  fontWeight: 700,
+                                  lineHeight: "24px",
+                                  letterSpacing: "0.144px",
+                                  color: "#16161d",
+                                }}
+                              >
+                                {notice.title}
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: "12px",
+                                  fontWeight: 500,
+                                  lineHeight: "16.008px",
+                                  letterSpacing: "0.302px",
+                                  color: "#39394e9c",
+                                }}
+                              >
+                                {notice.content.length > 70
+                                  ? `${notice.content.substring(0, 70)}...`
+                                  : notice.content}
+                              </div>
                             </div>
                           </TableCell>
-                          <TableCell className="whitespace-nowrap hidden sm:table-cell notice-table-padding">
-                            <span
-                              className={`notice-table-padding rounded text-responsive-xs ${
-                                notice.is_important
-                                  ? "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200"
-                                  : "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200"
-                              }`}
-                            >
-                              {notice.is_important ? "중요공지" : "일반공지"}
+                          <TableCell className="hidden md:table-cell">
+                            <div className="space-y-1">
+                              <div className="text-sm">관리자</div>
+                              <div className="text-xs text-muted-foreground">
+                                {formatDate(notice.date)}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell">
+                            <span className="px-2 py-1 rounded-md text-xs bg-primary/10 text-primary">
+                              신입생
                             </span>
                           </TableCell>
-                          <TableCell className="whitespace-nowrap text-responsive-xs notice-table-padding">
-                            {formatDate(notice.date)}
+                          <TableCell className="hidden xl:table-cell">
+                            <div className="text-sm">3/45명 미읽음</div>
+                            <div className="text-xs text-muted-foreground">
+                              96%
+                            </div>
                           </TableCell>
-                          <TableCell className="whitespace-nowrap text-responsive-xs hidden md:table-cell notice-table-padding">
-                            관리자
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleNoticeClick(notice);
+                              }}
+                            >
+                              ⋮
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}
-                      {/* Fill remaining rows to maintain height */}
                       {Array.from({ length: emptyRowsCount }, (_, i) => (
                         <TableRow
                           key={`empty-${i}`}
-                          className="notice-table-row"
+                          style={{ height: "76px", borderBottom: "none" }}
                         >
-                          <TableCell
-                            colSpan={4}
-                            className="notice-table-row notice-table-padding"
-                          ></TableCell>
+                          <TableCell colSpan={6}></TableCell>
                         </TableRow>
                       ))}
                     </>
                   ) : (
                     <>
-                      <TableRow className="notice-table-row">
+                      <TableRow
+                        style={{ height: "76px", borderBottom: "none" }}
+                      >
                         <TableCell
-                          colSpan={4}
-                          className="text-center text-muted-foreground notice-table-row text-responsive-xs notice-table-padding"
+                          colSpan={6}
+                          className="text-center text-muted-foreground"
                         >
                           공지사항이 없습니다.
                         </TableCell>
                       </TableRow>
-                      {/* Fill remaining rows to maintain height */}
                       {Array.from({ length: 9 }, (_, i) => (
                         <TableRow
                           key={`empty-${i}`}
-                          className="notice-table-row"
+                          style={{ height: "76px", borderBottom: "none" }}
                         >
-                          <TableCell
-                            colSpan={4}
-                            className="notice-table-row notice-table-padding"
-                          ></TableCell>
+                          <TableCell colSpan={6}></TableCell>
                         </TableRow>
                       ))}
                     </>
@@ -520,77 +621,151 @@ export function NoticesPageClient({
               </Table>
             </div>
           </CardContent>
+
           {/* Pagination */}
-          <div className="flex flex-col sm:flex-row items-center justify-between px-2 py-1 border-t gap-1 sm:gap-2 flex-shrink-0">
-            <div className="text-responsive-xs text-muted-foreground text-center sm:text-left">
-              총 {totalItems}개 중 {startIndex + 1}-
-              {Math.min(endIndex, totalItems)}개 표시
+          <div className="border-t p-4 flex items-center relative">
+            <div className="text-sm text-muted-foreground absolute left-4">
+              총 {totalItems}건 중 {startIndex + 1}-{endIndex}건 표시
             </div>
             {totalPages > 1 && (
-              <div className="flex items-center gap-1 flex-wrap justify-center sm:justify-end">
+              <div className="flex items-center gap-1 mx-auto">
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() => handlePageChange(1)}
                   disabled={displayPageInfo?.now_page === 1}
-                  className="h-6 w-6 p-0"
+                  className="h-8 w-8 rounded-full p-0"
+                  style={{
+                    backgroundColor: "transparent",
+                    border: "none",
+                  }}
                 >
-                  <ChevronsLeft className="h-3 w-3" />
+                  <ChevronsLeft
+                    className="h-4 w-4"
+                    style={{
+                      color:
+                        displayPageInfo?.now_page === 1
+                          ? "#37383c29"
+                          : "#16161d",
+                    }}
+                  />
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() =>
                     handlePageChange((displayPageInfo?.now_page || 1) - 1)
                   }
                   disabled={displayPageInfo?.now_page === 1}
-                  className="h-6 w-6 p-0"
+                  className="h-8 w-8 rounded-full p-0"
+                  style={{
+                    backgroundColor: "transparent",
+                    border: "none",
+                  }}
                 >
-                  <ChevronLeft className="h-3 w-3" />
+                  <ChevronLeft
+                    className="h-4 w-4"
+                    style={{
+                      color:
+                        displayPageInfo?.now_page === 1
+                          ? "#37383c29"
+                          : "#16161d",
+                    }}
+                  />
                 </Button>
-                <div className="flex items-center gap-1 flex-wrap">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    const currentPageNum = displayPageInfo?.now_page || 1;
-                    const pageNum =
-                      Math.max(
-                        1,
-                        Math.min(totalPages - 4, currentPageNum - 2)
-                      ) + i;
-                    if (pageNum > totalPages) return null;
-                    return (
-                      <Button
-                        key={pageNum}
-                        variant={
-                          currentPageNum === pageNum ? "default" : "outline"
-                        }
-                        size="sm"
-                        onClick={() => handlePageChange(pageNum)}
-                        className="w-6 h-6 p-0 text-responsive-xs"
-                      >
-                        {pageNum}
-                      </Button>
+                {(() => {
+                  const currentPage = displayPageInfo?.now_page || 1;
+                  const maxVisiblePages = 10;
+                  let startPage = 1;
+                  let endPage = Math.min(maxVisiblePages, totalPages);
+
+                  // 현재 페이지가 중간에 위치하도록 계산
+                  if (totalPages > maxVisiblePages) {
+                    const halfVisible = Math.floor(maxVisiblePages / 2);
+                    startPage = Math.max(1, currentPage - halfVisible);
+                    endPage = Math.min(
+                      totalPages,
+                      startPage + maxVisiblePages - 1
                     );
-                  })}
-                </div>
+
+                    // 끝에 가까우면 시작점을 조정
+                    if (endPage === totalPages) {
+                      startPage = Math.max(1, totalPages - maxVisiblePages + 1);
+                    }
+                  }
+
+                  return Array.from(
+                    { length: endPage - startPage + 1 },
+                    (_, i) => {
+                      const pageNum = startPage + i;
+                      const isSelected = currentPage === pageNum;
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handlePageChange(pageNum)}
+                          className="h-8 w-8 rounded-full p-0"
+                          style={{
+                            backgroundColor: "transparent",
+                            border: "none",
+                            fontSize: "14px",
+                            fontWeight: isSelected ? 700 : 500,
+                            lineHeight: "20.006px",
+                            letterSpacing: "0.203px",
+                            color: isSelected ? "#16161d" : "#39394e9c",
+                            fontFamily: "Pretendard, system-ui, sans-serif",
+                          }}
+                        >
+                          {pageNum}
+                        </Button>
+                      );
+                    }
+                  );
+                })()}
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() =>
                     handlePageChange((displayPageInfo?.now_page || 1) + 1)
                   }
                   disabled={displayPageInfo?.now_page === totalPages}
-                  className="h-6 w-6 p-0"
+                  className="h-8 w-8 rounded-full p-0"
+                  style={{
+                    backgroundColor: "transparent",
+                    border: "none",
+                  }}
                 >
-                  <ChevronRight className="h-3 w-3" />
+                  <ChevronRight
+                    className="h-4 w-4"
+                    style={{
+                      color:
+                        displayPageInfo?.now_page === totalPages
+                          ? "#37383c29"
+                          : "#16161d",
+                    }}
+                  />
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() => handlePageChange(totalPages)}
                   disabled={displayPageInfo?.now_page === totalPages}
-                  className="h-6 w-6 p-0"
+                  className="h-8 w-8 rounded-full p-0"
+                  style={{
+                    backgroundColor: "transparent",
+                    border: "none",
+                  }}
                 >
-                  <ChevronsRight className="h-3 w-3" />
+                  <ChevronsRight
+                    className="h-4 w-4"
+                    style={{
+                      color:
+                        displayPageInfo?.now_page === totalPages
+                          ? "#37383c29"
+                          : "#16161d",
+                    }}
+                  />
                 </Button>
               </div>
             )}
@@ -599,30 +774,32 @@ export function NoticesPageClient({
       </div>
 
       {/* Notice Preview Modal */}
-      <NoticePreviewModal
-        isOpen={showModal}
+      {showModal && selectedNotice && (
+        <NoticePreviewModal
+          isOpen={showModal}
+          onClose={() => {
+            setShowModal(false);
+            setSelectedNotice(null);
+          }}
+          noticeData={{
+            title: selectedNotice.title,
+            body: selectedNotice.content,
+            is_important: selectedNotice.is_important,
+            date: selectedNotice.date,
+            id: selectedNotice.id,
+          }}
+          onEdit={handleEditNotice}
+          onDelete={handleDeleteNotice}
+        />
+      )}
+
+      {/* Notice Create Modal */}
+      <NoticeCreateModal
+        isOpen={showCreateModal}
         onClose={() => {
-          setShowModal(false);
-          setSelectedNotice(null);
+          setShowCreateModal(false);
         }}
-        noticeData={
-          selectedNotice
-            ? {
-                title: selectedNotice.title,
-                body: selectedNotice.content,
-                is_important: selectedNotice.is_important,
-                date: selectedNotice.date,
-                id: selectedNotice.id,
-              }
-            : {
-                title: form.title,
-                body: form.content,
-                is_important: form.is_important,
-                date: new Date().toISOString().split("T")[0],
-              }
-        }
-        onEdit={handleEditNotice}
-        onDelete={handleDeleteNotice}
+        onSuccess={handleCreateSuccess}
       />
 
       {/* Notice Edit Modal */}

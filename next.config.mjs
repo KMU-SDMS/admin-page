@@ -12,8 +12,11 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: [],
   },
-  // 동적 렌더링을 위한 설정
-  output: "standalone",
+  // 개발 환경에서는 정적 내보내기 비활성화
+  ...(process.env.NODE_ENV === "production" && {
+    output: "export",
+    trailingSlash: true,
+  }),
 };
 
 export default nextConfig;

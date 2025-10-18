@@ -28,4 +28,8 @@ next-env.d.ts
 
 
 .vscode/
-*task.md
+task.md
+tasks.md
+*storybook.log
+storybook-static
+*tokens.json

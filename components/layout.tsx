@@ -3,7 +3,6 @@
 import type React from "react";
 import { useState } from "react";
 
-import { Header } from "./header";
 import { Sidebar } from "./sidebar";
 
 interface LayoutProps {
@@ -31,18 +30,14 @@ export function Layout({ children }: LayoutProps) {
 
       {/* 모바일 사이드바 */}
       <div
-        className="fixed inset-y-0 z-50 w-44 transition-all duration-300 ease-in-out lg:hidden"
-        style={{
-          left: mobileSidebarOpen ? "0" : "-100%",
-        }}
+        className={`fixed inset-y-0 z-50 w-44 transition-all duration-300 ease-in-out lg:hidden ${
+          mobileSidebarOpen ? "left-0" : "-left-full"
+        }`}
       >
         <Sidebar onMobileClose={() => setMobileSidebarOpen(false)} />
       </div>
 
       <div className="flex flex-1 flex-col overflow-hidden">
-        <Header
-          onMobileMenuToggle={() => setMobileSidebarOpen(!mobileSidebarOpen)}
-        />
         <main className="compact-main bg-background">{children}</main>
       </div>
     </div>

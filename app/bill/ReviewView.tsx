@@ -13,6 +13,7 @@ const ReviewView: React.FC<ReviewViewProps> = ({
   selectedRoom,
   selectedYear,
   selectedMonth,
+  selectedFloor,
   onBack,
   onNavigateToCapture,
 }) => {
@@ -123,7 +124,7 @@ const ReviewView: React.FC<ReviewViewProps> = ({
   };
 
   return (
-    <div className='min-h-screen bg-gray-50'>
+    <div className='h-full bg-gray-50'>
       {/* 헤더 */}
       <div className='bg-white shadow-sm px-4 py-3 flex items-center justify-between'>
         <button onClick={onBack} className='p-2 hover:bg-gray-100 rounded-lg'>

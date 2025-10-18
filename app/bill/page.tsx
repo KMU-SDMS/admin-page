@@ -1,84 +1,44 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { ViewMode } from './types';
-import ListView from './ListView';
-import CaptureView from './CaptureView';
-import ReviewView from './ReviewView';
+import React, { useState } from "react";
+import { Layout } from "@/components/layout";
+import ListView from "./ListView";
 
 const Bill: React.FC = () => {
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
-  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
-
-  // 네비게이션 핸들러들
-  const handleNavigateToCapture = (roomNumber: string) => {
-    setSelectedRoom(roomNumber);
-    setViewMode('capture');
-  };
-
-  const handleNavigateToReview = (roomNumber: string) => {
-    setSelectedRoom(roomNumber);
-    setViewMode('review');
-  };
-
-  const handleBack = () => {
-    setViewMode('list');
-    setSelectedRoom(null);
-  };
-
-  const handleSaveComplete = () => {
-    setViewMode('list');
-    setSelectedRoom(null);
-  };
-
-  const handleNavigateToCaptureFromReview = (roomNumber: string, photoType: '수도' | '전기' | '가스') => {
-    setSelectedRoom(roomNumber);
-    setViewMode('capture');
-    // TODO: photoType을 CaptureView에 전달하는 방법 구현
-  };
+  const [selectedYear, setSelectedYear] = useState<number>(
+    new Date().getFullYear()
+  );
+  const [selectedMonth, setSelectedMonth] = useState<number>(
+    new Date().getMonth() + 1
+  );
+  const [selectedFloor, setSelectedFloor] = useState<number>(1);
 
   // 공통 Props
   const commonProps = {
     selectedRoom,
     selectedYear,
     selectedMonth,
+    selectedFloor,
     onRoomChange: setSelectedRoom,
     onYearChange: setSelectedYear,
     onMonthChange: setSelectedMonth,
+    onFloorChange: setSelectedFloor,
   };
 
-  // 네비게이션 콜백들
+  // 더미 네비게이션 콜백들 (모달에서 사용하지 않음)
   const navigationCallbacks = {
-    onNavigateToCapture: handleNavigateToCapture,
-    onNavigateToReview: handleNavigateToReview,
-    onBack: handleBack,
+    onNavigateToCapture: () => {},
+    onNavigateToReview: () => {},
+    onBack: () => {},
   };
 
   return (
-    <div className='min-h-screen bg-gray-50'>
-      {viewMode === 'list' && (
-        <ListView
-          {...commonProps}
-          {...navigationCallbacks}
-        />
-      )}
-      {viewMode === 'capture' && selectedRoom && (
-        <CaptureView
-          {...commonProps}
-          onBack={handleBack}
-          onSaveComplete={handleSaveComplete}
-        />
-      )}
-      {viewMode === 'review' && selectedRoom && (
-        <ReviewView
-          {...commonProps}
-          onBack={handleBack}
-          onNavigateToCapture={handleNavigateToCaptureFromReview}
-        />
-      )}
-    </div>
+    <Layout>
+      <div className="h-full">
+        <ListView {...commonProps} {...navigationCallbacks} />
+      </div>
+    </Layout>
   );
 };
 

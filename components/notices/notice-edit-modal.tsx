@@ -16,6 +16,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
 import type { Notice } from "@/lib/types";
 import { noticesApi } from "@/lib/api";
+import { X, MoreHorizontal, Maximize2, Minimize2 } from "lucide-react";
 
 interface NoticeEditModalProps {
   isOpen: boolean;
@@ -42,6 +43,7 @@ export function NoticeEditModal({
     is_important: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const { toast } = useToast();
 
@@ -56,7 +58,10 @@ export function NoticeEditModal({
     }
   }, [notice]);
 
-  const handleInputChange = (field: keyof EditForm, value: any) => {
+  const handleInputChange = (
+    field: keyof EditForm,
+    value: string | boolean
+  ) => {
     setForm((prev) => ({
       ...prev,
       [field]: value,
@@ -120,24 +125,149 @@ export function NoticeEditModal({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
+  const modalStyles = isExpanded
+    ? {
+        width: "1558px",
+        height: "880px",
+        top: "100px",
+        left: "181px",
+        bottom: "auto",
+        right: "auto",
+      }
+    : {
+        width: "560px",
+        height: "700px",
+        bottom: "20px",
+        right: "64px",
+        top: "auto",
+        left: "auto",
+      };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden">
-        <DialogHeader>
-          <DialogTitle>공지사항 수정</DialogTitle>
+      <DialogContent
+        showCloseButton={false}
+        className="fixed translate-x-0 translate-y-0 max-w-none max-h-none p-0 transition-all duration-300"
+        style={{
+          ...modalStyles,
+          backgroundColor: "var(--color-semantic-background-normal-normal)",
+          border: "1px solid var(--color-semantic-line-normal-normal)",
+          color: "var(--color-semantic-label-normal)",
+        }}
+      >
+        <DialogHeader
+          className="h-[48px] flex flex-row items-center justify-between px-0 py-0 m-0 border-b"
+          style={{
+            borderBottomColor: "var(--color-semantic-line-normal-normal)",
+          }}
+        >
+          <DialogTitle
+            className="pl-8"
+            style={{
+              color: "var(--color-semantic-label-neutral)",
+              fontSize: "13px",
+              fontWeight: 500,
+              fontFamily: "Pretendard",
+              lineHeight: "18.005px",
+              letterSpacing: "0.252px",
+            }}
+          >
+            공지 수정 #{notice?.id}
+          </DialogTitle>
+          <div className="flex items-center">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="w-8 h-8 p-0 hover:bg-transparent"
+              style={{
+                color: "var(--color-semantic-label-alternative)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color =
+                  "var(--color-semantic-label-neutral)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color =
+                  "var(--color-semantic-label-alternative)";
+              }}
+            >
+              {isExpanded ? (
+                <Minimize2 className="w-4 h-4" />
+              ) : (
+                <Maximize2 className="w-4 h-4" />
+              )}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-8 h-8 p-0 hover:bg-transparent"
+              style={{
+                color: "var(--color-semantic-label-alternative)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color =
+                  "var(--color-semantic-label-neutral)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color =
+                  "var(--color-semantic-label-alternative)";
+              }}
+            >
+              <MoreHorizontal className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="w-8 h-8 p-0 hover:bg-transparent mr-4"
+              style={{
+                color: "var(--color-semantic-label-alternative)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color =
+                  "var(--color-semantic-label-neutral)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color =
+                  "var(--color-semantic-label-alternative)";
+              }}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
         </DialogHeader>
 
-        <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
+        <div className="overflow-y-auto h-[calc(100%-48px)] p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Title */}
             <div className="space-y-2">
-              <Label htmlFor="edit-title">제목</Label>
+              <Label
+                htmlFor="edit-title"
+                style={{
+                  color: "var(--color-semantic-label-normal)",
+                  fontSize: "17px",
+                  fontWeight: 700,
+                  fontFamily: "Pretendard",
+                  lineHeight: "24.004px",
+                  letterSpacing: "0px",
+                }}
+              >
+                제목
+              </Label>
               <Input
                 id="edit-title"
                 placeholder="제목을 입력하세요"
                 value={form.title}
                 onChange={(e) => handleInputChange("title", e.target.value)}
                 maxLength={100}
+                className="text-sm 2xl:text-base"
+                style={{
+                  backgroundColor:
+                    "var(--color-semantic-background-normal-alternative)",
+                  border: "1px solid var(--color-semantic-line-normal-normal)",
+                  color: "var(--color-semantic-label-normal)",
+                }}
               />
             </div>
 
@@ -152,7 +282,15 @@ export function NoticeEditModal({
               />
               <Label
                 htmlFor="edit-is_important"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                className="font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                style={{
+                  color: "var(--color-semantic-label-normal)",
+                  fontSize: "17px",
+                  fontWeight: 700,
+                  fontFamily: "Pretendard",
+                  lineHeight: "24.004px",
+                  letterSpacing: "0px",
+                }}
               >
                 중요공지
               </Label>
@@ -160,7 +298,19 @@ export function NoticeEditModal({
 
             {/* Content */}
             <div className="space-y-2">
-              <Label htmlFor="edit-content">내용</Label>
+              <Label
+                htmlFor="edit-content"
+                style={{
+                  color: "var(--color-semantic-label-normal)",
+                  fontSize: "17px",
+                  fontWeight: 700,
+                  fontFamily: "Pretendard",
+                  lineHeight: "24.004px",
+                  letterSpacing: "0px",
+                }}
+              >
+                내용
+              </Label>
               <Textarea
                 id="edit-content"
                 placeholder="공지사항 내용을 입력하세요"
@@ -168,6 +318,13 @@ export function NoticeEditModal({
                 onChange={(e) => handleInputChange("content", e.target.value)}
                 rows={8}
                 maxLength={2000}
+                className="text-sm 2xl:text-base"
+                style={{
+                  backgroundColor:
+                    "var(--color-semantic-background-normal-alternative)",
+                  border: "1px solid var(--color-semantic-line-normal-normal)",
+                  color: "var(--color-semantic-label-normal)",
+                }}
               />
             </div>
 
@@ -178,10 +335,23 @@ export function NoticeEditModal({
                 variant="outline"
                 onClick={onClose}
                 disabled={isSubmitting}
+                className="text-sm 2xl:text-base h-8 2xl:h-9"
+                style={{
+                  borderColor: "var(--color-semantic-line-normal-normal)",
+                  color: "var(--color-semantic-label-normal)",
+                }}
               >
                 취소
               </Button>
-              <Button type="submit" disabled={!isFormValid || isSubmitting}>
+              <Button
+                type="submit"
+                disabled={!isFormValid || isSubmitting}
+                className="text-sm 2xl:text-base h-8 2xl:h-9"
+                style={{
+                  backgroundColor: "var(--color-semantic-primary-normal)",
+                  color: "var(--color-semantic-static-white)",
+                }}
+              >
                 {isSubmitting ? (
                   <>
                     <LoadingSpinner size="sm" className="mr-2" />
