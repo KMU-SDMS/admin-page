@@ -1,18 +1,24 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
 
 /**
  * 로그인 페이지
  * 간단한 로그인 버튼만 있는 페이지
  */
-export default function LoginPage() {
-  const router = useRouter();
-
+export default function AuthPage() {
   const handleLogin = () => {
-    // 로그인 처리 (추후 구현)
-    router.push("/");
+    // 현재 도메인 + /home 경로를 redirect 파라미터로 전달
+    const redirectUrl = `${window.location.origin}/home`;
+    const loginUrl = `${API_BASE}/auth/login?redirect=${encodeURIComponent(
+      redirectUrl
+    )}`;
+
+    // API 로그인 엔드포인트로 리다이렉트
+    window.location.href = loginUrl;
   };
 
   return (
