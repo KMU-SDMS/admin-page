@@ -23,7 +23,6 @@ async function getInquiries() {
   try {
     return await api.get("/inquiries");
   } catch (error) {
-    console.error("Failed to fetch inquiries:", error);
     return [];
   }
 }
@@ -32,7 +31,6 @@ async function getStudents() {
   try {
     return await api.students.getAll();
   } catch (error) {
-    console.error("Failed to fetch students:", error);
     return [];
   }
 }

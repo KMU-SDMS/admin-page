@@ -25,7 +25,6 @@ const ReviewView: React.FC<ReviewViewProps> = ({
     try {
       const serverUrl = process.env.NEXT_PUBLIC_API_BASE_URL  as string | undefined;
       if (!serverUrl) {
-        console.error('서버 URL이 설정되지 않았습니다.');
         return null;
       }
 
@@ -50,7 +49,6 @@ const ReviewView: React.FC<ReviewViewProps> = ({
         mimeType: 'image/jpeg'
       };
     } catch (error) {
-      console.error('사진 정보 가져오기 실패:', error);
       return null;
     }
   };
@@ -65,7 +63,6 @@ const ReviewView: React.FC<ReviewViewProps> = ({
           setLoadingPhotos(true);
           const serverUrl = process.env.NEXT_PUBLIC_API_BASE_URL as string | undefined;
           if (!serverUrl) {
-            console.error('서버 URL이 설정되지 않았습니다.');
             return;
           }
 
@@ -93,7 +90,6 @@ const ReviewView: React.FC<ReviewViewProps> = ({
                 mimeType: 'image/jpeg'
               } as Photo;
             } catch (error) {
-              console.error(`${type} 사진 가져오기 실패:`, error);
               return null;
             }
           });
@@ -105,7 +101,7 @@ const ReviewView: React.FC<ReviewViewProps> = ({
             setServerPhotos(validPhotos);
           }
         } catch (error) {
-          console.error('사진 로딩 실패:', error);
+          // 에러 처리
         } finally {
           if (!ignore) {
             setLoadingPhotos(false);

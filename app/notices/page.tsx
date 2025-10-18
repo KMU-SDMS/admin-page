@@ -56,7 +56,6 @@ async function getNotices(): Promise<{
       pageInfo: response.page_info,
     };
   } catch (error) {
-    console.error("Failed to fetch notices:", error);
     return {
       notices: [],
       pageInfo: { total_notice: 0, total_page: 1, now_page: 1 },

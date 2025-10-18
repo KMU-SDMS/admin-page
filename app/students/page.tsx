@@ -14,6 +14,14 @@ async function getStudents() {
   }
 }
 
+async function getRooms() {
+  try {
+    return await api.get("/rooms");
+  } catch (error) {
+    return [];
+  }
+}
+
 export default async function StudentsPage() {
   const students = await getStudents();
 

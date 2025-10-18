@@ -26,7 +26,6 @@ async function getParcels() {
   try {
     return await api.get("/parcels");
   } catch (error) {
-    console.error("Failed to fetch parcels:", error);
     return [];
   }
 }
@@ -35,7 +34,6 @@ async function getStudents() {
   try {
     return await api.students.getAll();
   } catch (error) {
-    console.error("Failed to fetch students:", error);
     return [];
   }
 }
@@ -44,7 +42,6 @@ async function getRooms() {
   try {
     return await api.get("/rooms");
   } catch (error) {
-    console.error("Failed to fetch rooms:", error);
     return [];
   }
 }

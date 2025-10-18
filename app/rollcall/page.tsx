@@ -11,7 +11,6 @@ async function getRooms() {
   try {
     return await api.get("/rooms");
   } catch (error) {
-    console.error("Failed to fetch rooms:", error);
     return [];
   }
 }
@@ -20,7 +19,6 @@ async function getStudents() {
   try {
     return await api.students.getAll();
   } catch (error) {
-    console.error("Failed to fetch students:", error);
     return [];
   }
 }
@@ -29,7 +27,6 @@ async function getRollcalls() {
   try {
     return await api.get("/rollcalls");
   } catch (error) {
-    console.error("Failed to fetch rollcalls:", error);
     return [];
   }
 }
