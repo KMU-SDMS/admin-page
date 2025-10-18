@@ -6,25 +6,20 @@ import type {
 } from "./types";
 
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
 
 export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   // path가 /로 시작하지 않으면 추가
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   const url = `${API_BASE}${normalizedPath}`;
 
-  // 인증 토큰 가져오기
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
-
   try {
     const response = await fetch(url, {
       headers: {
         "Content-Type": "application/json",
-        ...(token && { Authorization: `Bearer ${token}` }),
         ...init?.headers,
       },
-      credentials: "include", // 쿠키 포함
+      credentials: "include", // 쿠키를 통한 세션 인증
       ...init,
     });
 

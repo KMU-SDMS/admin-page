@@ -34,23 +34,19 @@ export default function AuthCallbackPage() {
       }
     }
 
-    // 백엔드로 code 전송하여 토큰 교환
+    // 백엔드로 code 전송하여 세션 쿠키 설정
     fetch(`${API_BASE}/auth/callback?code=${code}&state=${state}`, {
-      credentials: "include", // 쿠키 포함
+      credentials: "include", // 백엔드가 설정한 쿠키 자동 저장
     })
       .then((response) => {
         if (!response.ok) {
           throw new Error("인증 처리 실패");
         }
+        // 백엔드에서 세션 쿠키를 설정해줌
         return response.json();
       })
-      .then((data) => {
-        // 토큰을 받았으면 저장 (예: localStorage, cookie 등)
-        if (data.token) {
-          localStorage.setItem("auth_token", data.token);
-        }
-
-        // 원래 가려던 페이지로 리다이렉트
+      .then(() => {
+        // 세션 쿠키가 설정되었으므로 바로 리다이렉트
         window.location.href = redirectUrl;
       })
       .catch((err) => {

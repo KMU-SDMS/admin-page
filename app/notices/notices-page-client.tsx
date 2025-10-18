@@ -33,23 +33,9 @@ import { NoticeCreateModal } from "@/components/notices/notice-create-modal";
 import { NoticeEditModal } from "@/components/notices/notice-edit-modal";
 import { NoticeDeleteDialog } from "@/components/notices/notice-delete-dialog";
 import { useNotices } from "@/hooks/use-notices";
-import { useToast } from "@/hooks/use-toast";
 import type { Notice } from "@/lib/types";
 
-interface NoticesPageClientProps {
-  initialNoticesData: {
-    notices: Notice[];
-    pageInfo: {
-      total_notice: number;
-      total_page: number;
-      now_page: number;
-    };
-  };
-}
-
-export function NoticesPageClient({
-  initialNoticesData,
-}: NoticesPageClientProps) {
+export function NoticesPageClient() {
   const [showModal, setShowModal] = useState(false);
   const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -58,13 +44,11 @@ export function NoticesPageClient({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  const { toast } = useToast();
   const {
     data: notices,
     pageInfo,
     isLoading: noticesLoading,
     refetch: refetchNotices,
-    mutate: mutateNotice,
   } = useNotices({
     page: currentPage,
   });
@@ -78,10 +62,9 @@ export function NoticesPageClient({
     return `${month}.${day} ${hours}:${minutes}`;
   };
 
-  // Use server pagination data
-  const displayNotices =
-    notices.length > 0 ? notices : initialNoticesData.notices;
-  const displayPageInfo = pageInfo || initialNoticesData.pageInfo;
+  // 클라이언트에서만 데이터 사용
+  const displayNotices = notices;
+  const displayPageInfo = pageInfo;
   const totalItems = displayPageInfo?.total_notice || 0;
   const totalPages = displayPageInfo?.total_page || 1;
   const startIndex = ((displayPageInfo?.now_page || 1) - 1) * 10;
