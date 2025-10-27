@@ -284,12 +284,6 @@ export const authApi = {
   login: (redirectUrl: string = "/home") => {
     if (typeof window === "undefined") return;
 
-    console.log("[authApi.login] 🚀 로그인 플로우 시작:", {
-      redirectUrl,
-      currentUrl: window.location.href,
-      stackTrace: new Error().stack,
-    });
-
     const fullRedirectUrl = redirectUrl.startsWith("http")
       ? redirectUrl
       : `${window.location.origin}${redirectUrl}`;
@@ -298,7 +292,6 @@ export const authApi = {
       fullRedirectUrl
     )}`;
 
-    console.log("[authApi.login] → Cognito로 이동:", loginUrl);
     window.location.href = loginUrl;
   },
 

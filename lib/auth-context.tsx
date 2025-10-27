@@ -40,19 +40,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * 세션 복구 (부트스트랩)
    */
   const refresh = useCallback(async () => {
-    console.log("[AuthContext] 🔄 refresh() 호출");
     setIsLoading(true);
     try {
       const result: BootstrapResult = await bootstrapAuth();
-      console.log("[AuthContext] 부트스트랩 결과:", result);
       setIsAuthenticated(result.authenticated);
       setUser(result.user);
       setIsLoading(false);
-      console.log("[AuthContext] ✅ 상태 업데이트 완료:", {
-        authenticated: result.authenticated,
-      });
     } catch (error) {
-      console.error("[AuthContext] ❌ 세션 복구 실패:", error);
+      console.error("세션 복구 실패:", error);
       setIsAuthenticated(false);
       setUser(undefined);
       setIsLoading(false);

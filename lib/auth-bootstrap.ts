@@ -40,28 +40,12 @@ export async function bootstrapAuth(): Promise<BootstrapResult> {
     // localStorage에서 세션 상태 확인
     const hasSession = localStorage.getItem(SESSION_STORAGE_KEY) === "true";
 
-    console.log("[Bootstrap] 🔄 세션 상태 확인 (localStorage):", {
-      hasSession,
-      method: "localStorage (Cross-Origin 환경)",
-    });
-
     if (hasSession) {
-      // localStorage에 세션 상태가 있으면 일단 인증으로 간주
-      // /home으로 바로 이동 → 401 발생 시 그때 /auth로 리다이렉트
-      console.log(
-        "[Bootstrap] ✅ localStorage 세션 존재 - 인증으로 간주 (API 검증 없음)"
-      );
       return { authenticated: true };
     } else {
-      // localStorage가 없으면 미인증 상태
-      // /auth로 이동하여 로그인
-      console.log(
-        "[Bootstrap] ℹ️ localStorage 없음 - 미인증 상태 (API 검증 없음)"
-      );
       return { authenticated: false };
     }
-  } catch (error) {
-    console.log("[Bootstrap] ❌ 세션 확인 실패:", error);
+  } catch {
     return { authenticated: false };
   }
 }
@@ -71,7 +55,6 @@ export async function bootstrapAuth(): Promise<BootstrapResult> {
  */
 export function markSessionAsActive() {
   localStorage.setItem(SESSION_STORAGE_KEY, "true");
-  console.log("[Bootstrap] ✅ localStorage에 세션 상태 저장");
 }
 
 /**
@@ -79,5 +62,4 @@ export function markSessionAsActive() {
  */
 export function clearSessionState() {
   localStorage.removeItem(SESSION_STORAGE_KEY);
-  console.log("[Bootstrap] 🗑️ localStorage 세션 상태 제거");
 }

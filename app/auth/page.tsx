@@ -16,14 +16,7 @@ export default function AuthPage() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   useEffect(() => {
-    console.log("[Login Page] 상태:", {
-      authLoading,
-      isAuthenticated,
-    });
-
-    // 이미 인증된 경우 리다이렉트
     if (!authLoading && isAuthenticated) {
-      console.log("[Login Page] 이미 인증됨 - 리다이렉트");
       const redirectParam = searchParams.get("redirect");
       const redirectUrl = redirectParam
         ? decodeURIComponent(redirectParam)
@@ -33,20 +26,11 @@ export default function AuthPage() {
   }, [isAuthenticated, authLoading, router, searchParams]);
 
   const handleLogin = () => {
-    console.log("[Login Page] 로그인 버튼 클릭:", {
-      authLoading,
-      isAuthenticated,
-    });
-
-    // 부트스트랩이 아직 진행 중이면 대기
     if (authLoading) {
-      console.log("[Login Page] ⏳ 부트스트랩 진행 중 - 대기");
       return;
     }
 
-    // Context에서 이미 인증 여부 확인
     if (isAuthenticated) {
-      console.log("[Login Page] ✅ 이미 인증됨 - Cognito 건너뜀");
       const redirectParam = searchParams.get("redirect");
       const redirectUrl = redirectParam
         ? decodeURIComponent(redirectParam)
@@ -55,7 +39,6 @@ export default function AuthPage() {
       return;
     }
 
-    console.log("[Login Page] 🔄 Cognito 로그인 시작");
     setIsLoggingIn(true);
     const redirectParam = searchParams.get("redirect");
     const redirectUrl = redirectParam
