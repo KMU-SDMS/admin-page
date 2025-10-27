@@ -4,11 +4,21 @@ import type {
   NoticeQuery,
   Student,
 } from "./types";
+import { toast } from "sonner";
+import { authSync } from "./auth-sync";
+import { clearSessionState, markSessionAsActive } from "./auth-bootstrap";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
 
-export async function request<T>(path: string, init?: RequestInit): Promise<T> {
+interface RequestOptions extends RequestInit {
+  skipAuthErrorHandling?: boolean;
+}
+
+export async function request<T>(
+  path: string,
+  init?: RequestOptions
+): Promise<T> {
   // 절대 URL이면 그대로 사용, 그 외는 API_BASE와 결합 (Next에는 API 라우트 없음)
   const isAbsoluteUrl = /^https?:\/\//.test(path);
   const normalizedPath = isAbsoluteUrl
@@ -25,14 +35,37 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
     const mergedHeaders: HeadersInit = { ...(init?.headers ?? {}) };
     const bodyValue: any = init?.body as any;
     const hasBody = bodyValue !== undefined && bodyValue !== null;
-    const isFormData = typeof FormData !== "undefined" && hasBody && bodyValue instanceof FormData;
-    const isUrlEncoded = typeof URLSearchParams !== "undefined" && hasBody && bodyValue instanceof URLSearchParams;
-    const isBlob = typeof Blob !== "undefined" && hasBody && bodyValue instanceof Blob;
-    const isArrayBuffer = typeof ArrayBuffer !== "undefined" && hasBody && bodyValue instanceof ArrayBuffer;
-    const isReadable = typeof ReadableStream !== "undefined" && hasBody && bodyValue instanceof ReadableStream;
-    const isJsonCandidate = hasBody && !isFormData && !isUrlEncoded && !isBlob && !isArrayBuffer && !isReadable;
-    if (isJsonCandidate && !(mergedHeaders as Record<string, string>)["Content-Type"]) {
-      (mergedHeaders as Record<string, string>)["Content-Type"] = "application/json";
+    const isFormData =
+      typeof FormData !== "undefined" &&
+      hasBody &&
+      bodyValue instanceof FormData;
+    const isUrlEncoded =
+      typeof URLSearchParams !== "undefined" &&
+      hasBody &&
+      bodyValue instanceof URLSearchParams;
+    const isBlob =
+      typeof Blob !== "undefined" && hasBody && bodyValue instanceof Blob;
+    const isArrayBuffer =
+      typeof ArrayBuffer !== "undefined" &&
+      hasBody &&
+      bodyValue instanceof ArrayBuffer;
+    const isReadable =
+      typeof ReadableStream !== "undefined" &&
+      hasBody &&
+      bodyValue instanceof ReadableStream;
+    const isJsonCandidate =
+      hasBody &&
+      !isFormData &&
+      !isUrlEncoded &&
+      !isBlob &&
+      !isArrayBuffer &&
+      !isReadable;
+    if (
+      isJsonCandidate &&
+      !(mergedHeaders as Record<string, string>)["Content-Type"]
+    ) {
+      (mergedHeaders as Record<string, string>)["Content-Type"] =
+        "application/json";
     }
 
     const response = await fetch(url, {
@@ -43,9 +76,41 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => "");
+
+      // 401 에러 처리: 세션 만료 또는 인증 실패
+      if (response.status === 401 && !init?.skipAuthErrorHandling) {
+        // 세션 상태 제거
+        clearSessionState();
+
+        // 로그인 페이지나 콜백 페이지가 아닌 경우에만 리다이렉트
+        if (
+          typeof window !== "undefined" &&
+          !window.location.pathname.startsWith("/auth")
+        ) {
+          // 다른 탭에 로그아웃 알림
+          authSync.notifyLogout();
+
+          toast.error("세션이 만료되었습니다. 다시 로그인해주세요.", {
+            duration: 3000,
+            onAutoClose: () => {
+              window.location.href = "/auth";
+            },
+            onDismiss: () => {
+              window.location.href = "/auth";
+            },
+          });
+        }
+      }
+
       throw new Error(
         `HTTP ${response.status}: ${errorText || response.statusText}`
       );
+    }
+
+    // API 호출 성공 - localStorage에 세션 상태 저장 (Pure Optimistic)
+    // skipAuthErrorHandling이 아닌 경우에만 (일반 API 호출)
+    if (!init?.skipAuthErrorHandling && typeof window !== "undefined") {
+      markSessionAsActive();
     }
 
     // JSON 이외 혹은 빈 응답(204)도 안전하게 처리
@@ -184,6 +249,69 @@ export const rollcallsApi = {
   getById: (id: number) => apiGet<any>(`/api/rollcalls/${id}`),
 };
 
+// Auth API
+export const authApi = {
+  /**
+   * 현재 세션 상태 확인
+   * localStorage를 확인하여 세션 존재 여부를 판단 (Cross-Origin 환경)
+   */
+  checkSession: async (): Promise<{
+    authenticated: boolean;
+    user?: unknown;
+  }> => {
+    try {
+      // Cross-Origin 환경에서는 쿠키를 JavaScript로 읽을 수 없으므로
+      // localStorage를 세션 마커로 사용
+      const hasSession = localStorage.getItem("auth_has_session") === "true";
+
+      if (!hasSession) {
+        return { authenticated: false };
+      }
+
+      // localStorage에 세션 상태가 있으면 인증된 것으로 간주
+      // 실제 API 호출 시 401 발생하면 전역 핸들러가 처리
+      return { authenticated: true };
+    } catch {
+      // 에러는 인증되지 않은 것으로 처리
+      return { authenticated: false };
+    }
+  },
+
+  /**
+   * 로그인 페이지로 리다이렉트
+   * @param redirectUrl 로그인 후 이동할 URL (기본값: /home)
+   */
+  login: (redirectUrl: string = "/home") => {
+    if (typeof window === "undefined") return;
+
+    const fullRedirectUrl = redirectUrl.startsWith("http")
+      ? redirectUrl
+      : `${window.location.origin}${redirectUrl}`;
+
+    const loginUrl = `${API_BASE}/auth/login?redirect=${encodeURIComponent(
+      fullRedirectUrl
+    )}`;
+
+    window.location.href = loginUrl;
+  },
+
+  /**
+   * 로그아웃
+   */
+  logout: async (): Promise<void> => {
+    try {
+      await request<void>("/auth/logout", { method: "POST" });
+    } catch (error) {
+      console.error("로그아웃 실패:", error);
+    } finally {
+      // 로그아웃 실패해도 로그인 페이지로 이동
+      if (typeof window !== "undefined") {
+        window.location.href = "/auth";
+      }
+    }
+  },
+};
+
 export const api = {
   get: apiGet,
   post: apiPost,
@@ -195,4 +323,5 @@ export const api = {
   inquiries: inquiriesApi,
   parcels: parcelsApi,
   rollcalls: rollcallsApi,
+  auth: authApi,
 };
