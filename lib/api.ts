@@ -90,15 +90,13 @@ export async function request<T>(
           // 다른 탭에 로그아웃 알림
           authSync.notifyLogout();
 
+          // toast 표시와 상관없이 즉시 리디렉트 (안정성 확보)
           toast.error("세션이 만료되었습니다. 다시 로그인해주세요.", {
-            duration: 3000,
-            onAutoClose: () => {
-              window.location.href = "/auth";
-            },
-            onDismiss: () => {
-              window.location.href = "/auth";
-            },
+            duration: 2000,
           });
+
+          // 배포 환경에서 안정적으로 작동하도록 직접 리디렉트
+          window.location.href = "/auth";
         }
       }
 
