@@ -27,6 +27,7 @@ interface AuthContextValue {
   login: (redirectUrl?: string) => void;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
+  forceLogout: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -52,6 +53,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(undefined);
       setIsLoading(false);
     }
+  }, []);
+
+  /**
+   * 강제 로그아웃 (401 에러 등에서 호출)
+   */
+  const forceLogout = useCallback(() => {
+    setIsAuthenticated(false);
+    setUser(undefined);
   }, []);
 
   /**
@@ -115,6 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login,
     logout,
     refresh,
+    forceLogout,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
