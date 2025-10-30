@@ -74,6 +74,16 @@ export async function request<T>(
       ...init,
     });
 
+    // 디버깅: 인증 관련 요청/응답 로깅
+    if (
+      typeof window !== "undefined" &&
+      path.includes("/auth/admin/callback")
+    ) {
+      console.log("API 요청:", { url, method: init?.method || "GET" });
+      console.log("API 응답 상태:", response.status);
+      console.log("응답 헤더:", Object.fromEntries(response.headers.entries()));
+    }
+
     if (!response.ok) {
       const errorText = await response.text().catch(() => "");
 
@@ -286,7 +296,7 @@ export const authApi = {
       ? redirectUrl
       : `${window.location.origin}${redirectUrl}`;
 
-    const loginUrl = `${API_BASE}/auth/login?redirect=${encodeURIComponent(
+    const loginUrl = `${API_BASE}/auth/admin/login?redirect=${encodeURIComponent(
       fullRedirectUrl
     )}`;
 
@@ -298,7 +308,7 @@ export const authApi = {
    */
   logout: async (): Promise<void> => {
     try {
-      await request<void>("/auth/logout", { method: "POST" });
+      await request<void>("/auth/admin/logout", { method: "POST" });
     } catch (error) {
       console.error("로그아웃 실패:", error);
     } finally {
