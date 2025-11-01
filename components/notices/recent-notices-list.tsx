@@ -91,7 +91,9 @@ export function RecentNoticesList({
                 </div>
                 {notice.content && (
                   <div className="text-xs 2xl:text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-                    {notice.content}
+                    {notice.content.length > 50
+                      ? `${notice.content.substring(0, 50)}...`
+                      : notice.content}
                   </div>
                 )}
               </div>

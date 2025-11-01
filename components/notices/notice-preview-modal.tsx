@@ -66,7 +66,11 @@ export function NoticePreviewModal({
   const modalStyles = isExpanded
     ? {
         width: "1558px",
+        minWidth: "1558px",
+        maxWidth: "1558px",
         height: "880px",
+        minHeight: "880px",
+        maxHeight: "880px",
         top: "100px",
         left: "181px",
         bottom: "auto",
@@ -74,7 +78,11 @@ export function NoticePreviewModal({
       }
     : {
         width: "560px",
+        minWidth: "560px",
+        maxWidth: "560px",
         height: "700px",
+        minHeight: "700px",
+        maxHeight: "700px",
         bottom: "20px",
         right: "64px",
         top: "auto",
@@ -87,10 +95,10 @@ export function NoticePreviewModal({
         showCloseButton={false}
         className="fixed translate-x-0 translate-y-0 max-w-none max-h-none p-0 gap-0 transition-all duration-300 flex flex-col rounded-[10px] overflow-hidden"
         style={{
-          ...modalStyles,
           backgroundColor: "var(--color-semantic-background-normal-normal)",
           border: "1px solid var(--color-semantic-line-normal-normal)",
           color: "var(--color-semantic-label-normal)",
+          ...modalStyles,
         }}
       >
         <DialogHeader

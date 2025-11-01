@@ -54,7 +54,7 @@ export default function AuthCallbackPage() {
         console.log("인증 콜백 시작", { code, state, redirectUrl });
 
         const response = await request<{ success: boolean }>(
-          `/auth/admin/callback?code=${code}&state=${state}`,
+          `/auth/callback?code=${code}&state=${state}`,
           {
             method: "GET",
           }

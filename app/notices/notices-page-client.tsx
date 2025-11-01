@@ -525,8 +525,8 @@ export function NoticesPageClient() {
                                   color: "#39394e9c",
                                 }}
                               >
-                                {notice.content.length > 70
-                                  ? `${notice.content.substring(0, 70)}...`
+                                {notice.content.length > 50
+                                  ? `${notice.content.substring(0, 50)}...`
                                   : notice.content}
                               </div>
                             </div>

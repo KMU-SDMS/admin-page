@@ -1,22 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
 import type { Notice } from "@/lib/types";
 import { noticesApi } from "@/lib/api";
-import { X, MoreHorizontal, Maximize2, Minimize2 } from "lucide-react";
+import { X, MoreHorizontal, Maximize2, Minimize2, Send } from "lucide-react";
 
 interface NoticeEditModalProps {
   isOpen: boolean;
@@ -128,7 +122,11 @@ export function NoticeEditModal({
   const modalStyles = isExpanded
     ? {
         width: "1558px",
+        minWidth: "1558px",
+        maxWidth: "1558px",
         height: "880px",
+        minHeight: "880px",
+        maxHeight: "880px",
         top: "100px",
         left: "181px",
         bottom: "auto",
@@ -136,7 +134,11 @@ export function NoticeEditModal({
       }
     : {
         width: "560px",
+        minWidth: "560px",
+        maxWidth: "560px",
         height: "700px",
+        minHeight: "700px",
+        maxHeight: "700px",
         bottom: "20px",
         right: "64px",
         top: "auto",
@@ -147,33 +149,26 @@ export function NoticeEditModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
         showCloseButton={false}
-        className="fixed translate-x-0 translate-y-0 max-w-none max-h-none p-0 transition-all duration-300"
+        className="fixed translate-x-0 translate-y-0 max-w-none max-h-none p-0 gap-0 transition-all duration-300 flex flex-col rounded-[10px] overflow-hidden"
         style={{
-          ...modalStyles,
           backgroundColor: "var(--color-semantic-background-normal-normal)",
           border: "1px solid var(--color-semantic-line-normal-normal)",
           color: "var(--color-semantic-label-normal)",
+          ...modalStyles,
         }}
       >
+        {/* 모달 헤더 */}
         <DialogHeader
-          className="h-[48px] flex flex-row items-center justify-between px-0 py-0 m-0 border-b"
+          className="flex flex-row items-center justify-end px-0 py-0 m-0 gap-0 border-b"
           style={{
+            height: "48px",
+            minHeight: "48px",
+            maxHeight: "48px",
+            backgroundColor:
+              "var(--color-semantic-background-normal-alternative)",
             borderBottomColor: "var(--color-semantic-line-normal-normal)",
           }}
         >
-          <DialogTitle
-            className="pl-8"
-            style={{
-              color: "var(--color-semantic-label-neutral)",
-              fontSize: "13px",
-              fontWeight: 500,
-              fontFamily: "Pretendard",
-              lineHeight: "18.005px",
-              letterSpacing: "0.252px",
-            }}
-          >
-            공지 수정 #{notice?.id}
-          </DialogTitle>
           <div className="flex items-center">
             <Button
               variant="ghost"
@@ -238,131 +233,408 @@ export function NoticeEditModal({
           </div>
         </DialogHeader>
 
-        <div className="overflow-y-auto h-[calc(100%-48px)] p-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Title */}
-            <div className="space-y-2">
-              <Label
-                htmlFor="edit-title"
-                style={{
-                  color: "var(--color-semantic-label-normal)",
-                  fontSize: "17px",
-                  fontWeight: 700,
-                  fontFamily: "Pretendard",
-                  lineHeight: "24.004px",
-                  letterSpacing: "0px",
-                }}
-              >
-                제목
-              </Label>
-              <Input
-                id="edit-title"
-                placeholder="제목을 입력하세요"
-                value={form.title}
-                onChange={(e) => handleInputChange("title", e.target.value)}
-                maxLength={100}
-                className="text-sm 2xl:text-base"
-                style={{
-                  backgroundColor:
-                    "var(--color-semantic-background-normal-alternative)",
-                  border: "1px solid var(--color-semantic-line-normal-normal)",
-                  color: "var(--color-semantic-label-normal)",
-                }}
-              />
-            </div>
+        {/* 내용 영역 */}
+        <div className="overflow-y-auto h-[calc(100%-48px-72px)] w-full">
+          <form onSubmit={handleSubmit} className="h-full flex flex-col">
+            {isExpanded ? (
+              <>
+                {/* 확장 모드: 정보 컨테이너 */}
+                <div>
+                  {/* 작성자 */}
+                  <div
+                    className="h-[44px] flex items-center px-6 border-b"
+                    style={{
+                      borderBottomColor:
+                        "var(--color-semantic-line-normal-normal)",
+                    }}
+                  >
+                    <span
+                      className="w-[80px] flex-shrink-0"
+                      style={{
+                        color: "var(--color-semantic-label-neutral)",
+                        fontSize: "13px",
+                        fontWeight: 500,
+                        fontFamily: "Pretendard",
+                        lineHeight: "18.005px",
+                        letterSpacing: "0.252px",
+                      }}
+                    >
+                      작성자
+                    </span>
+                    <span
+                      style={{
+                        color: "var(--color-semantic-label-normal)",
+                        fontSize: "15px",
+                        fontWeight: 500,
+                        fontFamily: "Pretendard",
+                        lineHeight: "24px",
+                        letterSpacing: "0.144px",
+                      }}
+                    >
+                      관리자
+                    </span>
+                  </div>
 
-            {/* Important Notice Checkbox */}
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="edit-is_important"
-                checked={form.is_important}
-                onCheckedChange={(checked) =>
-                  handleInputChange("is_important", checked)
-                }
-              />
-              <Label
-                htmlFor="edit-is_important"
-                className="font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                style={{
-                  color: "var(--color-semantic-label-normal)",
-                  fontSize: "17px",
-                  fontWeight: 700,
-                  fontFamily: "Pretendard",
-                  lineHeight: "24.004px",
-                  letterSpacing: "0px",
-                }}
-              >
-                중요공지
-              </Label>
-            </div>
+                  {/* 작성일 */}
+                  <div
+                    className="h-[44px] flex items-center px-6 border-b"
+                    style={{
+                      borderBottomColor:
+                        "var(--color-semantic-line-normal-normal)",
+                    }}
+                  >
+                    <span
+                      className="w-[80px] flex-shrink-0"
+                      style={{
+                        color: "var(--color-semantic-label-neutral)",
+                        fontSize: "13px",
+                        fontWeight: 500,
+                        fontFamily: "Pretendard",
+                        lineHeight: "18.005px",
+                        letterSpacing: "0.252px",
+                      }}
+                    >
+                      작성일
+                    </span>
+                    <span
+                      style={{
+                        color: "var(--color-semantic-label-normal)",
+                        fontSize: "15px",
+                        fontWeight: 500,
+                        fontFamily: "Pretendard",
+                        lineHeight: "24px",
+                        letterSpacing: "0.144px",
+                      }}
+                    >
+                      {notice
+                        ? new Date(notice.date).toLocaleDateString("ko-KR")
+                        : new Date().toLocaleDateString("ko-KR")}
+                    </span>
+                  </div>
 
-            {/* Content */}
-            <div className="space-y-2">
-              <Label
-                htmlFor="edit-content"
-                style={{
-                  color: "var(--color-semantic-label-normal)",
-                  fontSize: "17px",
-                  fontWeight: 700,
-                  fontFamily: "Pretendard",
-                  lineHeight: "24.004px",
-                  letterSpacing: "0px",
-                }}
-              >
-                내용
-              </Label>
-              <Textarea
-                id="edit-content"
-                placeholder="공지사항 내용을 입력하세요"
-                value={form.content}
-                onChange={(e) => handleInputChange("content", e.target.value)}
-                rows={8}
-                maxLength={2000}
-                className="text-sm 2xl:text-base"
-                style={{
-                  backgroundColor:
-                    "var(--color-semantic-background-normal-alternative)",
-                  border: "1px solid var(--color-semantic-line-normal-normal)",
-                  color: "var(--color-semantic-label-normal)",
-                }}
-              />
-            </div>
+                  {/* 중요 여부 */}
+                  <div
+                    className="h-[44px] flex items-center px-6 border-b"
+                    style={{
+                      borderBottomColor:
+                        "var(--color-semantic-line-normal-normal)",
+                    }}
+                  >
+                    <span
+                      className="w-[80px] flex-shrink-0"
+                      style={{
+                        color: "var(--color-semantic-label-neutral)",
+                        fontSize: "13px",
+                        fontWeight: 500,
+                        fontFamily: "Pretendard",
+                        lineHeight: "18.005px",
+                        letterSpacing: "0.252px",
+                      }}
+                    >
+                      중요 여부
+                    </span>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="edit-is_important-expanded"
+                        checked={form.is_important}
+                        onCheckedChange={(checked) =>
+                          handleInputChange("is_important", checked)
+                        }
+                      />
+                      <label
+                        htmlFor="edit-is_important-expanded"
+                        className="cursor-pointer select-none"
+                        style={{
+                          color: "var(--color-semantic-label-normal)",
+                          fontSize: "15px",
+                          fontWeight: 500,
+                          fontFamily: "Pretendard",
+                          lineHeight: "24px",
+                          letterSpacing: "0.144px",
+                        }}
+                      >
+                        중요공지
+                      </label>
+                    </div>
+                  </div>
 
-            {/* Actions */}
-            <div className="flex gap-2 justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onClose}
-                disabled={isSubmitting}
-                className="text-sm 2xl:text-base h-8 2xl:h-9"
-                style={{
-                  borderColor: "var(--color-semantic-line-normal-normal)",
-                  color: "var(--color-semantic-label-normal)",
-                }}
-              >
-                취소
-              </Button>
-              <Button
-                type="submit"
-                disabled={!isFormValid || isSubmitting}
-                className="text-sm 2xl:text-base h-8 2xl:h-9"
-                style={{
-                  backgroundColor: "var(--color-semantic-primary-normal)",
-                  color: "var(--color-semantic-static-white)",
-                }}
-              >
-                {isSubmitting ? (
-                  <>
-                    <LoadingSpinner size="sm" className="mr-2" />
-                    수정 중...
-                  </>
-                ) : (
-                  "수정 완료"
-                )}
-              </Button>
-            </div>
+                  {/* 대상 */}
+                  <div
+                    className="h-[44px] flex items-center px-6 border-b"
+                    style={{
+                      borderBottomColor:
+                        "var(--color-semantic-line-normal-normal)",
+                    }}
+                  >
+                    <span
+                      className="w-[80px] flex-shrink-0"
+                      style={{
+                        color: "var(--color-semantic-label-neutral)",
+                        fontSize: "13px",
+                        fontWeight: 500,
+                        fontFamily: "Pretendard",
+                        lineHeight: "18.005px",
+                        letterSpacing: "0.252px",
+                      }}
+                    >
+                      대상
+                    </span>
+                    <span
+                      style={{
+                        color: "var(--color-semantic-label-normal)",
+                        fontSize: "15px",
+                        fontWeight: 500,
+                        fontFamily: "Pretendard",
+                        lineHeight: "24px",
+                        letterSpacing: "0.144px",
+                      }}
+                    >
+                      전체
+                    </span>
+                  </div>
+
+                  {/* 첨부 */}
+                  <div
+                    className="h-[44px] flex items-center px-6 border-b"
+                    style={{
+                      borderBottomColor:
+                        "var(--color-semantic-line-normal-normal)",
+                    }}
+                  >
+                    <span
+                      className="w-[80px] flex-shrink-0"
+                      style={{
+                        color: "var(--color-semantic-label-neutral)",
+                        fontSize: "13px",
+                        fontWeight: 500,
+                        fontFamily: "Pretendard",
+                        lineHeight: "18.005px",
+                        letterSpacing: "0.252px",
+                      }}
+                    >
+                      첨부
+                    </span>
+                    <span
+                      style={{
+                        color: "var(--color-semantic-label-normal)",
+                        fontSize: "15px",
+                        fontWeight: 500,
+                        fontFamily: "Pretendard",
+                        lineHeight: "24px",
+                        letterSpacing: "0.144px",
+                      }}
+                    >
+                      없음
+                    </span>
+                  </div>
+
+                  {/* 제목 */}
+                  <div
+                    className="h-[44px] flex items-center px-6 border-b"
+                    style={{
+                      borderBottomColor:
+                        "var(--color-semantic-line-normal-normal)",
+                    }}
+                  >
+                    <span
+                      className="w-[80px] flex-shrink-0"
+                      style={{
+                        color: "var(--color-semantic-label-neutral)",
+                        fontSize: "13px",
+                        fontWeight: 500,
+                        fontFamily: "Pretendard",
+                        lineHeight: "18.005px",
+                        letterSpacing: "0.252px",
+                      }}
+                    >
+                      제목
+                    </span>
+                    <Input
+                      id="edit-title-expanded"
+                      placeholder="제목을 입력하세요"
+                      value={form.title}
+                      onChange={(e) =>
+                        handleInputChange("title", e.target.value)
+                      }
+                      maxLength={100}
+                      className="border-0 p-0 h-auto focus-visible:ring-0 focus-visible:ring-offset-0"
+                      style={{
+                        backgroundColor: "transparent",
+                        color: "var(--color-semantic-label-normal)",
+                        fontSize: "15px",
+                        fontWeight: 500,
+                        fontFamily: "Pretendard",
+                        lineHeight: "24px",
+                        letterSpacing: "0.144px",
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* 내용 영역 */}
+                <div
+                  className="flex-1 flex flex-col"
+                  style={{
+                    paddingTop: "25px",
+                    paddingBottom: "22px",
+                    paddingLeft: "22.11px",
+                    paddingRight: "22.11px",
+                  }}
+                >
+                  <Textarea
+                    id="edit-content-expanded"
+                    placeholder="공지사항 내용을 입력하세요"
+                    value={form.content}
+                    onChange={(e) =>
+                      handleInputChange("content", e.target.value)
+                    }
+                    maxLength={2000}
+                    className="flex-1 border-0 rounded-none resize-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0"
+                    style={{
+                      backgroundColor: "transparent",
+                      color: "var(--color-semantic-label-normal)",
+                      fontSize: "15px",
+                      fontWeight: 500,
+                      fontFamily: "Pretendard",
+                      lineHeight: "24px",
+                      letterSpacing: "0.144px",
+                    }}
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                {/* 축소 모드: 기존 레이아웃 */}
+                {/* 제목 영역 - 44px */}
+                <div
+                  className="px-6 border-b flex items-center"
+                  style={{
+                    height: "44px",
+                    minHeight: "44px",
+                    maxHeight: "44px",
+                    borderBottomColor:
+                      "var(--color-semantic-line-normal-normal)",
+                  }}
+                >
+                  <Input
+                    id="edit-title"
+                    placeholder="제목을 입력하세요"
+                    value={form.title}
+                    onChange={(e) => handleInputChange("title", e.target.value)}
+                    maxLength={100}
+                    className="border-0 p-0 h-auto focus-visible:ring-0 focus-visible:ring-offset-0"
+                    style={{
+                      backgroundColor: "transparent",
+                      color: "var(--color-semantic-label-normal)",
+                      fontSize: "17px",
+                      fontWeight: 700,
+                      fontFamily: "Pretendard",
+                      lineHeight: "24.004px",
+                      letterSpacing: "0px",
+                    }}
+                  />
+                </div>
+
+                {/* 중요공지 체크박스 영역 */}
+                <div
+                  className="px-6 py-4 border-b flex items-center space-x-2"
+                  style={{
+                    borderBottomColor:
+                      "var(--color-semantic-line-normal-normal)",
+                  }}
+                >
+                  <Checkbox
+                    id="edit-is_important"
+                    checked={form.is_important}
+                    onCheckedChange={(checked) =>
+                      handleInputChange("is_important", checked)
+                    }
+                  />
+                  <label
+                    htmlFor="edit-is_important"
+                    className="cursor-pointer select-none"
+                    style={{
+                      color: "var(--color-semantic-label-normal)",
+                      fontSize: "15px",
+                      fontWeight: 500,
+                      fontFamily: "Pretendard",
+                      lineHeight: "24px",
+                      letterSpacing: "0.144px",
+                    }}
+                  >
+                    중요공지
+                  </label>
+                </div>
+
+                {/* 내용 영역 */}
+                <div className="flex-1 flex flex-col">
+                  <Textarea
+                    id="edit-content"
+                    placeholder="공지사항 내용을 입력하세요"
+                    value={form.content}
+                    onChange={(e) =>
+                      handleInputChange("content", e.target.value)
+                    }
+                    maxLength={2000}
+                    className="flex-1 border-0 rounded-none resize-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                    style={{
+                      backgroundColor: "transparent",
+                      color: "var(--color-semantic-label-normal)",
+                      fontSize: "15px",
+                      fontWeight: 500,
+                      fontFamily: "Pretendard",
+                      lineHeight: "24px",
+                      letterSpacing: "0.144px",
+                      padding: "25px 22.11px 22px 22.11px",
+                    }}
+                  />
+                </div>
+              </>
+            )}
           </form>
+        </div>
+
+        {/* 게시 박스 - 72px */}
+        <div
+          className="border-t flex items-center justify-end"
+          style={{
+            height: "72px",
+            minHeight: "72px",
+            maxHeight: "72px",
+            borderTopColor: "var(--color-semantic-line-normal-normal)",
+            paddingRight: "24px",
+          }}
+        >
+          <Button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={!isFormValid || isSubmitting}
+            className="gap-2"
+            style={{
+              width: "100px",
+              height: "40px",
+              borderRadius: "40px",
+              backgroundColor: "var(--color-semantic-primary-normal)",
+              color: "var(--color-semantic-inverse-label)",
+            }}
+          >
+            {isSubmitting ? (
+              <>
+                <LoadingSpinner size="sm" />
+                수정 중...
+              </>
+            ) : (
+              <>
+                <Send
+                  className="w-4 h-4"
+                  style={{
+                    color: "var(--color-semantic-static-white)",
+                  }}
+                />
+                게시
+              </>
+            )}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
