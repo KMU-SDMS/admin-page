@@ -60,12 +60,15 @@ export interface Inquiry {
   updatedAt?: string;
 }
 
+export type NoticeStatus = "DRAFT" | "SCHEDULED" | "PUBLISHED";
+
 export interface Notice {
   id: number;
   title: string;
   content: string;
   date: string;
   is_important: boolean;
+  status?: NoticeStatus;
 }
 
 // API response types
@@ -103,8 +106,15 @@ export interface InquiryQuery {
 export interface NoticeQuery {
   limit?: number;
   page?: number;
-  timeFilter?: "this-week" | "this-month" | "all";
-  sortFilter?: "latest" | "oldest";
+  sort?: "latest" | "oldest";
+  status?: NoticeStatus[];
+  is_important?: boolean;
+  start_date?: string;
+  end_date?: string;
+  year?: number;
+  month?: number;
+  day?: number;
+  search?: string;
 }
 
 export interface NoticePageInfo {

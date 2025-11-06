@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Plus,
   RefreshCw,
@@ -11,7 +11,8 @@ import {
   ChevronsRight,
   Check,
   Clock,
-  Calendar,
+  Calendar as CalendarIcon,
+  Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,6 +20,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Table,
   TableBody,
@@ -33,7 +39,12 @@ import { NoticeCreateModal } from "@/components/notices/notice-create-modal";
 import { NoticeEditModal } from "@/components/notices/notice-edit-modal";
 import { NoticeDeleteDialog } from "@/components/notices/notice-delete-dialog";
 import { useNotices } from "@/hooks/use-notices";
-import type { Notice } from "@/lib/types";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import type { Notice, NoticeStatus, NoticeQuery } from "@/lib/types";
+import type { CheckedState } from "@radix-ui/react-checkbox";
+import type { DateRange } from "react-day-picker";
 
 export function NoticesPageClient() {
   const [showModal, setShowModal] = useState(false);
@@ -43,15 +54,104 @@ export function NoticesPageClient() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [statusFilter, setStatusFilter] = useState<NoticeStatus[]>([]);
+  const [isImportantOnly, setIsImportantOnly] = useState(true);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const handler = window.setTimeout(() => {
+      setDebouncedSearch((prev) => {
+        const nextValue = searchTerm.trim();
+        return prev === nextValue ? prev : nextValue;
+      });
+    }, 400);
+
+    return () => {
+      window.clearTimeout(handler);
+    };
+  }, [searchTerm]);
+
+  const filterStateKey = useMemo(() => {
+    const sortedStatuses = [...statusFilter].sort();
+    return JSON.stringify({
+      statuses: sortedStatuses,
+      important: isImportantOnly,
+      start: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : null,
+      end: dateRange?.to ? format(dateRange.to, "yyyy-MM-dd") : null,
+      search: debouncedSearch,
+    });
+  }, [statusFilter, isImportantOnly, dateRange, debouncedSearch]);
+
+  useEffect(() => {
+    setCurrentPage((prev) => (prev === 1 ? prev : 1));
+  }, [filterStateKey]);
+
+  const filterParams = useMemo<NoticeQuery>(() => {
+    const params: NoticeQuery = {
+      page: currentPage,
+      sort: "latest",
+    };
+
+    if (statusFilter.length > 0) {
+      params.status = statusFilter;
+    }
+
+    // 중요공지 스위치는 필터가 아닌 정렬 용도이므로 API 파라미터로 보내지 않음
+
+    if (dateRange?.from) {
+      params.start_date = format(dateRange.from, "yyyy-MM-dd");
+    }
+
+    if (dateRange?.to) {
+      params.end_date = format(dateRange.to, "yyyy-MM-dd");
+    }
+
+    if (debouncedSearch) {
+      params.search = debouncedSearch;
+    }
+
+    return params;
+  }, [currentPage, statusFilter, isImportantOnly, dateRange, debouncedSearch]);
 
   const {
     data: notices,
     pageInfo,
     isLoading: noticesLoading,
     refetch: refetchNotices,
-  } = useNotices({
-    page: currentPage,
-  });
+  } = useNotices(filterParams);
+
+  const dateRangeLabel = useMemo(() => {
+    if (dateRange?.from && dateRange?.to) {
+      return `${format(dateRange.from, "yyyy.MM.dd")} - ${format(
+        dateRange.to,
+        "yyyy.MM.dd"
+      )}`;
+    }
+
+    if (dateRange?.from) {
+      return format(dateRange.from, "yyyy.MM.dd");
+    }
+
+    if (dateRange?.to) {
+      return format(dateRange.to, "yyyy.MM.dd");
+    }
+
+    return "전체";
+  }, [dateRange]);
+
+  const handleStatusToggle = (status: NoticeStatus, checked: CheckedState) => {
+    setStatusFilter((prev) => {
+      const isChecked = checked === true;
+
+      if (isChecked) {
+        return prev.includes(status) ? prev : [...prev, status];
+      }
+
+      return prev.filter((item) => item !== status);
+    });
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -62,8 +162,14 @@ export function NoticesPageClient() {
     return `${month}.${day} ${hours}:${minutes}`;
   };
 
-  // 클라이언트에서만 데이터 사용
-  const displayNotices = notices;
+  // 클라이언트에서만 데이터 사용 + 중요공지 우선 정렬 옵션 적용
+  const displayNotices = useMemo(() => {
+    if (!Array.isArray(notices)) return [];
+    if (!isImportantOnly) return notices;
+    const cloned = [...notices];
+    cloned.sort((a, b) => Number(b.is_important) - Number(a.is_important));
+    return cloned;
+  }, [notices, isImportantOnly]);
   const displayPageInfo = pageInfo;
   const totalItems = displayPageInfo?.total_notice || 0;
   const totalPages = displayPageInfo?.total_page || 1;
@@ -175,6 +281,8 @@ export function NoticesPageClient() {
               backgroundColor: "var(--color-fill-alternative)",
               color: "var(--color-label-alternative)",
             }}
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
           />
         </div>
       </div>
@@ -244,9 +352,15 @@ export function NoticesPageClient() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <Checkbox id="published" defaultChecked />
+                      <Checkbox
+                        id="draft"
+                        checked={statusFilter.includes("DRAFT")}
+                        onCheckedChange={(checked) =>
+                          handleStatusToggle("DRAFT", checked)
+                        }
+                      />
                       <Label
-                        htmlFor="published"
+                        htmlFor="draft"
                         className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]"
                       >
                         임시 저장
@@ -256,7 +370,13 @@ export function NoticesPageClient() {
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <Checkbox id="scheduled" defaultChecked />
+                      <Checkbox
+                        id="scheduled"
+                        checked={statusFilter.includes("SCHEDULED")}
+                        onCheckedChange={(checked) =>
+                          handleStatusToggle("SCHEDULED", checked)
+                        }
+                      />
                       <Label
                         htmlFor="scheduled"
                         className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]"
@@ -274,7 +394,10 @@ export function NoticesPageClient() {
               {/* Toggle Options */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <Switch defaultChecked />
+                  <Switch
+                    checked={isImportantOnly}
+                    onCheckedChange={(checked) => setIsImportantOnly(checked)}
+                  />
                   <Label className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]">
                     중요공지 맨 앞
                   </Label>
@@ -288,14 +411,40 @@ export function NoticesPageClient() {
                 <Label className="text-[14px] font-bold leading-[20.006px] tracking-[0.203px]">
                   날짜
                 </Label>
-                <Button
-                  variant="outline"
-                  className="w-[75px] h-[32px] rounded-md justify-start text-[15px] font-medium leading-[22.005px] tracking-[0.144px] px-2"
-                  onClick={() => {}}
-                >
-                  <Calendar className="h-4 w-4 mr-1" />
-                  전체
-                </Button>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full h-[32px] rounded-md justify-start text-[15px] font-medium leading-[22.005px] tracking-[0.144px] px-2",
+                        !dateRange?.from && !dateRange?.to
+                          ? "text-muted-foreground"
+                          : "text-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="h-4 w-4 mr-1" />
+                      {dateRangeLabel}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="range"
+                      selected={dateRange}
+                      onSelect={(range) => setDateRange(range ?? undefined)}
+                      numberOfMonths={1}
+                      initialFocus
+                    />
+                    <div className="flex justify-end border-t p-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setDateRange(undefined)}
+                      >
+                        초기화
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
             </CardContent>
           </Card>
@@ -356,22 +505,6 @@ export function NoticesPageClient() {
                       작성자/작성일
                     </TableHead>
                     <TableHead
-                      className="hidden lg:table-cell"
-                      style={{
-                        paddingTop: "14px",
-                        paddingBottom: "14px",
-                        paddingLeft: "19.5px",
-                        paddingRight: "19.5px",
-                        fontSize: "14px",
-                        fontWeight: 700,
-                        lineHeight: "20.006px",
-                        letterSpacing: "0.203px",
-                        color: "#16161d",
-                      }}
-                    >
-                      대상
-                    </TableHead>
-                    <TableHead
                       className="hidden xl:table-cell"
                       style={{
                         paddingTop: "14px",
@@ -408,7 +541,7 @@ export function NoticesPageClient() {
                 <TableBody style={{ marginTop: "8px" }}>
                   {noticesLoading ? (
                     <TableRow style={{ height: "76px", borderBottom: "none" }}>
-                      <TableCell colSpan={6} className="text-center">
+                      <TableCell colSpan={5} className="text-center">
                         <LoadingSpinner />
                       </TableCell>
                     </TableRow>
@@ -422,15 +555,77 @@ export function NoticesPageClient() {
                           style={{ height: "76px", borderBottom: "none" }}
                         >
                           <TableCell>
-                            {notice.is_important ? (
-                              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100">
+                            <div className="flex items-center gap-2">
+                              {notice.is_important ? (
                                 <span className="text-green-600 text-xs">
                                   ★
                                 </span>
-                              </div>
-                            ) : (
-                              <div className="w-8 h-8"></div>
-                            )}
+                              ) : null}
+
+                              {notice.status === "DRAFT" ? (
+                                <div
+                                  className="flex items-center justify-center"
+                                  style={{
+                                    width: 50,
+                                    height: 24,
+                                    borderRadius: 32,
+                                    backgroundColor: "var(--color-fill-normal)",
+                                  }}
+                                >
+                                  <div className="flex items-center gap-1">
+                                    <Pencil
+                                      className="w-3.5 h-3.5"
+                                      style={{
+                                        color: "var(--color-label-alternative)",
+                                      }}
+                                    />
+                                    <span
+                                      style={{
+                                        color: "var(--color-label-alternative)",
+                                        fontSize: "12px",
+                                        fontWeight: 500,
+                                        lineHeight: "16.008px",
+                                        letterSpacing: "0.302px",
+                                      }}
+                                    >
+                                      임시
+                                    </span>
+                                  </div>
+                                </div>
+                              ) : null}
+
+                              {notice.status === "SCHEDULED" ? (
+                                <div
+                                  className="flex items-center justify-center"
+                                  style={{
+                                    width: 50,
+                                    height: 24,
+                                    borderRadius: 32,
+                                    backgroundColor: "var(--color-fill-normal)",
+                                  }}
+                                >
+                                  <div className="flex items-center gap-1">
+                                    <Clock
+                                      className="w-3.5 h-3.5"
+                                      style={{
+                                        color: "var(--color-label-alternative)",
+                                      }}
+                                    />
+                                    <span
+                                      style={{
+                                        color: "var(--color-label-alternative)",
+                                        fontSize: "12px",
+                                        fontWeight: 500,
+                                        lineHeight: "16.008px",
+                                        letterSpacing: "0.302px",
+                                      }}
+                                    >
+                                      예약
+                                    </span>
+                                  </div>
+                                </div>
+                              ) : null}
+                            </div>
                           </TableCell>
                           <TableCell>
                             <div className="space-y-1">
@@ -468,11 +663,6 @@ export function NoticesPageClient() {
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell className="hidden lg:table-cell">
-                            <span className="px-2 py-1 rounded-md text-xs bg-primary/10 text-primary">
-                              신입생
-                            </span>
-                          </TableCell>
                           <TableCell className="hidden xl:table-cell">
                             <div className="text-sm">3/45명 미읽음</div>
                             <div className="text-xs text-muted-foreground">
@@ -498,7 +688,7 @@ export function NoticesPageClient() {
                           key={`empty-${i}`}
                           style={{ height: "76px", borderBottom: "none" }}
                         >
-                          <TableCell colSpan={6}></TableCell>
+                          <TableCell colSpan={5}></TableCell>
                         </TableRow>
                       ))}
                     </>
@@ -508,7 +698,7 @@ export function NoticesPageClient() {
                         style={{ height: "76px", borderBottom: "none" }}
                       >
                         <TableCell
-                          colSpan={6}
+                          colSpan={5}
                           className="text-center text-muted-foreground"
                         >
                           공지사항이 없습니다.
@@ -519,7 +709,7 @@ export function NoticesPageClient() {
                           key={`empty-${i}`}
                           style={{ height: "76px", borderBottom: "none" }}
                         >
-                          <TableCell colSpan={6}></TableCell>
+                          <TableCell colSpan={5}></TableCell>
                         </TableRow>
                       ))}
                     </>
