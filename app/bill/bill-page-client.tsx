@@ -10,6 +10,7 @@ import {
   CheckCircle,
   XCircle,
   Calendar,
+  Camera,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,6 +27,7 @@ import {
 } from "@/components/ui/table";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { roomsApi, studentsApi } from "@/lib/api";
+import { useIsMobile } from "@/hooks/use-viewport";
 
 interface BillRecord {
   id: number;
@@ -37,6 +39,7 @@ interface BillRecord {
 }
 
 export function BillPageClient() {
+  const isMobile = useIsMobile();
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedYear, setSelectedYear] = useState<number>(2025);
   const [selectedMonth, setSelectedMonth] = useState<number>(10);
@@ -136,6 +139,93 @@ export function BillPageClient() {
   const handleFloorSelect = (floor: number) => {
     setSelectedFloor(floor);
   };
+
+  // xs 전용 모바일 레이아웃
+  if (isMobile) {
+    const showUnuploadedOnly = filterUnpaid && !filterPaid;
+    const showUploadedOnly = filterPaid && !filterUnpaid;
+    return (
+      <div className="flex flex-col h-full bg-white sm:hidden">
+        {/* 상단 타이틀 */}
+        <div className="px-5 pt-6 pb-3">
+          <h1 className="text-2xl font-extrabold tracking-tight">{selectedMonth}월 납부</h1>
+        </div>
+
+        {/* 탭 (고지서 업로드 / 납부확인) */}
+        <div className="px-5">
+          <div className="flex items-center gap-6">
+            <button className="text-base font-semibold text-black relative">
+              고지서 업로드
+              <span className="absolute left-0 -bottom-2 block h-[2px] w-full bg-black" />
+            </button>
+            <button className="text-base font-semibold text-gray-300" disabled>
+              납부확인
+            </button>
+          </div>
+        </div>
+
+        {/* 필터 칩 */}
+        <div className="px-5 mt-5">
+          <div className="flex items-center gap-3">
+            <Button
+              className="h-9 px-4 rounded-2xl"
+              onClick={() => {
+                setFilterUnpaid(true);
+                setFilterPaid(false);
+              }}
+              style={{
+                backgroundColor: showUnuploadedOnly ? "#000" : "#ffffff",
+                color: showUnuploadedOnly ? "#fff" : "#16161d",
+                border: showUnuploadedOnly ? "1px solid #000" : "1px solid #E5E7EB",
+              }}
+            >
+              미업로드
+            </Button>
+            <Button
+              variant="outline"
+              className="h-9 px-4 rounded-2xl"
+              onClick={() => {
+                setFilterPaid(true);
+                setFilterUnpaid(false);
+              }}
+              style={{
+                backgroundColor: showUploadedOnly ? "#000" : "#ffffff",
+                color: showUploadedOnly ? "#fff" : "#16161d",
+                border: showUploadedOnly ? "1px solid #000" : "1px solid #E5E7EB",
+              }}
+            >
+              업로드
+            </Button>
+          </div>
+        </div>
+
+        {/* 리스트 */}
+        <div className="px-5 mt-5 pb-24 space-y-3">
+          {displayRecords.map((record) => (
+            <div
+              key={record.id}
+              className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-4"
+            >
+              <div>
+                <div className="text-[20px] font-extrabold leading-6 text-[#16161d]">
+                  {record.roomNumber}호
+                </div>
+                <div className="mt-1 text-[16px] font-semibold text-[#39394e] opacity-80">
+                  {record.studentName}
+                </div>
+              </div>
+              <button
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-400"
+                aria-label="납부 사진 업로드"
+              >
+                <Camera className="h-5 w-5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

@@ -19,6 +19,20 @@ const config = {
   ],
   prefix: "",
   theme: {
+    screens: {
+      // xs: 0 - 767
+      xs: { max: "767px" },
+      // sm: 768 - 991
+      sm: { min: "768px", max: "991px" },
+      // md: 992 - 1199
+      md: { min: "992px", max: "1199px" },
+      // lg: 1200 - 1599
+      lg: { min: "1200px", max: "1599px" },
+      // xl: 1600 - 1919 (1920+는 기본/디폴트 베이스)
+      xl: { min: "1600px", max: "1919px" },
+      // 필요 시 1920px 이상을 명시적으로 사용
+      "2xl": "1920px",
+    },
     container: {
       center: true,
       padding: "2rem",

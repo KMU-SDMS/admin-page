@@ -12,12 +12,12 @@ interface ViewportInfo {
 }
 
 const BREAKPOINTS = {
-  xs: 0,
-  sm: 640,
-  md: 768,
-  lg: 1024,
-  xl: 1280,
-  "2xl": 1536,
+  xs: 0, // 0 - 767
+  sm: 768, // 768 - 991
+  md: 992, // 992 - 1199
+  lg: 1200, // 1200 - 1599
+  xl: 1600, // 1600 - 1919
+  "2xl": 1920, // 1920+
 } as const;
 
 export function useViewport(): ViewportInfo {
@@ -50,9 +50,9 @@ export function useViewport(): ViewportInfo {
         width,
         height,
         aspectRatio,
-        isMobile: width < BREAKPOINTS.md,
-        isTablet: width >= BREAKPOINTS.md && width < BREAKPOINTS.lg,
-        isDesktop: width >= BREAKPOINTS.lg && width < BREAKPOINTS["2xl"],
+        isMobile: width < BREAKPOINTS.sm,
+        isTablet: width >= BREAKPOINTS.sm && width < BREAKPOINTS.md,
+        isDesktop: width >= BREAKPOINTS.md && width < BREAKPOINTS["2xl"],
         isLargeDesktop: width >= BREAKPOINTS["2xl"],
         breakpoint,
       });
