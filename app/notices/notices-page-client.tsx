@@ -279,12 +279,6 @@ export function NoticesPageClient() {
                     중요공지 맨 앞
                   </Label>
                 </div>
-                <div className="flex items-center justify-between">
-                  <Switch defaultChecked />
-                  <Label className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]">
-                    만료 공지 표시
-                  </Label>
-                </div>
               </div>
 
               <div className="border-t" />
@@ -302,71 +296,6 @@ export function NoticesPageClient() {
                   <Calendar className="h-4 w-4 mr-1" />
                   전체
                 </Button>
-              </div>
-
-              <div className="border-t" />
-
-              {/* Target Group Filter */}
-              <div className="space-y-3">
-                <Label className="text-[14px] font-bold leading-[20.006px] tracking-[0.203px]">
-                  대상 그룹
-                </Label>
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="retired" defaultChecked />
-                    <Label
-                      htmlFor="retired"
-                      className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]"
-                    >
-                      퇴사생
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="freshman" defaultChecked />
-                    <Label
-                      htmlFor="freshman"
-                      className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]"
-                    >
-                      신입생
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="year1" defaultChecked />
-                    <Label
-                      htmlFor="year1"
-                      className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]"
-                    >
-                      1학년
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="year2" defaultChecked />
-                    <Label
-                      htmlFor="year2"
-                      className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]"
-                    >
-                      2학년
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="year3" defaultChecked />
-                    <Label
-                      htmlFor="year3"
-                      className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]"
-                    >
-                      3학년
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="year4" defaultChecked />
-                    <Label
-                      htmlFor="year4"
-                      className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]"
-                    >
-                      4학년
-                    </Label>
-                  </div>
-                </div>
               </div>
             </CardContent>
           </Card>

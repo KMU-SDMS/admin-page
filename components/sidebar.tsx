@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Megaphone, Bell, Settings, ChevronDown, User } from "lucide-react";
+import {
+  Megaphone,
+  Bell,
+  Settings,
+  ChevronDown,
+  User,
+  Receipt,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigation = [
@@ -10,6 +17,11 @@ const navigation = [
     name: "공지사항",
     href: "/notices",
     icon: Megaphone,
+  },
+  {
+    name: "관리비 납부",
+    href: "/bill",
+    icon: Receipt,
   },
 ];
 

@@ -1,45 +1,16 @@
-"use client";
-
-import React, { useState } from "react";
+import type React from "react";
+import { Suspense } from "react";
 import { Layout } from "@/components/layout";
-import ListView from "./ListView";
+import { BillPageClient } from "./bill-page-client";
 
-const Bill: React.FC = () => {
-  const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
-  const [selectedYear, setSelectedYear] = useState<number>(
-    new Date().getFullYear()
-  );
-  const [selectedMonth, setSelectedMonth] = useState<number>(
-    new Date().getMonth() + 1
-  );
-  const [selectedFloor, setSelectedFloor] = useState<number>(1);
-
-  // 공통 Props
-  const commonProps = {
-    selectedRoom,
-    selectedYear,
-    selectedMonth,
-    selectedFloor,
-    onRoomChange: setSelectedRoom,
-    onYearChange: setSelectedYear,
-    onMonthChange: setSelectedMonth,
-    onFloorChange: setSelectedFloor,
-  };
-
-  // 더미 네비게이션 콜백들 (모달에서 사용하지 않음)
-  const navigationCallbacks = {
-    onNavigateToCapture: () => {},
-    onNavigateToReview: () => {},
-    onBack: () => {},
-  };
-
+export default function BillPage() {
   return (
     <Layout>
       <div className="h-full">
-        <ListView {...commonProps} {...navigationCallbacks} />
+        <Suspense fallback={<div>Loading...</div>}>
+          <BillPageClient />
+        </Suspense>
       </div>
     </Layout>
   );
-};
-
-export default Bill;
+}
