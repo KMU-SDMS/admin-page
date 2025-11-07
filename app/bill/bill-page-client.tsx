@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -28,6 +28,9 @@ import {
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { roomsApi, studentsApi } from "@/lib/api";
 import { useIsMobile } from "@/hooks/use-viewport";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext, type CarouselApi } from "@/components/ui/carousel";
 
 interface BillRecord {
   id: number;
@@ -48,6 +51,91 @@ export function BillPageClient() {
   const [selectedFloor, setSelectedFloor] = useState<number>(1);
   const [billRecords, setBillRecords] = useState<BillRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMonthOpen, setIsMonthOpen] = useState(false);
+  const [isPhotoSheetOpen, setIsPhotoSheetOpen] = useState(false);
+  const [activeRecord, setActiveRecord] = useState<BillRecord | null>(null);
+  const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [previews, setPreviews] = useState<{ water: string | null; gas: string | null; electricity: string | null; }>(
+    { water: null, gas: null, electricity: null }
+  );
+
+  const labels = ["전기", "수도", "가스"] as const;
+  const toType = (label: (typeof labels)[number]): "water" | "gas" | "electricity" => {
+    if (label === "전기") return "electricity";
+    if (label === "수도") return "water";
+    return "gas";
+  };
+
+  useEffect(() => {
+    if (!carouselApi) return;
+    const onSelect = () => setCurrentSlide(carouselApi.selectedScrollSnap());
+    onSelect();
+    carouselApi.on("select", onSelect);
+    return () => {
+      carouselApi.off("select", onSelect);
+    };
+  }, [carouselApi]);
+
+  const getFileExtension = (mimeType: string) => {
+    if (mimeType === "image/jpeg") return "jpg";
+    if (mimeType === "image/png") return "png";
+    if (mimeType === "image/webp") return "webp";
+    if (mimeType === "image/heic") return "heic";
+    const slash = mimeType.indexOf("/");
+    return slash > -1 ? mimeType.substring(slash + 1) : "jpg";
+  };
+
+  const handleSelectFile = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !activeRecord) return;
+
+    try {
+      const serverUrl = process.env.NEXT_PUBLIC_API_BASE_URL as string | undefined;
+      if (!serverUrl) {
+        return;
+      }
+
+      const label = labels[currentSlide];
+      const type = toType(label);
+      const body = {
+        contentType: file.type,
+        ext: getFileExtension(file.type),
+        roomId: String(activeRecord.roomNumber),
+        type,
+        year: String(selectedYear),
+        month: String(selectedMonth),
+      };
+
+      const res = await fetch(`${serverUrl}/api/bill/presign`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        return;
+      }
+      const presign = await res.json();
+
+      await fetch(presign.url, {
+        method: "PUT",
+        headers: presign.headers,
+        body: file,
+      });
+
+      const previewUrl = URL.createObjectURL(file);
+      setPreviews((prev) => ({ ...prev, [type]: previewUrl }));
+    } finally {
+      // reset input to allow re-selecting the same file
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }, [activeRecord, currentSlide, labels, selectedMonth, selectedYear]);
 
   // API에서 데이터 받아오기
   useEffect(() => {
@@ -98,7 +186,7 @@ export function BillPageClient() {
       (filterUnpaid && record.status === "unpaid");
 
     // 층 필터
-    const floorMatch = record.floor === selectedFloor;
+    const floorMatch = isMobile ? true : record.floor === selectedFloor;
 
     return statusMatch && floorMatch;
   });
@@ -146,9 +234,38 @@ export function BillPageClient() {
     const showUploadedOnly = filterPaid && !filterUnpaid;
     return (
       <div className="flex flex-col h-full bg-white sm:hidden">
-        {/* 상단 타이틀 */}
-        <div className="px-5 pt-6 pb-3">
-          <h1 className="text-2xl font-extrabold tracking-tight">{selectedMonth}월 납부</h1>
+        {/* 상단 타이틀 (텍스트: 좌 30px, 아이콘: 우 16px) */}
+        <div className="pb-3" style={{ paddingTop: 30, paddingLeft: 30, paddingRight: 16 }}>
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-extrabold tracking-tight">{selectedMonth}월 납부</h1>
+            <Popover open={isMonthOpen} onOpenChange={setIsMonthOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  className="flex h-6 w-6 items-center justify-center text-gray-600"
+                  aria-label="월 선택"
+                >
+                  <Calendar className="h-6 w-6" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-[264px] p-3">
+                <div className="grid grid-cols-3 gap-2">
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                    <Button
+                      key={m}
+                      variant={selectedMonth === m ? "default" : "outline"}
+                      className="h-9"
+                      onClick={() => {
+                        setSelectedMonth(m);
+                        setIsMonthOpen(false);
+                      }}
+                    >
+                      {m}월
+                    </Button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
 
         {/* 탭 (고지서 업로드 / 납부확인) */}
@@ -170,8 +287,14 @@ export function BillPageClient() {
             <Button
               className="h-9 px-4 rounded-2xl"
               onClick={() => {
-                setFilterUnpaid(true);
-                setFilterPaid(false);
+                if (showUnuploadedOnly) {
+                  // 이미 미업로드만 보기 상태면 해제하여 전체 보기
+                  setFilterUnpaid(true);
+                  setFilterPaid(true);
+                } else {
+                  setFilterUnpaid(true);
+                  setFilterPaid(false);
+                }
               }}
               style={{
                 backgroundColor: showUnuploadedOnly ? "#000" : "#ffffff",
@@ -185,8 +308,14 @@ export function BillPageClient() {
               variant="outline"
               className="h-9 px-4 rounded-2xl"
               onClick={() => {
-                setFilterPaid(true);
-                setFilterUnpaid(false);
+                if (showUploadedOnly) {
+                  // 이미 업로드만 보기 상태면 해제하여 전체 보기
+                  setFilterPaid(true);
+                  setFilterUnpaid(true);
+                } else {
+                  setFilterPaid(true);
+                  setFilterUnpaid(false);
+                }
               }}
               style={{
                 backgroundColor: showUploadedOnly ? "#000" : "#ffffff",
@@ -217,12 +346,107 @@ export function BillPageClient() {
               <button
                 className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-400"
                 aria-label="납부 사진 업로드"
+                onClick={() => {
+                  setActiveRecord(record);
+                  setIsPhotoSheetOpen(true);
+                }}
               >
                 <Camera className="h-5 w-5" />
               </button>
             </div>
           ))}
         </div>
+
+        {/* 사진 업로드 바텀시트 */}
+        <Sheet open={isPhotoSheetOpen} onOpenChange={setIsPhotoSheetOpen}>
+          <SheetContent side="bottom" className="rounded-t-2xl p-0 h-[659px] max-h-[659px]">
+            <div className="pt-4 pb-6 h-full relative">
+              <SheetHeader className="p-0">
+                <SheetTitle className="text-center text-[22px] font-extrabold text-[#2b2b33]">
+                  {activeRecord ? `${activeRecord.roomNumber}호 ${activeRecord.studentName}` : ""}
+                </SheetTitle>
+              </SheetHeader>
+
+              <Carousel className="mt-3 relative" setApi={setCarouselApi} >
+                <CarouselContent>
+                  {(labels).map((label) => (
+                    <CarouselItem key={label}>
+                      <div
+                        className="relative rounded-xl bg-[#f2f2f5] mx-auto flex items-center justify-center overflow-hidden"
+                        style={{ width: "calc(100vw * 346 / 375)", height: 469 }}
+                      >
+                        <div className="absolute left-3 top-3 text-[14px] font-semibold text-[#17171f]">
+                          {label}
+                        </div>
+                        {(() => {
+                          const type = toType(label);
+                          const src = previews[type];
+                          if (src) {
+                            return (
+                              <img src={src} alt={`${label} 미리보기`} className="max-w-full max-h-full object-contain" />
+                            );
+                          }
+                          return <span className="text-[18px] font-semibold text-[#17171f]">사진</span>;
+                        })()}
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="left-2 bg-black/40 text-white border-0 hover:bg-black/60" />
+                <CarouselNext className="right-2 bg-black/40 text-white border-0 hover:bg-black/60" />
+              </Carousel>
+
+              {/* hidden file input for upload */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+
+              {/* 고정 크기 버튼(80x48, 255x48) + 가변 여백(14/11/15 비율) */}
+              <div
+                className="absolute left-0 right-0 w-full flex items-center"
+                style={{ bottom: 46 }}
+              >
+                <div style={{ width: "calc((100vw - 335px) * 0.35)" }} />
+                <Button
+                  variant="outline"
+                  className="h-[48px] rounded-2xl"
+                  style={{
+                    width: 80,
+                    fontSize: "var(--typography-body-1-normal-bold-fontSize)",
+                    fontWeight: "var(--typography-body-1-normal-bold-fontWeight)",
+                    lineHeight: "var(--typography-body-1-normal-bold-lineHeight)",
+                    letterSpacing: "var(--typography-body-1-normal-bold-letterSpacing)",
+                    color: "var(--color-label-normal)",
+                  }}
+                  onClick={() => setIsPhotoSheetOpen(false)}
+                >
+                  취소
+                </Button>
+                <div style={{ width: "calc((100vw - 335px) * 0.275)" }} />
+                <Button
+                  className="h-[48px] rounded-2xl"
+                  style={{
+                    width: 255,
+                    fontSize: "var(--typography-body-1-normal-bold-fontSize)",
+                    fontWeight: "var(--typography-body-1-normal-bold-fontWeight)",
+                    lineHeight: "var(--typography-body-1-normal-bold-lineHeight)",
+                    letterSpacing: "var(--typography-body-1-normal-bold-letterSpacing)",
+                    color: "var(--color-semantic-inverse-label)",
+                  }}
+                  onClick={handleSelectFile}
+                >
+                  사진 등록
+                </Button>
+                <div style={{ width: "calc((100vw - 335px) * 0.375)" }} />
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
     );
   }
