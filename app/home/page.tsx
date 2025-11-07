@@ -1,9 +1,25 @@
-import { redirect } from "next/navigation";
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useBreakpoint } from "@/hooks/use-viewport";
 
 /**
- * 대시보드 페이지
- * 현재는 공지사항으로 리다이렉트 (추후 수정 예정)
+ * 홈 진입 시 뷰포트에 따라 리디렉션
+ * - xs(모바일) → /bill
+ * - 그 외 → /notices
  */
 export default function HomePage() {
-  redirect("/notices");
+  const router = useRouter();
+  const breakpoint = useBreakpoint();
+
+  useEffect(() => {
+    if (breakpoint === "xs") {
+      router.replace("/bill");
+    } else {
+      router.replace("/notices");
+    }
+  }, [breakpoint, router]);
+
+  return null;
 }
