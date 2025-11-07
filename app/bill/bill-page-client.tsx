@@ -11,6 +11,7 @@ import {
   XCircle,
   Calendar,
   Camera,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -39,6 +40,7 @@ interface BillRecord {
   paymentDate: string | null;
   status: "paid" | "unpaid";
   floor: number;
+  confirmed?: boolean;
 }
 
 export function BillPageClient() {
@@ -48,6 +50,7 @@ export function BillPageClient() {
   const [selectedMonth, setSelectedMonth] = useState<number>(10);
   const [filterPaid, setFilterPaid] = useState(true);
   const [filterUnpaid, setFilterUnpaid] = useState(true);
+  const [filterUnconfirmed, setFilterUnconfirmed] = useState(true);
   const [selectedFloor, setSelectedFloor] = useState<number>(1);
   const [billRecords, setBillRecords] = useState<BillRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -60,6 +63,7 @@ export function BillPageClient() {
   const [previews, setPreviews] = useState<{ water: string | null; gas: string | null; electricity: string | null; }>(
     { water: null, gas: null, electricity: null }
   );
+  const [mobileTab, setMobileTab] = useState<"upload" | "confirm">("upload");
 
   const labels = ["전기", "수도", "가스"] as const;
   const toType = (label: (typeof labels)[number]): "water" | "gas" | "electricity" => {
@@ -160,6 +164,7 @@ export function BillPageClient() {
             paymentDate: status === "paid" ? "2025.12.05" : null,
             status,
             floor: Math.floor(room.id / 100),
+            confirmed: Math.random() > 0.5,
           };
         });
 
@@ -271,91 +276,191 @@ export function BillPageClient() {
         {/* 탭 (고지서 업로드 / 납부확인) */}
         <div className="px-5">
           <div className="flex items-center gap-6">
-            <button className="text-base font-semibold text-black relative">
+            <button
+              className="text-base font-semibold relative"
+              onClick={() => setMobileTab("upload")}
+              style={{ color: mobileTab === "upload" ? "#000" : "#d1d5db" }}
+            >
               고지서 업로드
-              <span className="absolute left-0 -bottom-2 block h-[2px] w-full bg-black" />
+              {mobileTab === "upload" && (
+                <span className="absolute left-0 -bottom-2 block h-[2px] w-full bg-black" />
+              )}
             </button>
-            <button className="text-base font-semibold text-gray-300" disabled>
+            <button
+              className="text-base font-semibold"
+              onClick={() => setMobileTab("confirm")}
+              style={{ color: mobileTab === "confirm" ? "#000" : "#d1d5db" }}
+            >
               납부확인
+              {mobileTab === "confirm" && (
+                <span className="absolute left-[162px] -bottom-2 block h-[2px] w-[64px] bg-black" />
+              )}
             </button>
           </div>
         </div>
 
         {/* 필터 칩 */}
-        <div className="px-5 mt-5">
-          <div className="flex items-center gap-3">
-            <Button
-              className="h-9 px-4 rounded-2xl"
-              onClick={() => {
-                if (showUnuploadedOnly) {
-                  // 이미 미업로드만 보기 상태면 해제하여 전체 보기
-                  setFilterUnpaid(true);
-                  setFilterPaid(true);
-                } else {
-                  setFilterUnpaid(true);
-                  setFilterPaid(false);
-                }
-              }}
-              style={{
-                backgroundColor: showUnuploadedOnly ? "#000" : "#ffffff",
-                color: showUnuploadedOnly ? "#fff" : "#16161d",
-                border: showUnuploadedOnly ? "1px solid #000" : "1px solid #E5E7EB",
-              }}
-            >
-              미업로드
-            </Button>
-            <Button
-              variant="outline"
-              className="h-9 px-4 rounded-2xl"
-              onClick={() => {
-                if (showUploadedOnly) {
-                  // 이미 업로드만 보기 상태면 해제하여 전체 보기
-                  setFilterPaid(true);
-                  setFilterUnpaid(true);
-                } else {
-                  setFilterPaid(true);
-                  setFilterUnpaid(false);
-                }
-              }}
-              style={{
-                backgroundColor: showUploadedOnly ? "#000" : "#ffffff",
-                color: showUploadedOnly ? "#fff" : "#16161d",
-                border: showUploadedOnly ? "1px solid #000" : "1px solid #E5E7EB",
-              }}
-            >
-              업로드
-            </Button>
-          </div>
-        </div>
-
-        {/* 리스트 */}
-        <div className="px-5 mt-5 pb-24 space-y-3">
-          {displayRecords.map((record) => (
-            <div
-              key={record.id}
-              className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-4"
-            >
-              <div>
-                <div className="text-[20px] font-extrabold leading-6 text-[#16161d]">
-                  {record.roomNumber}호
-                </div>
-                <div className="mt-1 text-[16px] font-semibold text-[#39394e] opacity-80">
-                  {record.studentName}
-                </div>
-              </div>
-              <button
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-400"
-                aria-label="납부 사진 업로드"
+        {mobileTab === "upload" ? (
+          <div className="px-5 mt-5">
+            <div className="flex items-center gap-3">
+              <Button
+                className="h-9 px-4 rounded-2xl"
                 onClick={() => {
-                  setActiveRecord(record);
-                  setIsPhotoSheetOpen(true);
+                  if (showUnuploadedOnly) {
+                    setFilterUnpaid(true);
+                    setFilterPaid(true);
+                  } else {
+                    setFilterUnpaid(true);
+                    setFilterPaid(false);
+                  }
+                }}
+                style={{
+                  backgroundColor: showUnuploadedOnly ? "#000" : "#ffffff",
+                  color: showUnuploadedOnly ? "#fff" : "#16161d",
+                  border: showUnuploadedOnly ? "1px solid #000" : "1px solid #E5E7EB",
                 }}
               >
-                <Camera className="h-5 w-5" />
-              </button>
+                미업로드
+              </Button>
+              <Button
+                variant="outline"
+                className="h-9 px-4 rounded-2xl"
+                onClick={() => {
+                  if (showUploadedOnly) {
+                    setFilterPaid(true);
+                    setFilterUnpaid(true);
+                  } else {
+                    setFilterPaid(true);
+                    setFilterUnpaid(false);
+                  }
+                }}
+                style={{
+                  backgroundColor: showUploadedOnly ? "#000" : "#ffffff",
+                  color: showUploadedOnly ? "#fff" : "#16161d",
+                  border: showUploadedOnly ? "1px solid #000" : "1px solid #E5E7EB",
+                }}
+              >
+                업로드
+              </Button>
             </div>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <div className="px-5 mt-5">
+            <div className="flex items-center gap-3">
+              <Button
+                className="h-9 px-4 rounded-2xl"
+                onClick={() => {
+                  setFilterPaid(true);
+                  setFilterUnpaid(true);
+                  setFilterUnconfirmed(true);
+                }}
+                style={{ backgroundColor: "#000", color: "#fff", border: "1px solid #000" }}
+              >
+                전체
+              </Button>
+              <Button
+                variant="outline"
+                className="h-9 px-4 rounded-2xl"
+                onClick={() => {
+                  setFilterPaid(false);
+                  setFilterUnpaid(true);
+                }}
+              >
+                미납부
+              </Button>
+              <Button
+                variant="outline"
+                className="h-9 px-4 rounded-2xl"
+                onClick={() => {
+                  setFilterUnconfirmed(true);
+                  setFilterPaid(true);
+                  setFilterUnpaid(true);
+                }}
+              >
+                미확인
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* 리스트 */}
+        {mobileTab === "upload" ? (
+          <div className="px-5 mt-5 pb-24 space-y-3">
+            {displayRecords.map((record) => (
+              <div
+                key={record.id}
+                className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-4"
+              >
+                <div>
+                  <div className="text-[20px] font-extrabold leading-6 text-[#16161d]">
+                    {record.roomNumber}호
+                  </div>
+                  <div className="mt-1 text-[16px] font-semibold text-[#39394e] opacity-80">
+                    {record.studentName}
+                  </div>
+                </div>
+                <button
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-400"
+                  aria-label="납부 사진 업로드"
+                  onClick={() => {
+                    setActiveRecord(record);
+                    setIsPhotoSheetOpen(true);
+                  }}
+                >
+                  <Camera className="h-5 w-5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="px-5 mt-5 pb-24 space-y-3">
+            {displayRecords.map((record) => (
+              <div
+                key={record.id}
+                className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-4"
+              >
+                <div className="flex items-center gap-3">
+                  {record.status === "paid" ? (
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-100">
+                      <XCircle className="w-5 h-5 text-red-600" />
+                    </div>
+                  )}
+                  <div>
+                    <div className="text-[20px] font-extrabold leading-6 text-[#16161d]">
+                      {record.roomNumber}호
+                    </div>
+                    <div className="mt-1 text-[16px] font-semibold text-[#39394e] opacity-80">
+                      {record.studentName}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-700"
+                    aria-label="사진 보기/업로드"
+                    onClick={() => {
+                      setActiveRecord(record);
+                      setIsPhotoSheetOpen(true);
+                    }}
+                  >
+                    <Camera className="h-5 w-5" />
+                  </button>
+                  <button
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-700"
+                    aria-label="취소"
+                    onClick={() => {}}
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* 사진 업로드 바텀시트 */}
         <Sheet open={isPhotoSheetOpen} onOpenChange={setIsPhotoSheetOpen}>
@@ -401,7 +506,8 @@ export function BillPageClient() {
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
-                capture="environment"
+                // 모바일에서는 카메라 우선, 데스크탑은 파일탐색기
+                capture={isMobile ? "environment" : undefined}
                 className="hidden"
                 onChange={handleFileChange}
               />
