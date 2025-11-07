@@ -29,9 +29,28 @@ import {
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { roomsApi, studentsApi } from "@/lib/api";
 import { useIsMobile } from "@/hooks/use-viewport";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext, type CarouselApi } from "@/components/ui/carousel";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+  type CarouselApi,
+} from "@/components/ui/carousel";
+import { request } from "@/lib/api";
+type PresignResponse = { url: string; headers: Record<string, string> };
+type DownloadResponse = { url: string };
 
 interface BillRecord {
   id: number;
@@ -60,13 +79,17 @@ export function BillPageClient() {
   const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [previews, setPreviews] = useState<{ water: string | null; gas: string | null; electricity: string | null; }>(
-    { water: null, gas: null, electricity: null }
-  );
+  const [previews, setPreviews] = useState<{
+    water: string | null;
+    gas: string | null;
+    electricity: string | null;
+  }>({ water: null, gas: null, electricity: null });
   const [mobileTab, setMobileTab] = useState<"upload" | "confirm">("upload");
 
   const labels = ["전기", "수도", "가스"] as const;
-  const toType = (label: (typeof labels)[number]): "water" | "gas" | "electricity" => {
+  const toType = (
+    label: (typeof labels)[number]
+  ): "water" | "gas" | "electricity" => {
     if (label === "전기") return "electricity";
     if (label === "수도") return "water";
     return "gas";
@@ -82,6 +105,37 @@ export function BillPageClient() {
     };
   }, [carouselApi]);
 
+  // 모달 열릴 때 서버에 저장된 기존 이미지 URL 로드
+  useEffect(() => {
+    if (!isPhotoSheetOpen || !activeRecord) return;
+
+    const query = (type: "water" | "gas" | "electricity") =>
+      `/api/bill/image?roomId=${encodeURIComponent(
+        String(activeRecord.roomNumber)
+      )}` +
+      `&type=${encodeURIComponent(type)}` +
+      `&year=${encodeURIComponent(String(selectedYear))}` +
+      `&month=${encodeURIComponent(String(selectedMonth))}`;
+
+    (async () => {
+      try {
+        const [electricity, water, gas] = await Promise.all([
+          request<DownloadResponse>(query("electricity")).catch(() => null),
+          request<DownloadResponse>(query("water")).catch(() => null),
+          request<DownloadResponse>(query("gas")).catch(() => null),
+        ]);
+
+        setPreviews((prev) => ({
+          electricity: electricity?.url ?? prev.electricity,
+          water: water?.url ?? prev.water,
+          gas: gas?.url ?? prev.gas,
+        }));
+      } catch {
+        // 개별 실패는 무시 (없는 경우가 대부분)
+      }
+    })();
+  }, [isPhotoSheetOpen, activeRecord, selectedYear, selectedMonth]);
+
   const getFileExtension = (mimeType: string) => {
     if (mimeType === "image/jpeg") return "jpg";
     if (mimeType === "image/png") return "png";
@@ -95,51 +149,58 @@ export function BillPageClient() {
     fileInputRef.current?.click();
   }, []);
 
-  const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !activeRecord) return;
+  const handleFileChange = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file || !activeRecord) return;
 
-    try {
-      const serverUrl = process.env.NEXT_PUBLIC_API_BASE_URL as string | undefined;
-      if (!serverUrl) {
-        return;
+      try {
+        const label = labels[currentSlide];
+        const type = toType(label);
+        const allowedImageTypes = new Set([
+          "image/jpeg",
+          "image/jpg",
+          "image/png",
+          "image/gif",
+          "image/webp",
+          "image/bmp",
+          "image/tiff",
+          "image/svg+xml",
+        ]);
+        const contentTypeToSend = allowedImageTypes.has(file.type)
+          ? file.type
+          : "application/octet-stream";
+        const body = {
+          contentType: contentTypeToSend,
+          // ext는 선택사항(현재 미사용)이나, 서버가 허용하면 전달
+          ext: getFileExtension(file.type),
+          roomId: String(activeRecord.roomNumber),
+          type,
+          year: String(selectedYear),
+          month: String(selectedMonth),
+        };
+
+        // 세션 쿠키 포함 및 공통 에러 핸들링을 위해 공용 request 사용
+        const presign = await request<PresignResponse>("/api/bill/presign", {
+          method: "POST",
+          body: JSON.stringify(body),
+        });
+
+        await fetch(presign.url, {
+          method: "PUT",
+          headers: presign.headers,
+          body: file,
+        });
+
+        const previewUrl = URL.createObjectURL(file);
+        setPreviews((prev) => ({ ...prev, [type]: previewUrl }));
+      } finally {
+        // reset input to allow re-selecting the same file
+        if (fileInputRef.current) fileInputRef.current.value = "";
       }
-
-      const label = labels[currentSlide];
-      const type = toType(label);
-      const body = {
-        contentType: file.type,
-        ext: getFileExtension(file.type),
-        roomId: String(activeRecord.roomNumber),
-        type,
-        year: String(selectedYear),
-        month: String(selectedMonth),
-      };
-
-      const res = await fetch(`${serverUrl}/api/bill/presign`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) {
-        return;
-      }
-      const presign = await res.json();
-
-      await fetch(presign.url, {
-        method: "PUT",
-        headers: presign.headers,
-        body: file,
-      });
-
-      const previewUrl = URL.createObjectURL(file);
-      setPreviews((prev) => ({ ...prev, [type]: previewUrl }));
-    } finally {
-      // reset input to allow re-selecting the same file
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  }, [activeRecord, currentSlide, labels, selectedMonth, selectedYear]);
+    },
+    [activeRecord, currentSlide, labels, selectedMonth, selectedYear, toType]
+  );
 
   // API에서 데이터 받아오기
   useEffect(() => {
@@ -240,9 +301,14 @@ export function BillPageClient() {
     return (
       <div className="flex flex-col h-full bg-white sm:hidden">
         {/* 상단 타이틀 (텍스트: 좌 30px, 아이콘: 우 16px) */}
-        <div className="pb-3" style={{ paddingTop: 30, paddingLeft: 30, paddingRight: 16 }}>
+        <div
+          className="pb-3"
+          style={{ paddingTop: 30, paddingLeft: 30, paddingRight: 16 }}
+        >
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-extrabold tracking-tight">{selectedMonth}월 납부</h1>
+            <h1 className="text-2xl font-extrabold tracking-tight">
+              {selectedMonth}월 납부
+            </h1>
             <Popover open={isMonthOpen} onOpenChange={setIsMonthOpen}>
               <PopoverTrigger asChild>
                 <button
@@ -317,7 +383,9 @@ export function BillPageClient() {
                 style={{
                   backgroundColor: showUnuploadedOnly ? "#000" : "#ffffff",
                   color: showUnuploadedOnly ? "#fff" : "#16161d",
-                  border: showUnuploadedOnly ? "1px solid #000" : "1px solid #E5E7EB",
+                  border: showUnuploadedOnly
+                    ? "1px solid #000"
+                    : "1px solid #E5E7EB",
                 }}
               >
                 미업로드
@@ -337,7 +405,9 @@ export function BillPageClient() {
                 style={{
                   backgroundColor: showUploadedOnly ? "#000" : "#ffffff",
                   color: showUploadedOnly ? "#fff" : "#16161d",
-                  border: showUploadedOnly ? "1px solid #000" : "1px solid #E5E7EB",
+                  border: showUploadedOnly
+                    ? "1px solid #000"
+                    : "1px solid #E5E7EB",
                 }}
               >
                 업로드
@@ -354,7 +424,11 @@ export function BillPageClient() {
                   setFilterUnpaid(true);
                   setFilterUnconfirmed(true);
                 }}
-                style={{ backgroundColor: "#000", color: "#fff", border: "1px solid #000" }}
+                style={{
+                  backgroundColor: "#000",
+                  color: "#fff",
+                  border: "1px solid #000",
+                }}
               >
                 전체
               </Button>
@@ -464,21 +538,29 @@ export function BillPageClient() {
 
         {/* 사진 업로드 바텀시트 */}
         <Sheet open={isPhotoSheetOpen} onOpenChange={setIsPhotoSheetOpen}>
-          <SheetContent side="bottom" className="rounded-t-2xl p-0 h-[659px] max-h-[659px]">
+          <SheetContent
+            side="bottom"
+            className="rounded-t-2xl p-0 h-[659px] max-h-[659px]"
+          >
             <div className="pt-4 pb-6 h-full relative">
               <SheetHeader className="p-0">
                 <SheetTitle className="text-center text-[22px] font-extrabold text-[#2b2b33]">
-                  {activeRecord ? `${activeRecord.roomNumber}호 ${activeRecord.studentName}` : ""}
+                  {activeRecord
+                    ? `${activeRecord.roomNumber}호 ${activeRecord.studentName}`
+                    : ""}
                 </SheetTitle>
               </SheetHeader>
 
-              <Carousel className="mt-3 relative" setApi={setCarouselApi} >
+              <Carousel className="mt-3 relative" setApi={setCarouselApi}>
                 <CarouselContent>
-                  {(labels).map((label) => (
+                  {labels.map((label) => (
                     <CarouselItem key={label}>
                       <div
                         className="relative rounded-xl bg-[#f2f2f5] mx-auto flex items-center justify-center overflow-hidden"
-                        style={{ width: "calc(100vw * 346 / 375)", height: 469 }}
+                        style={{
+                          width: "calc(100vw * 346 / 375)",
+                          height: 469,
+                        }}
                       >
                         <div className="absolute left-3 top-3 text-[14px] font-semibold text-[#17171f]">
                           {label}
@@ -488,10 +570,18 @@ export function BillPageClient() {
                           const src = previews[type];
                           if (src) {
                             return (
-                              <img src={src} alt={`${label} 미리보기`} className="max-w-full max-h-full object-contain" />
+                              <img
+                                src={src}
+                                alt={`${label} 미리보기`}
+                                className="max-w-full max-h-full object-contain"
+                              />
                             );
                           }
-                          return <span className="text-[18px] font-semibold text-[#17171f]">사진</span>;
+                          return (
+                            <span className="text-[18px] font-semibold text-[#17171f]">
+                              사진
+                            </span>
+                          );
                         })()}
                       </div>
                     </CarouselItem>
@@ -524,9 +614,12 @@ export function BillPageClient() {
                   style={{
                     width: 80,
                     fontSize: "var(--typography-body-1-normal-bold-fontSize)",
-                    fontWeight: "var(--typography-body-1-normal-bold-fontWeight)",
-                    lineHeight: "var(--typography-body-1-normal-bold-lineHeight)",
-                    letterSpacing: "var(--typography-body-1-normal-bold-letterSpacing)",
+                    fontWeight:
+                      "var(--typography-body-1-normal-bold-fontWeight)",
+                    lineHeight:
+                      "var(--typography-body-1-normal-bold-lineHeight)",
+                    letterSpacing:
+                      "var(--typography-body-1-normal-bold-letterSpacing)",
                     color: "var(--color-label-normal)",
                   }}
                   onClick={() => setIsPhotoSheetOpen(false)}
@@ -539,9 +632,12 @@ export function BillPageClient() {
                   style={{
                     width: 255,
                     fontSize: "var(--typography-body-1-normal-bold-fontSize)",
-                    fontWeight: "var(--typography-body-1-normal-bold-fontWeight)",
-                    lineHeight: "var(--typography-body-1-normal-bold-lineHeight)",
-                    letterSpacing: "var(--typography-body-1-normal-bold-letterSpacing)",
+                    fontWeight:
+                      "var(--typography-body-1-normal-bold-fontWeight)",
+                    lineHeight:
+                      "var(--typography-body-1-normal-bold-lineHeight)",
+                    letterSpacing:
+                      "var(--typography-body-1-normal-bold-letterSpacing)",
                     color: "var(--color-semantic-inverse-label)",
                   }}
                   onClick={handleSelectFile}
