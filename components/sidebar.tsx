@@ -9,6 +9,7 @@ import {
   ChevronDown,
   User,
   Receipt,
+  Moon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +23,11 @@ const navigation = [
     name: "관리비 납부",
     href: "/bill",
     icon: Receipt,
+  },
+  {
+    name: "외박계 관리",
+    href: "/overnight-stays",
+    icon: Moon,
   },
   {
     name: "학생 관리",
