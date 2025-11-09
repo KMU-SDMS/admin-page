@@ -274,6 +274,12 @@ export const rollcallsApi = {
   getById: (id: number) => apiGet<any>(`/api/rollcalls/${id}`),
 };
 
+// Notifications API
+export const notificationsApi = {
+  sendIndividual: (data: { student_no: string; title: string; content: string }) =>
+    apiPost<{ message: string }>("/api/notifications/individual", data),
+};
+
 // Auth API
 export const authApi = {
   /**
@@ -348,5 +354,6 @@ export const api = {
   inquiries: inquiriesApi,
   parcels: parcelsApi,
   rollcalls: rollcallsApi,
+  notifications: notificationsApi,
   auth: authApi,
 };
