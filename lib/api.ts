@@ -143,9 +143,25 @@ export function buildQueryString(params: Record<string, any>): string {
   const searchParams = new URLSearchParams();
 
   Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== "") {
-      searchParams.append(key, String(value));
+    if (value === undefined || value === null || value === "") {
+      return;
     }
+
+    if (Array.isArray(value)) {
+      value.forEach((item) => {
+        if (item !== undefined && item !== null && item !== "") {
+          searchParams.append(key, String(item));
+        }
+      });
+      return;
+    }
+
+    if (typeof value === "boolean") {
+      searchParams.append(key, value ? "true" : "false");
+      return;
+    }
+
+    searchParams.append(key, String(value));
   });
 
   const queryString = searchParams.toString();
@@ -180,6 +196,8 @@ export const noticesApi = {
   getAll: () => apiGet<Notice[]>("/api/notices"),
   getPaginated: (params?: NoticeQuery) =>
     apiGet<NoticePaginatedResponse>("/api/notices", params),
+  getFiltered: (params?: NoticeQuery) =>
+    apiGet<NoticePaginatedResponse>("/api/notices/filter", params),
   getById: (id: number) => apiGet<Notice>(`/api/notices/${id}`),
   create: (data: { title: string; content: string; is_important: boolean }) =>
     request<Notice>("/api/notice", {
@@ -215,12 +233,14 @@ export const studentsApi = {
     studentIdNum: string;
     roomNumber: number;
     checkInDate: string;
+    checkOutDate: string;
   }) => apiPost<Student>("/api/student", data),
   update: (data: {
     studentIdNum: string;
     name: string;
     roomNumber: number;
     checkInDate: string;
+    checkOutDate: string;
   }) =>
     request<Student>("/api/student", {
       method: "PUT",
