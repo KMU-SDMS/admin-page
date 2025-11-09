@@ -2,10 +2,10 @@
 
 import { useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Megaphone, CreditCard, Menu } from "lucide-react";
+import { Megaphone, CreditCard, Menu, Moon } from "lucide-react";
 
 interface NavItem {
-  key: "notices" | "bill" | "all";
+  key: "notices" | "bill" | "overnight" | "all";
   label: string;
   href: string;
   Icon: typeof Megaphone;
@@ -19,6 +19,12 @@ export function MobileBottomBar() {
     [
       { key: "notices", label: "공지", href: "/notices", Icon: Megaphone },
       { key: "bill", label: "관리비", href: "/bill", Icon: CreditCard },
+      {
+        key: "overnight",
+        label: "외박계",
+        href: "/overnight-stays",
+        Icon: Moon,
+      },
       { key: "all", label: "전체", href: "/home", Icon: Menu },
     ]
   ), []);
@@ -34,7 +40,7 @@ export function MobileBottomBar() {
       className="sm:hidden fixed left-0 right-0 bottom-0 z-40"
       style={{ height: 78, backgroundColor: "var(--color-semantic-background-normal-alternative)" }}
     >
-      <div className="h-full grid grid-cols-3">
+      <div className="h-full grid grid-cols-4">
         {items.map(({ key, label, href, Icon }) => {
           const active = isActive(href);
           const color = active

@@ -125,3 +125,46 @@ export interface NoticePaginatedResponse {
   notices: Notice[];
   page_info: NoticePageInfo;
 }
+
+export type OvernightStayStatus = "pending" | "approved" | "rejected";
+
+export interface OvernightStayApplication {
+  id: number;
+  studentName: string;
+  studentIdNum: string;
+  semester: string;
+  startDate: string;
+  endDate: string;
+  reason: string;
+  status: OvernightStayStatus;
+  roomNumber?: number;
+  remainingOvernights?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface OvernightStayPageInfo {
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+}
+
+export interface OvernightStayPaginatedResponse {
+  data: OvernightStayApplication[];
+  pageInfo: OvernightStayPageInfo;
+  total: number;
+}
+
+export interface OvernightStayQuery {
+  semester?: string;
+  studentIdNum?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface OvernightStayStatusUpdateRequest {
+  id: number | number[];
+  status: "approved" | "rejected";
+  checkOutDate?: string;
+}

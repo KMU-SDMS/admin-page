@@ -2,6 +2,9 @@ import type {
   Notice,
   NoticePaginatedResponse,
   NoticeQuery,
+  OvernightStayPaginatedResponse,
+  OvernightStayQuery,
+  OvernightStayStatusUpdateRequest,
   Student,
 } from "./types";
 import { toast } from "sonner";
@@ -274,6 +277,13 @@ export const rollcallsApi = {
   getById: (id: number) => apiGet<any>(`/api/rollcalls/${id}`),
 };
 
+export const overnightStaysApi = {
+  list: (params?: OvernightStayQuery) =>
+    apiGet<OvernightStayPaginatedResponse>("/api/overnight-stays", params),
+  updateStatus: (data: OvernightStayStatusUpdateRequest) =>
+    apiPatch<void>("/api/overnight-stays", data),
+};
+
 // Notifications API
 export const notificationsApi = {
   sendIndividual: (data: { student_no: string; title: string; content: string }) =>
@@ -354,6 +364,7 @@ export const api = {
   inquiries: inquiriesApi,
   parcels: parcelsApi,
   rollcalls: rollcallsApi,
+  overnightStays: overnightStaysApi,
   notifications: notificationsApi,
   auth: authApi,
 };
