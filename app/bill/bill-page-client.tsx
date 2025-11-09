@@ -9,6 +9,7 @@ import {
   ChevronsRight,
   CheckCircle,
   XCircle,
+  AlertCircle,
   Calendar,
   Camera,
   X,
@@ -105,9 +106,12 @@ export function BillPageClient() {
     };
   }, [carouselApi]);
 
-  // 모달 열릴 때 서버에 저장된 기존 이미지 URL 로드
+  // 모달 열릴 때 서버에 저장된 기존 이미지 URL 로드 (항상 네트워크 조회)
   useEffect(() => {
     if (!isPhotoSheetOpen || !activeRecord) return;
+
+    // 기존 캐시/미리보기 무효화
+    setPreviews({ water: null, gas: null, electricity: null });
 
     const query = (type: "water" | "gas" | "electricity") =>
       `/api/bill/image?roomId=${encodeURIComponent(
@@ -120,16 +124,22 @@ export function BillPageClient() {
     (async () => {
       try {
         const [electricity, water, gas] = await Promise.all([
-          request<DownloadResponse>(query("electricity")).catch(() => null),
-          request<DownloadResponse>(query("water")).catch(() => null),
-          request<DownloadResponse>(query("gas")).catch(() => null),
+          request<DownloadResponse>(query("electricity"), {
+            cache: "no-store",
+          }).catch(() => null),
+          request<DownloadResponse>(query("water"), {
+            cache: "no-store",
+          }).catch(() => null),
+          request<DownloadResponse>(query("gas"), { cache: "no-store" }).catch(
+            () => null
+          ),
         ]);
 
-        setPreviews((prev) => ({
-          electricity: electricity?.url ?? prev.electricity,
-          water: water?.url ?? prev.water,
-          gas: gas?.url ?? prev.gas,
-        }));
+        setPreviews({
+          electricity: electricity?.url ?? null,
+          water: water?.url ?? null,
+          gas: gas?.url ?? null,
+        });
       } catch {
         // 개별 실패는 무시 (없는 경우가 대부분)
       }
@@ -246,10 +256,15 @@ export function BillPageClient() {
 
   // 필터링된 데이터
   const filteredRecords = billRecords.filter((record) => {
-    // 상태 필터
+    // 상태 필터: 납부완료, 미납부, 미확인(납부했으나 확인 전)
+    const isPaid = record.status === "paid";
+    const isUnpaid = record.status === "unpaid";
+    const isUnconfirmed = isPaid && !record.confirmed;
+
     const statusMatch =
-      (filterPaid && record.status === "paid") ||
-      (filterUnpaid && record.status === "unpaid");
+      (filterPaid && isPaid) ||
+      (filterUnpaid && isUnpaid) ||
+      (filterUnconfirmed && isUnconfirmed);
 
     // 층 필터
     const floorMatch = isMobile ? true : record.floor === selectedFloor;
@@ -289,6 +304,16 @@ export function BillPageClient() {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
+
+  const handleConfirmActiveRecord = useCallback(() => {
+    if (!activeRecord) return;
+    setBillRecords((prev) =>
+      prev.map((r) =>
+        r.id === activeRecord.id ? { ...r, confirmed: true } : r
+      )
+    );
+    setIsPhotoSheetOpen(false);
+  }, [activeRecord]);
 
   const handleFloorSelect = (floor: number) => {
     setSelectedFloor(floor);
@@ -438,6 +463,7 @@ export function BillPageClient() {
                 onClick={() => {
                   setFilterPaid(false);
                   setFilterUnpaid(true);
+                  setFilterUnconfirmed(false);
                 }}
               >
                 미납부
@@ -447,8 +473,8 @@ export function BillPageClient() {
                 className="h-9 px-4 rounded-2xl"
                 onClick={() => {
                   setFilterUnconfirmed(true);
-                  setFilterPaid(true);
-                  setFilterUnpaid(true);
+                  setFilterPaid(false);
+                  setFilterUnpaid(false);
                 }}
               >
                 미확인
@@ -494,14 +520,20 @@ export function BillPageClient() {
                 className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-4"
               >
                 <div className="flex items-center gap-3">
-                  {record.status === "paid" ? (
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100">
-                      <CheckCircle className="w-5 h-5 text-green-600" />
+                  {record.confirmed ? (
+                    <div className="flex items-center justify-center w-[22px] h-[22px] rounded-full bg-green-600 text-white">
+                      <span className="text-[14px] font-bold leading-none">
+                        ✓
+                      </span>
+                    </div>
+                  ) : record.status === "paid" ? (
+                    <div className="flex items-center justify-center w-[22px] h-[22px] rounded-full bg-yellow-500 text-white">
+                      <span className="text-[14px] font-bold leading-none">
+                        !
+                      </span>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-100">
-                      <XCircle className="w-5 h-5 text-red-600" />
-                    </div>
+                    <div className="w-[22px] h-[22px]" />
                   )}
                   <div>
                     <div className="text-[20px] font-extrabold leading-6 text-[#16161d]">
@@ -515,7 +547,7 @@ export function BillPageClient() {
                 <div className="flex items-center gap-3">
                   <button
                     className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-700"
-                    aria-label="사진 보기/업로드"
+                    aria-label="확인 처리"
                     onClick={() => {
                       setActiveRecord(record);
                       setIsPhotoSheetOpen(true);
@@ -551,101 +583,143 @@ export function BillPageClient() {
                 </SheetTitle>
               </SheetHeader>
 
-              <Carousel className="mt-3 relative" setApi={setCarouselApi}>
-                <CarouselContent>
-                  {labels.map((label) => (
-                    <CarouselItem key={label}>
-                      <div
-                        className="relative rounded-xl bg-[#f2f2f5] mx-auto flex items-center justify-center overflow-hidden"
-                        style={{
-                          width: "calc(100vw * 346 / 375)",
-                          height: 469,
-                        }}
-                      >
-                        <div className="absolute left-3 top-3 text-[14px] font-semibold text-[#17171f]">
-                          {label}
-                        </div>
-                        {(() => {
-                          const type = toType(label);
-                          const src = previews[type];
-                          if (src) {
-                            return (
-                              <img
-                                src={src}
-                                alt={`${label} 미리보기`}
-                                className="max-w-full max-h-full object-contain"
-                              />
-                            );
-                          }
-                          return (
-                            <span className="text-[18px] font-semibold text-[#17171f]">
-                              사진
-                            </span>
-                          );
-                        })()}
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className="left-2 bg-black/40 text-white border-0 hover:bg-black/60" />
-                <CarouselNext className="right-2 bg-black/40 text-white border-0 hover:bg-black/60" />
-              </Carousel>
+              {mobileTab === "confirm" && (
+                <>
+                  <div className="mt-6 flex flex-col items-center">
+                    <div className="text-[16px] font-semibold text-[#17171f]">
+                      납부 확인 처리하시겠어요?
+                    </div>
+                    <div className="mt-2 text-[14px] text-[#6b7280]">
+                      확인 완료하면 녹색 체크로 표시됩니다.
+                    </div>
+                  </div>
+                  <div
+                    className="absolute left-0 right-0 w-full flex items-center"
+                    style={{ bottom: 46 }}
+                  >
+                    <div style={{ width: "calc((100vw - 335px) * 0.35)" }} />
+                    <Button
+                      variant="outline"
+                      className="h-[48px] rounded-2xl"
+                      style={{ width: 80 }}
+                      onClick={() => setIsPhotoSheetOpen(false)}
+                    >
+                      취소
+                    </Button>
+                    <div style={{ width: "calc((100vw - 335px) * 0.275)" }} />
+                    <Button
+                      className="h-[48px] rounded-2xl"
+                      style={{ width: 255 }}
+                      onClick={handleConfirmActiveRecord}
+                    >
+                      확인 완료
+                    </Button>
+                    <div style={{ width: "calc((100vw - 335px) * 0.375)" }} />
+                  </div>
+                </>
+              )}
 
-              {/* hidden file input for upload */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                // 모바일에서는 카메라 우선, 데스크탑은 파일탐색기
-                capture={isMobile ? "environment" : undefined}
-                className="hidden"
-                onChange={handleFileChange}
-              />
+              {mobileTab !== "confirm" && (
+                <>
+                  <Carousel className="mt-3 relative" setApi={setCarouselApi}>
+                    <CarouselContent>
+                      {labels.map((label) => (
+                        <CarouselItem key={label}>
+                          <div
+                            className="relative rounded-xl bg-[#f2f2f5] mx-auto flex items-center justify-center overflow-hidden"
+                            style={{
+                              width: "calc(100vw * 346 / 375)",
+                              height: 469,
+                            }}
+                          >
+                            <div className="absolute left-3 top-3 text-[14px] font-semibold text-[#17171f]">
+                              {label}
+                            </div>
+                            {(() => {
+                              const type = toType(label);
+                              const src = previews[type];
+                              if (src) {
+                                return (
+                                  <img
+                                    src={src}
+                                    alt={`${label} 미리보기`}
+                                    className="max-w-full max-h-full object-contain"
+                                  />
+                                );
+                              }
+                              return (
+                                <span className="text-[18px] font-semibold text-[#17171f]">
+                                  사진
+                                </span>
+                              );
+                            })()}
+                          </div>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="left-2 bg-black/40 text-white border-0 hover:bg-black/60" />
+                    <CarouselNext className="right-2 bg-black/40 text-white border-0 hover:bg-black/60" />
+                  </Carousel>
 
-              {/* 고정 크기 버튼(80x48, 255x48) + 가변 여백(14/11/15 비율) */}
-              <div
-                className="absolute left-0 right-0 w-full flex items-center"
-                style={{ bottom: 46 }}
-              >
-                <div style={{ width: "calc((100vw - 335px) * 0.35)" }} />
-                <Button
-                  variant="outline"
-                  className="h-[48px] rounded-2xl"
-                  style={{
-                    width: 80,
-                    fontSize: "var(--typography-body-1-normal-bold-fontSize)",
-                    fontWeight:
-                      "var(--typography-body-1-normal-bold-fontWeight)",
-                    lineHeight:
-                      "var(--typography-body-1-normal-bold-lineHeight)",
-                    letterSpacing:
-                      "var(--typography-body-1-normal-bold-letterSpacing)",
-                    color: "var(--color-label-normal)",
-                  }}
-                  onClick={() => setIsPhotoSheetOpen(false)}
-                >
-                  취소
-                </Button>
-                <div style={{ width: "calc((100vw - 335px) * 0.275)" }} />
-                <Button
-                  className="h-[48px] rounded-2xl"
-                  style={{
-                    width: 255,
-                    fontSize: "var(--typography-body-1-normal-bold-fontSize)",
-                    fontWeight:
-                      "var(--typography-body-1-normal-bold-fontWeight)",
-                    lineHeight:
-                      "var(--typography-body-1-normal-bold-lineHeight)",
-                    letterSpacing:
-                      "var(--typography-body-1-normal-bold-letterSpacing)",
-                    color: "var(--color-semantic-inverse-label)",
-                  }}
-                  onClick={handleSelectFile}
-                >
-                  사진 등록
-                </Button>
-                <div style={{ width: "calc((100vw - 335px) * 0.375)" }} />
-              </div>
+                  {/* hidden file input for upload */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    // 모바일에서는 카메라 우선, 데스크탑은 파일탐색기
+                    capture={isMobile ? "environment" : undefined}
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+
+                  {/* 고정 크기 버튼(80x48, 255x48) + 가변 여백(14/11/15 비율) */}
+                  <div
+                    className="absolute left-0 right-0 w-full flex items-center"
+                    style={{ bottom: 46 }}
+                  >
+                    <div style={{ width: "calc((100vw - 335px) * 0.35)" }} />
+                    <Button
+                      variant="outline"
+                      className="h-[48px] rounded-2xl"
+                      style={{
+                        width: 80,
+                        fontSize:
+                          "var(--typography-body-1-normal-bold-fontSize)",
+                        fontWeight:
+                          "var(--typography-body-1-normal-bold-fontWeight)",
+                        lineHeight:
+                          "var(--typography-body-1-normal-bold-lineHeight)",
+                        letterSpacing:
+                          "var(--typography-body-1-normal-bold-letterSpacing)",
+                        color: "var(--color-label-normal)",
+                      }}
+                      onClick={() => setIsPhotoSheetOpen(false)}
+                    >
+                      취소
+                    </Button>
+                    <div style={{ width: "calc((100vw - 335px) * 0.275)" }} />
+                    <Button
+                      className="h-[48px] rounded-2xl"
+                      style={{
+                        width: 255,
+                        fontSize:
+                          "var(--typography-body-1-normal-bold-fontSize)",
+                        fontWeight:
+                          "var(--typography-body-1-normal-bold-fontWeight)",
+                        lineHeight:
+                          "var(--typography-body-1-normal-bold-lineHeight)",
+                        letterSpacing:
+                          "var(--typography-body-1-normal-bold-letterSpacing)",
+                        color: "var(--color-semantic-inverse-label)",
+                      }}
+                      onClick={handleSelectFile}
+                    >
+                      사진 등록
+                    </Button>
+                    <div style={{ width: "calc((100vw - 335px) * 0.375)" }} />
+                  </div>
+                </>
+              )}
             </div>
           </SheetContent>
         </Sheet>
@@ -759,9 +833,14 @@ export function BillPageClient() {
                   <Checkbox
                     id="paid"
                     checked={filterPaid}
-                    onCheckedChange={(checked) =>
-                      setFilterPaid(checked as boolean)
-                    }
+                    onCheckedChange={(checked) => {
+                      const isChecked = checked as boolean;
+                      setFilterPaid(isChecked);
+                      if (isChecked) {
+                        setFilterUnpaid(false);
+                        setFilterUnconfirmed(false);
+                      }
+                    }}
                   />
                   <Label
                     htmlFor="paid"
@@ -777,9 +856,14 @@ export function BillPageClient() {
                   <Checkbox
                     id="unpaid"
                     checked={filterUnpaid}
-                    onCheckedChange={(checked) =>
-                      setFilterUnpaid(checked as boolean)
-                    }
+                    onCheckedChange={(checked) => {
+                      const isChecked = checked as boolean;
+                      setFilterUnpaid(isChecked);
+                      if (isChecked) {
+                        setFilterPaid(false);
+                        setFilterUnconfirmed(false);
+                      }
+                    }}
                   />
                   <Label
                     htmlFor="unpaid"
@@ -788,7 +872,30 @@ export function BillPageClient() {
                     미납부
                   </Label>
                 </div>
-                <XCircle className="h-4 w-4 text-muted-foreground" />
+                <div className="h-4 w-4" />
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="unconfirmed"
+                    checked={filterUnconfirmed}
+                    onCheckedChange={(checked) => {
+                      const isChecked = checked as boolean;
+                      setFilterUnconfirmed(isChecked);
+                      if (isChecked) {
+                        setFilterPaid(false);
+                        setFilterUnpaid(false);
+                      }
+                    }}
+                  />
+                  <Label
+                    htmlFor="unconfirmed"
+                    className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]"
+                  >
+                    미확인
+                  </Label>
+                </div>
+                <AlertCircle className="h-4 w-4 text-yellow-500" />
               </div>
             </div>
           </div>
@@ -924,14 +1031,20 @@ export function BillPageClient() {
                         >
                           <TableCell>
                             <div className="flex items-center gap-2">
-                              {record.status === "paid" ? (
-                                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100">
-                                  <CheckCircle className="w-5 h-5 text-green-600" />
+                              {record.confirmed ? (
+                                <div className="flex items-center justify-center w-[22px] h-[22px] rounded-full bg-green-600 text-white">
+                                  <span className="text-[14px] font-bold leading-none">
+                                    ✓
+                                  </span>
+                                </div>
+                              ) : record.status === "paid" ? (
+                                <div className="flex items-center justify-center w-[22px] h-[22px] rounded-full bg-yellow-500 text-white">
+                                  <span className="text-[14px] font-bold leading-none">
+                                    !
+                                  </span>
                                 </div>
                               ) : (
-                                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-100">
-                                  <XCircle className="w-5 h-5 text-red-600" />
-                                </div>
+                                <div className="w-[22px] h-[22px]" />
                               )}
                               <span
                                 style={{
