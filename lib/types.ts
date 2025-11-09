@@ -7,13 +7,11 @@ export interface Room {
 }
 
 export interface Student {
-  id: number;
-  name: string;
   studentIdNum: string;
-  affiliation?: string;
-  major?: string;
+  name: string;
   roomNumber: number;
-  checkInDate?: string;
+  checkInDate: string;
+  checkOutDate: string;
 }
 
 export interface Rollcall {

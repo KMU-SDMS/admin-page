@@ -233,12 +233,14 @@ export const studentsApi = {
     studentIdNum: string;
     roomNumber: number;
     checkInDate: string;
+    checkOutDate: string;
   }) => apiPost<Student>("/api/student", data),
   update: (data: {
     studentIdNum: string;
     name: string;
     roomNumber: number;
     checkInDate: string;
+    checkOutDate: string;
   }) =>
     request<Student>("/api/student", {
       method: "PUT",
