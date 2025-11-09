@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Edit, Trash2, MoreHorizontal } from "lucide-react";
 import {
   Table,
@@ -65,13 +64,15 @@ export function StudentListTable({
             <TableHead className="2xl:text-base">학번</TableHead>
             <TableHead className="2xl:text-base">이름</TableHead>
             <TableHead className="2xl:text-base">호실</TableHead>
+            <TableHead className="2xl:text-base">입사일</TableHead>
+            <TableHead className="2xl:text-base">퇴사일</TableHead>
             <TableHead className="text-right 2xl:text-base">작업</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {students.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} className="text-center py-8">
+              <TableCell colSpan={7} className="text-center py-8">
                 <div className="text-muted-foreground 2xl:text-base">
                   등록된 학생이 없습니다.
                 </div>
@@ -79,7 +80,7 @@ export function StudentListTable({
             </TableRow>
           ) : (
             students.map((student) => (
-              <TableRow key={student.id}>
+              <TableRow key={student.studentIdNum}>
                 <TableCell className="w-[60px]"></TableCell>
                 <TableCell className="font-medium 2xl:text-base">
                   {student.studentIdNum}
@@ -87,6 +88,12 @@ export function StudentListTable({
                 <TableCell className="2xl:text-base">{student.name}</TableCell>
                 <TableCell className="2xl:text-base">
                   {student.roomNumber}호
+                </TableCell>
+                <TableCell className="2xl:text-base">
+                  {student.checkInDate || "-"}
+                </TableCell>
+                <TableCell className="2xl:text-base">
+                  {student.checkOutDate || "-"}
                 </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
