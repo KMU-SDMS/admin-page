@@ -23,6 +23,11 @@ const navigation = [
     href: "/bill",
     icon: Receipt,
   },
+  {
+    name: "학생 관리",
+    href: "/students",
+    icon: User,
+  },
 ];
 
 interface SidebarProps {
