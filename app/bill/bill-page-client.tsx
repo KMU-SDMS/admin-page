@@ -8,11 +8,9 @@ import {
   ChevronsLeft,
   ChevronsRight,
   CheckCircle,
-  XCircle,
   AlertCircle,
   Calendar,
   Camera,
-  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -554,13 +552,6 @@ export function BillPageClient() {
                     }}
                   >
                     <Camera className="h-5 w-5" />
-                  </button>
-                  <button
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-700"
-                    aria-label="취소"
-                    onClick={() => {}}
-                  >
-                    <X className="h-5 w-5" />
                   </button>
                 </div>
               </div>

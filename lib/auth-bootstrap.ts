@@ -9,6 +9,61 @@ export interface BootstrapResult {
 }
 
 const SESSION_STORAGE_KEY = "auth_has_session";
+const SESSION_VERIFY_AT_KEY = "auth_session_verified_at";
+
+/**
+ * API 서버 베이스 URL
+ * - 클라이언트 번들에 주입된 공개 환경변수 우선
+ * - 개발 환경(로컬 호스트)에서는 localhost:3000 기본값
+ */
+function getApiBase(): string | null {
+  // NEXT_PUBLIC_* 는 클라이언트 번들에 인라인됨
+  const fromEnv =
+    typeof process !== "undefined"
+      ? (process.env.NEXT_PUBLIC_API_BASE_URL as string | undefined)
+      : undefined;
+  if (fromEnv && fromEnv.trim().length > 0) {
+    return fromEnv;
+  }
+
+  if (typeof window !== "undefined") {
+    const isLocalhost =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
+    if (isLocalhost) {
+      return "http://localhost:3000";
+    }
+  }
+  // 프로덕션에서 환경변수 미설정 시 null 반환 (명시적 실패)
+  return null;
+}
+
+/**
+ * 세션 유효성 검증
+ * - 쿠키가 실제로 포함되어 API가 200을 돌려주는지 가벼운 엔드포인트로 확인
+ * - 실패(401/네트워크 에러) 시 false
+ */
+async function verifySessionWithApi(): Promise<boolean> {
+  const apiBase = getApiBase();
+  if (!apiBase) {
+    // API BASE 미설정: 검증 불가 → 보수적으로 false 처리하여 루프 방지
+    return false;
+  }
+
+  try {
+    // 가장 가벼운 목록 엔드포인트로 검증 (권한 필요 가정)
+    const url = `${apiBase}/api/notices?limit=1&page=1`;
+    const res = await fetch(url, { credentials: "include", method: "GET" });
+    if (res.ok) {
+      return true;
+    }
+    // 권한 없음 혹은 기타 오류
+    return false;
+  } catch {
+    // 네트워크 오류 등
+    return false;
+  }
+}
 
 /**
  * 앱 시작 시 세션 복구 (Pure Optimistic 방식)
@@ -40,11 +95,31 @@ export async function bootstrapAuth(): Promise<BootstrapResult> {
     // localStorage에서 세션 상태 확인
     const hasSession = localStorage.getItem(SESSION_STORAGE_KEY) === "true";
 
-    if (hasSession) {
-      return { authenticated: true };
-    } else {
+    if (!hasSession) {
       return { authenticated: false };
     }
+
+    // 최근 검증 시각 확인 (짧은 TTL로 재검증 최소화)
+    const verifiedAtRaw = localStorage.getItem(SESSION_VERIFY_AT_KEY);
+    const now = Date.now();
+    const ttlMs = 5 * 60 * 1000; // 5분
+    if (verifiedAtRaw) {
+      const verifiedAt = Number(verifiedAtRaw);
+      if (!Number.isNaN(verifiedAt) && now - verifiedAt < ttlMs) {
+        return { authenticated: true };
+      }
+    }
+
+    // 새 기기/새 세션에서는 실제 API로 쿠키 유효성을 한 번 확인
+    const valid = await verifySessionWithApi();
+    if (valid) {
+      localStorage.setItem(SESSION_VERIFY_AT_KEY, String(now));
+      return { authenticated: true };
+    }
+
+    // 검증 실패 → 세션 마커 제거
+    clearSessionState();
+    return { authenticated: false };
   } catch {
     return { authenticated: false };
   }
@@ -55,6 +130,7 @@ export async function bootstrapAuth(): Promise<BootstrapResult> {
  */
 export function markSessionAsActive() {
   localStorage.setItem(SESSION_STORAGE_KEY, "true");
+  localStorage.setItem(SESSION_VERIFY_AT_KEY, String(Date.now()));
 }
 
 /**
@@ -62,4 +138,5 @@ export function markSessionAsActive() {
  */
 export function clearSessionState() {
   localStorage.removeItem(SESSION_STORAGE_KEY);
+  localStorage.removeItem(SESSION_VERIFY_AT_KEY);
 }
