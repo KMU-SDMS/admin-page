@@ -50,12 +50,23 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        await request<{ success: boolean }>(
+        // 디버깅: API 호출 전 로그
+        console.log("인증 콜백 시작", { code, state, redirectUrl });
+
+        const response = await request<{ success: boolean }>(
           `/auth/callback?code=${code}&state=${state}`,
           {
             method: "GET",
           }
         );
+
+        // 디버깅: 응답 확인
+        console.log("인증 콜백 응답:", response);
+
+        // 디버깅: 쿠키 확인
+        if (typeof document !== "undefined") {
+          console.log("현재 쿠키:", document.cookie);
+        }
 
         markSessionAsActive();
         await refresh();

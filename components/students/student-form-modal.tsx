@@ -28,6 +28,7 @@ export interface StudentFormData {
   studentIdNum: string;
   roomNumber: number;
   checkInDate: string;
+  checkOutDate: string;
 }
 
 export function StudentFormModal({
@@ -41,7 +42,8 @@ export function StudentFormModal({
     name: "",
     studentIdNum: "",
     roomNumber: 101,
-    checkInDate: new Date().toISOString().split("T")[0],
+    checkInDate: "",
+    checkOutDate: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<
@@ -56,14 +58,16 @@ export function StudentFormModal({
         studentIdNum: student.studentIdNum,
         roomNumber: student.roomNumber,
         checkInDate:
-          student.checkInDate || new Date().toISOString().split("T")[0],
+          student.checkInDate || "",
+        checkOutDate: student.checkOutDate || "",
       });
     } else {
       setFormData({
         name: "",
         studentIdNum: "",
         roomNumber: 101,
-        checkInDate: new Date().toISOString().split("T")[0],
+        checkInDate: "",
+        checkOutDate: "",
       });
     }
     setErrors({});
@@ -86,6 +90,18 @@ export function StudentFormModal({
 
     if (!formData.checkInDate) {
       newErrors.checkInDate = "입사일을 입력해주세요.";
+    }
+
+    if (!formData.checkOutDate) {
+      newErrors.checkOutDate = "퇴사일을 입력해주세요.";
+    }
+
+    if (
+      formData.checkInDate &&
+      formData.checkOutDate &&
+      formData.checkOutDate < formData.checkInDate
+    ) {
+      newErrors.checkOutDate = "퇴사일은 입사일 이후여야 합니다.";
     }
 
     setErrors(newErrors);
@@ -212,6 +228,25 @@ export function StudentFormModal({
               />
               {errors.checkInDate && (
                 <p className="text-sm text-destructive">{errors.checkInDate}</p>
+              )}
+            </div>
+
+            {/* 퇴사일 */}
+            <div className="grid gap-2">
+              <Label htmlFor="checkOutDate">
+                퇴사일 <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="checkOutDate"
+                type="date"
+                value={formData.checkOutDate}
+                onChange={(e) => handleChange("checkOutDate", e.target.value)}
+                disabled={isSubmitting}
+              />
+              {errors.checkOutDate && (
+                <p className="text-sm text-destructive">
+                  {errors.checkOutDate}
+                </p>
               )}
             </div>
           </div>

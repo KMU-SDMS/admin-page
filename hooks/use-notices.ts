@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { api } from "@/lib/api";
 import type { Notice, NoticeQuery, NoticePageInfo } from "@/lib/types";
 
@@ -25,41 +25,32 @@ export function useNotices(params: NoticeQuery = {}): UseNoticesResult {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchNotices = async () => {
+  const paramsKey = useMemo(() => JSON.stringify(params ?? {}), [params]);
+
+  const fetchNotices = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // 페이지네이션 파라미터가 있으면 페이지네이션 API 사용
-      if (params.page !== undefined) {
-        const response = await api.notices.getPaginated(params);
-        let filteredNotices = Array.isArray(response.notices)
-          ? response.notices
-          : [];
+      const parsedParams: NoticeQuery = paramsKey
+        ? (JSON.parse(paramsKey) as NoticeQuery)
+        : {};
 
-        setData(filteredNotices);
-        setPageInfo(response.page_info);
-      } else {
-        // 기존 로직 유지 (페이지네이션 없이)
-        const notices = await api.notices.getAll();
+      const response = await api.notices.getFiltered(parsedParams);
+      const filteredNotices = Array.isArray(response?.notices)
+        ? response?.notices
+        : [];
 
-        // notices가 배열인지 확인
-        let processedNotices = Array.isArray(notices) ? notices : [];
-
-        // 개수 제한 적용
-        if (params.limit) {
-          processedNotices = processedNotices.slice(0, params.limit);
-        }
-
-        setData(processedNotices);
-        setPageInfo(undefined);
-      }
+      setData(filteredNotices);
+      setPageInfo(response?.page_info);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch notices");
+      setData([]);
+      setPageInfo(undefined);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [paramsKey]);
 
   const mutate = async (noticeData: {
     title: string;
@@ -76,7 +67,7 @@ export function useNotices(params: NoticeQuery = {}): UseNoticesResult {
 
   useEffect(() => {
     fetchNotices();
-  }, [params.limit, params.page, params.timeFilter]);
+  }, [fetchNotices]);
 
   return {
     data,

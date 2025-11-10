@@ -30,9 +30,14 @@ export function useStudents(params: StudentQuery = {}) {
 
       // 이름 검색 필터링
       if (params.name) {
-        filteredStudents = filteredStudents.filter((student) =>
-          student.name.toLowerCase().includes(params.name!.toLowerCase())
-        );
+        const keyword = params.name.toLowerCase();
+        filteredStudents = filteredStudents.filter((student) => {
+          const nameMatch = student.name.toLowerCase().includes(keyword);
+          const idMatch = String(student.studentIdNum)
+            .toLowerCase()
+            .includes(keyword);
+          return nameMatch || idMatch;
+        });
       }
 
       setData(filteredStudents);

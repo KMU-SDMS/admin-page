@@ -2,6 +2,9 @@ import type {
   Notice,
   NoticePaginatedResponse,
   NoticeQuery,
+  OvernightStayPaginatedResponse,
+  OvernightStayQuery,
+  OvernightStayStatusUpdateRequest,
   Student,
 } from "./types";
 import { toast } from "sonner";
@@ -74,6 +77,13 @@ export async function request<T>(
       ...init,
     });
 
+    // 디버깅: 인증 관련 요청/응답 로깅
+    if (typeof window !== "undefined" && path.includes("/auth/callback")) {
+      console.log("API 요청:", { url, method: init?.method || "GET" });
+      console.log("API 응답 상태:", response.status);
+      console.log("응답 헤더:", Object.fromEntries(response.headers.entries()));
+    }
+
     if (!response.ok) {
       const errorText = await response.text().catch(() => "");
 
@@ -136,9 +146,25 @@ export function buildQueryString(params: Record<string, any>): string {
   const searchParams = new URLSearchParams();
 
   Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== "") {
-      searchParams.append(key, String(value));
+    if (value === undefined || value === null || value === "") {
+      return;
     }
+
+    if (Array.isArray(value)) {
+      value.forEach((item) => {
+        if (item !== undefined && item !== null && item !== "") {
+          searchParams.append(key, String(item));
+        }
+      });
+      return;
+    }
+
+    if (typeof value === "boolean") {
+      searchParams.append(key, value ? "true" : "false");
+      return;
+    }
+
+    searchParams.append(key, String(value));
   });
 
   const queryString = searchParams.toString();
@@ -173,6 +199,8 @@ export const noticesApi = {
   getAll: () => apiGet<Notice[]>("/api/notices"),
   getPaginated: (params?: NoticeQuery) =>
     apiGet<NoticePaginatedResponse>("/api/notices", params),
+  getFiltered: (params?: NoticeQuery) =>
+    apiGet<NoticePaginatedResponse>("/api/notices/filter", params),
   getById: (id: number) => apiGet<Notice>(`/api/notices/${id}`),
   create: (data: { title: string; content: string; is_important: boolean }) =>
     request<Notice>("/api/notice", {
@@ -208,12 +236,14 @@ export const studentsApi = {
     studentIdNum: string;
     roomNumber: number;
     checkInDate: string;
+    checkOutDate: string;
   }) => apiPost<Student>("/api/student", data),
   update: (data: {
     studentIdNum: string;
     name: string;
     roomNumber: number;
     checkInDate: string;
+    checkOutDate: string;
   }) =>
     request<Student>("/api/student", {
       method: "PUT",
@@ -245,6 +275,19 @@ export const parcelsApi = {
 export const rollcallsApi = {
   getAll: () => apiGet<any[]>("/api/rollcalls"),
   getById: (id: number) => apiGet<any>(`/api/rollcalls/${id}`),
+};
+
+export const overnightStaysApi = {
+  list: (params?: OvernightStayQuery) =>
+    apiGet<OvernightStayPaginatedResponse>("/api/overnight-stays", params),
+  updateStatus: (data: OvernightStayStatusUpdateRequest) =>
+    apiPatch<void>("/api/overnight-stays", data),
+};
+
+// Notifications API
+export const notificationsApi = {
+  sendIndividual: (data: { student_no: string; title: string; content: string }) =>
+    apiPost<{ message: string }>("/api/notifications/individual", data),
 };
 
 // Auth API
@@ -321,5 +364,7 @@ export const api = {
   inquiries: inquiriesApi,
   parcels: parcelsApi,
   rollcalls: rollcallsApi,
+  overnightStays: overnightStaysApi,
+  notifications: notificationsApi,
   auth: authApi,
 };

@@ -7,6 +7,8 @@ import { Suspense } from "react";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/lib/auth-context";
 import "./globals.css";
+import { MobileBottomBar } from "@/components/mobile-bottom-bar";
+import { MobileBottomBarGuard } from "@/components/mobile-bottom-bar-guard";
 
 export const metadata: Metadata = {
   title: "기숙사 관리 시스템",
@@ -24,6 +26,7 @@ export default function RootLayout({
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
         <AuthProvider>
           <Suspense fallback={null}>{children}</Suspense>
+          <MobileBottomBarGuard />
           <Toaster position="top-right" richColors />
           <Analytics />
         </AuthProvider>
