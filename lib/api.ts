@@ -286,8 +286,11 @@ export const overnightStaysApi = {
 
 // Notifications API
 export const notificationsApi = {
-  sendIndividual: (data: { student_no: string; title: string; content: string }) =>
-    apiPost<{ message: string }>("/api/notifications/individual", data),
+  sendIndividual: (data: {
+    student_no: string;
+    title: string;
+    content: string;
+  }) => apiPost<{ message: string }>("/api/notifications/individual", data),
 };
 
 // Auth API
@@ -325,14 +328,9 @@ export const authApi = {
   login: (redirectUrl: string = "/home") => {
     if (typeof window === "undefined") return;
 
-    // 프론트엔드 기준 베이스 URL (Android 등 환경에서 허용 도메인 강제)
-    const frontendBase =
-      (process.env.NEXT_PUBLIC_FRONTEND_BASE_URL as string | undefined) ||
-      window.location.origin;
-
     const fullRedirectUrl = redirectUrl.startsWith("http")
       ? redirectUrl
-      : `${frontendBase}${redirectUrl}`;
+      : `${window.location.origin}${redirectUrl}`;
 
     const loginUrl = `${API_BASE}/auth/login?redirect=${encodeURIComponent(
       fullRedirectUrl
