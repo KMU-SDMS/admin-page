@@ -325,9 +325,14 @@ export const authApi = {
   login: (redirectUrl: string = "/home") => {
     if (typeof window === "undefined") return;
 
+    // 프론트엔드 기준 베이스 URL (Android 등 환경에서 허용 도메인 강제)
+    const frontendBase =
+      (process.env.NEXT_PUBLIC_FRONTEND_BASE_URL as string | undefined) ||
+      window.location.origin;
+
     const fullRedirectUrl = redirectUrl.startsWith("http")
       ? redirectUrl
-      : `${window.location.origin}${redirectUrl}`;
+      : `${frontendBase}${redirectUrl}`;
 
     const loginUrl = `${API_BASE}/auth/login?redirect=${encodeURIComponent(
       fullRedirectUrl
