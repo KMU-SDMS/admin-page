@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Save, AlertCircle, Users } from "lucide-react";
+import { Save, AlertCircle, Users, RefreshCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -19,9 +19,17 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useToast } from "@/hooks/use-toast";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   AttendanceStatusButtons,
   type AttendanceStatus,
 } from "@/components/rollcall/attendance-status-buttons";
+import { CleaningStatusButtons } from "@/components/rollcall/cleaning-status-buttons";
 import type { Student, Rollcall, Room } from "@/lib/types";
 
 interface RollCallChecklistProps {
@@ -31,11 +39,14 @@ interface RollCallChecklistProps {
   isLoading: boolean;
   onUpdateRollcall: (data: any) => Promise<void>;
   selectedDate: string;
+  onRefresh?: () => void;
+  useExternalFilters?: boolean;
 }
 
 interface RollcallState {
   [studentId: number]: {
     present: boolean;
+    cleaningStatus: "PASS" | "FAIL" | "NONE";
     note: string;
     saving: boolean;
     error: string | null;
@@ -49,9 +60,28 @@ export function RollCallChecklist({
   isLoading,
   onUpdateRollcall,
   selectedDate,
+  onRefresh,
+  useExternalFilters = false,
 }: RollCallChecklistProps) {
   const { toast } = useToast();
   const [rollcallState, setRollcallState] = useState<RollcallState>({});
+  const [attendanceFilter, setAttendanceFilter] = useState<
+    "all" | "PRESENT" | "LEAVE" | "ABSENT"
+  >("all");
+  const [cleaningFilter, setCleaningFilter] = useState<
+    "all" | "PASS" | "FAIL" | "NONE"
+  >("all");
+
+  // 학생 식별자: id가 없으면 학번(숫자)으로 대체
+  const getStudentKey = (student: Student): number => {
+    const anyStudent = student as unknown as { id?: number };
+    if (typeof anyStudent.id === "number") return anyStudent.id;
+    const parsed =
+      typeof student.studentIdNum === "string"
+        ? Number.parseInt(student.studentIdNum, 10)
+        : Number(student.studentIdNum);
+    return Number.isFinite(parsed) ? parsed : -1;
+  };
 
   const getRollcallData = (studentId: number) => {
     const existing = rollcalls.find((r) => r.studentId === studentId);
@@ -59,6 +89,7 @@ export function RollCallChecklist({
 
     return {
       present: state?.present ?? existing?.present ?? false,
+      cleaningStatus: state?.cleaningStatus ?? existing?.cleaningStatus ?? "NONE",
       note: state?.note ?? existing?.note ?? "",
       saving: state?.saving ?? false,
       error: state?.error ?? null,
@@ -82,17 +113,20 @@ export function RollCallChecklist({
     student: Student,
     present: boolean,
     note: string,
-    status?: AttendanceStatus
+    status?: AttendanceStatus,
+    cleaningStatus?: "PASS" | "FAIL" | "NONE"
   ) => {
-    updateRollcallState(student.id, { saving: true, error: null });
+    const sid = getStudentKey(student);
+    updateRollcallState(sid, { saving: true, error: null });
 
     try {
       await onUpdateRollcall({
         date: selectedDate,
-        studentId: student.id,
+        studentId: sid,
         roomId: student.roomNumber,
         present,
         status,
+        cleaningStatus,
         note: note.trim() || undefined,
       });
 
@@ -101,11 +135,11 @@ export function RollCallChecklist({
         description: `${student.name} 학생의 출석 정보가 저장되었습니다.`,
       });
 
-      updateRollcallState(student.id, { saving: false });
+      updateRollcallState(sid, { saving: false });
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "저장에 실패했습니다.";
-      updateRollcallState(student.id, { saving: false, error: errorMessage });
+      updateRollcallState(sid, { saving: false, error: errorMessage });
 
       toast({
         title: "저장 실패",
@@ -116,8 +150,9 @@ export function RollCallChecklist({
   };
 
   const handlePresentChange = (student: Student, present: boolean) => {
-    const currentData = getRollcallData(student.id);
-    updateRollcallState(student.id, { present });
+    const sid = getStudentKey(student);
+    const currentData = getRollcallData(sid);
+    updateRollcallState(sid, { present });
     saveRollcall(student, present, currentData.note);
   };
 
@@ -125,7 +160,11 @@ export function RollCallChecklist({
     studentId: number,
     status: AttendanceStatus
   ) => {
-    const student = students.find((s) => s.id === studentId);
+    const student = students.find(
+      (s) =>
+        (s as any).id === studentId ||
+        Number.parseInt(String(s.studentIdNum), 10) === studentId
+    );
     if (!student) return;
 
     const present = status === "PRESENT";
@@ -133,14 +172,51 @@ export function RollCallChecklist({
     await saveRollcall(student, present, "", status);
   };
 
+  const handleCleaningChange = async (
+    studentId: number,
+    cleaningStatus: "PASS" | "FAIL" | "NONE"
+  ) => {
+    const student = students.find(
+      (s) =>
+        (s as any).id === studentId ||
+        Number.parseInt(String(s.studentIdNum), 10) === studentId
+    );
+    if (!student) return;
+
+    const currentData = getRollcallData(studentId);
+    updateRollcallState(studentId, { cleaningStatus });
+    await saveRollcall(student, currentData.present, currentData.note, undefined, cleaningStatus);
+  };
+
   const handleNoteChange = (studentId: number, note: string) => {
     updateRollcallState(studentId, { note });
   };
 
   const handleNoteSave = (student: Student) => {
-    const currentData = getRollcallData(student.id);
+    const currentData = getRollcallData(getStudentKey(student));
     saveRollcall(student, currentData.present, currentData.note);
   };
+
+  const getAttendanceStatus = (rc?: Rollcall): AttendanceStatus => {
+    if (rc?.status) return rc.status;
+    return rc?.present ? "PRESENT" : "ABSENT";
+  };
+
+  const filteredStudents = useExternalFilters
+    ? students
+    : students.filter((student) => {
+        const sid = getStudentKey(student);
+        const rc = rollcalls.find((r) => r.studentId === sid);
+        const attendance = getAttendanceStatus(rc);
+        const cleaning = rc?.cleaningStatus ?? "NONE";
+
+        const attendanceOk =
+          attendanceFilter === "all" ? true : attendance === attendanceFilter;
+        const cleaningOk =
+          cleaningFilter === "all" ? true : cleaning === cleaningFilter;
+
+        return attendanceOk && cleaningOk;
+      });
 
   const getStatusBadge = (status: Student["status"]) => {
     const variants = {
@@ -179,76 +255,235 @@ export function RollCallChecklist({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>출석 체크리스트 ({students.length}명)</CardTitle>
+        <div className="flex items-center">
+          <CardTitle>출석 체크리스트 ({filteredStudents.length}명)</CardTitle>
+          <div className="ml-auto flex items-center gap-3">
+            <div className="text-sm text-muted-foreground">총 {filteredStudents.length}명</div>
+            <Button
+              size="icon"
+              variant="outline"
+              className="h-8 w-8 rounded-full"
+              onClick={onRefresh}
+              disabled={isLoading || !onRefresh}
+              title="새로고침"
+            >
+              <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+            </Button>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
+        {/* 필터 박스 (외부 필터 사용 시 숨김) */}
+        {!useExternalFilters && (
+          <div className="flex items-center gap-4 mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">참석</span>
+              <Select
+                value={attendanceFilter}
+                onValueChange={(v) =>
+                  setAttendanceFilter(
+                    v as "all" | "PRESENT" | "LEAVE" | "ABSENT"
+                  )
+                }
+              >
+                <SelectTrigger className="w-[140px] h-9">
+                  <SelectValue placeholder="전체" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">전체</SelectItem>
+                  <SelectItem value="PRESENT">참석</SelectItem>
+                  <SelectItem value="LEAVE">외박</SelectItem>
+                  <SelectItem value="ABSENT">결석</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">청소</span>
+              <Select
+                value={cleaningFilter}
+                onValueChange={(v) =>
+                  setCleaningFilter(v as "all" | "PASS" | "FAIL" | "NONE")
+                }
+              >
+                <SelectTrigger className="w-[140px] h-9">
+                  <SelectValue placeholder="전체" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">전체</SelectItem>
+                  <SelectItem value="PASS">통과</SelectItem>
+                  <SelectItem value="FAIL">불통과</SelectItem>
+                  <SelectItem value="NONE">미실시</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        )}
+
         <div className="rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>학생명</TableHead>
-                <TableHead>학번</TableHead>
-                <TableHead>호실</TableHead>
-                <TableHead>상태</TableHead>
-                <TableHead>출석 상태 변경</TableHead>
-                <TableHead>비고</TableHead>
-                <TableHead>저장</TableHead>
+                <TableHead
+                  style={{
+                    fontSize: "var(--typography-label-1-normal-bold-fontSize)",
+                    fontWeight:
+                      "var(--typography-label-1-normal-bold-fontWeight)",
+                    lineHeight:
+                      "var(--typography-label-1-normal-bold-lineHeight)",
+                    letterSpacing:
+                      "var(--typography-label-1-normal-bold-letterSpacing)",
+                  }}
+                >
+                  학생명
+                </TableHead>
+                <TableHead
+                  style={{
+                    fontSize: "var(--typography-label-1-normal-bold-fontSize)",
+                    fontWeight:
+                      "var(--typography-label-1-normal-bold-fontWeight)",
+                    lineHeight:
+                      "var(--typography-label-1-normal-bold-lineHeight)",
+                    letterSpacing:
+                      "var(--typography-label-1-normal-bold-letterSpacing)",
+                  }}
+                >
+                  호실
+                </TableHead>
+                <TableHead
+                  style={{
+                    fontSize: "var(--typography-label-1-normal-bold-fontSize)",
+                    fontWeight:
+                      "var(--typography-label-1-normal-bold-fontWeight)",
+                    lineHeight:
+                      "var(--typography-label-1-normal-bold-lineHeight)",
+                    letterSpacing:
+                      "var(--typography-label-1-normal-bold-letterSpacing)",
+                  }}
+                >
+                  상태
+                </TableHead>
+                <TableHead
+                  style={{
+                    fontSize: "var(--typography-label-1-normal-bold-fontSize)",
+                    fontWeight:
+                      "var(--typography-label-1-normal-bold-fontWeight)",
+                    lineHeight:
+                      "var(--typography-label-1-normal-bold-lineHeight)",
+                    letterSpacing:
+                      "var(--typography-label-1-normal-bold-letterSpacing)",
+                  }}
+                >
+                  출석 상태 변경
+                </TableHead>
+                <TableHead
+                  style={{
+                    fontSize: "var(--typography-label-1-normal-bold-fontSize)",
+                    fontWeight:
+                      "var(--typography-label-1-normal-bold-fontWeight)",
+                    lineHeight:
+                      "var(--typography-label-1-normal-bold-lineHeight)",
+                    letterSpacing:
+                      "var(--typography-label-1-normal-bold-letterSpacing)",
+                  }}
+                >
+                  청소 점호
+                </TableHead>
+                <TableHead
+                  style={{
+                    fontSize: "var(--typography-label-1-normal-bold-fontSize)",
+                    fontWeight:
+                      "var(--typography-label-1-normal-bold-fontWeight)",
+                    lineHeight:
+                      "var(--typography-label-1-normal-bold-lineHeight)",
+                    letterSpacing:
+                      "var(--typography-label-1-normal-bold-letterSpacing)",
+                  }}
+                >
+                  비고
+                </TableHead>
+                <TableHead
+                  style={{
+                    fontSize: "var(--typography-label-1-normal-bold-fontSize)",
+                    fontWeight:
+                      "var(--typography-label-1-normal-bold-fontWeight)",
+                    lineHeight:
+                      "var(--typography-label-1-normal-bold-lineHeight)",
+                    letterSpacing:
+                      "var(--typography-label-1-normal-bold-letterSpacing)",
+                  }}
+                >
+                  저장
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {students.map((student) => {
+              {filteredStudents.map((student) => {
                 const room = rooms.find((r) => r.id === student.roomNumber);
-                const rollcallData = getRollcallData(student.id);
+                const sid = getStudentKey(student);
+                const rollcall = rollcalls.find((r) => r.studentId === sid);
+                const rollcallData = getRollcallData(sid);
+                const studentWithId = { ...(student as any), id: sid } as Student;
 
                 return (
-                  <TableRow key={student.id}>
-                    <TableCell className="font-medium">
+                  <TableRow key={sid}>
+                    <TableCell
+                      className="font-medium"
+                      style={{
+                        fontSize:
+                          "var(--typography-body-2-reading-bold-fontSize)",
+                        fontWeight:
+                          "var(--typography-body-2-reading-bold-fontWeight)",
+                        lineHeight:
+                          "var(--typography-body-2-reading-bold-lineHeight)",
+                        letterSpacing:
+                          "var(--typography-body-2-reading-bold-letterSpacing)",
+                      }}
+                    >
                       {student.name}
                     </TableCell>
-                    <TableCell>{student.studentIdNum}</TableCell>
-                    <TableCell>
+                    <TableCell
+                      style={{
+                        fontSize:
+                          "var(--typography-label-2-normal-medium-fontSize)",
+                        fontWeight:
+                          "var(--typography-label-2-normal-medium-fontWeight)",
+                        lineHeight:
+                          "var(--typography-label-2-normal-medium-lineHeight)",
+                        letterSpacing:
+                          "var(--typography-label-2-normal-medium-letterSpacing)",
+                      }}
+                    >
                       {room?.name || `호실 ${student.roomNumber}`}
                     </TableCell>
                     <TableCell>
                       {(() => {
-                        const rollcall = rollcalls.find(
-                          (r) => r.studentId === student.id
-                        );
-                        const currentStatus =
-                          rollcall?.status ||
-                          (rollcall?.present ? "PRESENT" : "ABSENT");
-
-                        const statusConfig = {
-                          PRESENT: {
-                            variant: "default" as const,
-                            label: "재실",
-                          },
-                          LEAVE: { variant: "outline" as const, label: "외박" },
-                          ABSENT: {
-                            variant: "destructive" as const,
-                            label: "결석",
-                          },
-                        };
-
+                        const currentStatus = getAttendanceStatus(rollcall);
                         const config =
-                          statusConfig[
-                            currentStatus as keyof typeof statusConfig
-                          ] || statusConfig.PRESENT;
-
-                        return (
-                          <Badge variant={config.variant}>{config.label}</Badge>
-                        );
+                          currentStatus === "PRESENT"
+                            ? { label: "참석", variant: "default" as const }
+                            : currentStatus === "LEAVE"
+                            ? { label: "외박", variant: "outline" as const }
+                            : { label: "결석", variant: "destructive" as const };
+                        return <Badge variant={config.variant}>{config.label}</Badge>;
                       })()}
                     </TableCell>
                     <TableCell>
                       <AttendanceStatusButtons
-                        student={student}
-                        rollcall={rollcalls.find(
-                          (r) => r.studentId === student.id
-                        )}
+                        student={studentWithId}
+                        rollcall={rollcall}
                         onStatusChange={handleStatusChange}
                         disabled={rollcallData.saving}
                         className="min-w-[150px] max-w-[180px]"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <CleaningStatusButtons
+                        student={studentWithId}
+                        rollcall={rollcall}
+                        onStatusChange={handleCleaningChange}
+                        disabled={rollcallData.saving}
+                        className="min-w-[170px] max-w-[200px]"
                       />
                     </TableCell>
                     <TableCell>
@@ -256,7 +491,7 @@ export function RollCallChecklist({
                         placeholder="비고 입력..."
                         value={rollcallData.note}
                         onChange={(e) =>
-                          handleNoteChange(student.id, e.target.value)
+                          handleNoteChange(sid, e.target.value)
                         }
                         className="w-40"
                         disabled={rollcallData.saving}

@@ -16,7 +16,7 @@ async function getStudents() {
 
 async function getRooms() {
   try {
-    return await api.get("/rooms");
+    return await api.rooms.getAll();
   } catch (error) {
     return [];
   }

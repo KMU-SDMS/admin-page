@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Users, Award } from "lucide-react";
+import { Users, Award, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import {
   AttendanceStatusButtons,
@@ -50,6 +50,25 @@ export function RoomGridView({
   const [pointScore, setPointScore] = useState("");
   const [pointReason, setPointReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+	const [collapsedFloors, setCollapsedFloors] = useState<Record<number, boolean>>({});
+
+	const toggleFloor = (floor: number) => {
+		setCollapsedFloors((prev) => ({
+			...prev,
+			[floor]: !prev[floor],
+		}));
+	};
+
+  // 학생 식별 키: id 우선, 없으면 학번 숫자 사용
+  const getStudentKey = (student: Student): number => {
+    const anyStudent = student as unknown as { id?: number };
+    if (typeof anyStudent.id === "number") return anyStudent.id;
+    const parsed =
+      typeof student.studentIdNum === "string"
+        ? Number.parseInt(student.studentIdNum, 10)
+        : Number(student.studentIdNum);
+    return Number.isFinite(parsed) ? parsed : -1;
+  };
 
   // 층별로 호실 그룹화
   const roomsByFloor = rooms.reduce((acc, room) => {
@@ -64,7 +83,8 @@ export function RoomGridView({
   const getRoomStats = (roomId: number) => {
     const roomStudents = students.filter((s) => s.roomNumber === roomId);
     const presentCount = roomStudents.filter((s) => {
-      const rollcall = rollcalls.find((r) => r.studentId === s.id);
+      const sid = getStudentKey(s);
+      const rollcall = rollcalls.find((r) => r.studentId === sid);
       return rollcall?.present;
     }).length;
 
@@ -98,7 +118,11 @@ export function RoomGridView({
     studentId: number,
     status: AttendanceStatus
   ) => {
-    const student = students.find((s) => s.id === studentId);
+    const student = students.find(
+      (s) =>
+        (s as any).id === studentId ||
+        Number.parseInt(String(s.studentIdNum), 10) === studentId
+    );
     if (!student) return;
 
     const present = status === "PRESENT";
@@ -164,63 +188,76 @@ export function RoomGridView({
     <>
       <div className="space-y-6">
         {Object.entries(roomsByFloor)
-          .sort(([a], [b]) => Number.parseInt(b) - Number.parseInt(a))
+          .sort(([a], [b]) => Number.parseInt(a) - Number.parseInt(b))
           .map(([floor, floorRooms]) => (
             <div key={floor} className="space-y-3">
-              <h3 className="text-responsive-lg font-semibold text-muted-foreground">
-                {floor}층
-              </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-2 sm:gap-3">
-                {floorRooms
-                  .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
-                  .map((room) => {
-                    const stats = getRoomStats(room.id);
-                    const attendanceRate =
-                      stats.total > 0 ? (stats.present / stats.total) * 100 : 0;
+							<button
+								type="button"
+								onClick={() => toggleFloor(Number(floor))}
+								className="flex items-center gap-2 text-left"
+							>
+								<ChevronDown
+									className={`h-4 w-4 transition-transform ${
+										collapsedFloors[Number(floor)] ? "-rotate-90" : "rotate-0"
+									}`}
+								/>
+								<span className="text-responsive-lg font-semibold text-muted-foreground">
+									{floor}층
+								</span>
+							</button>
+							{!collapsedFloors[Number(floor)] && (
+								<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-2 sm:gap-3">
+									{floorRooms
+										.sort((a, b) => a.id - b.id)
+										.map((room) => {
+											const stats = getRoomStats(room.id);
+											const attendanceRate =
+												stats.total > 0 ? (stats.present / stats.total) * 100 : 0;
 
-                    return (
-                      <Card
-                        key={room.id}
-                        className={`cursor-pointer transition-all hover:shadow-md ${
-                          attendanceRate === 100
-                            ? "bg-green-50 border-green-200 hover:bg-green-100"
-                            : attendanceRate > 0
-                            ? "bg-yellow-50 border-yellow-200 hover:bg-yellow-100"
-                            : "bg-red-50 border-red-200 hover:bg-red-100"
-                        }`}
-                        onClick={() => handleRoomClick(room)}
-                      >
-                        <CardContent className="p-3 text-center">
-                          <div className="font-semibold text-responsive-sm mb-1">
-                            {room.name}
-                          </div>
-                          <div className="flex items-center justify-center gap-1 text-responsive-xs text-muted-foreground mb-2">
-                            <Users className="h-3 w-3" />
-                            {stats.total}명
-                          </div>
-                          <div className="space-y-1">
-                            <Badge
-                              variant={
-                                stats.present > 0 ? "default" : "secondary"
-                              }
-                              className="text-responsive-xs px-1 py-0"
-                            >
-                              출석 {stats.present}
-                            </Badge>
-                            {stats.absent > 0 && (
-                              <Badge
-                                variant="destructive"
-                                className="text-responsive-xs px-1 py-0"
-                              >
-                                결석 {stats.absent}
-                              </Badge>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-              </div>
+											return (
+												<Card
+													key={room.id}
+													className={`cursor-pointer transition-all hover:shadow-md ${
+														attendanceRate === 100
+															? "bg-green-50 border-green-200 hover:bg-green-100"
+															: attendanceRate > 0
+															? "bg-yellow-50 border-yellow-200 hover:bg-yellow-100"
+															: "bg-red-50 border-red-200 hover:bg-red-100"
+													}`}
+													onClick={() => handleRoomClick(room)}
+												>
+													<CardContent className="p-3 text-center">
+														<div className="font-semibold text-responsive-sm mb-1">
+															{room.name}
+														</div>
+														<div className="flex items-center justify-center gap-1 text-responsive-xs text-muted-foreground mb-2">
+															<Users className="h-3 w-3" />
+															{stats.total}명
+														</div>
+														<div className="space-y-1">
+															<Badge
+																variant={
+																	stats.present > 0 ? "default" : "secondary"
+																}
+																className="text-responsive-xs px-1 py-0"
+															>
+																출석 {stats.present}
+															</Badge>
+															{stats.absent > 0 && (
+																<Badge
+																	variant="destructive"
+																	className="text-responsive-xs px-1 py-0"
+																>
+																	결석 {stats.absent}
+																</Badge>
+															)}
+														</div>
+													</CardContent>
+												</Card>
+											);
+										})}
+								</div>
+							)}
             </div>
           ))}
       </div>
@@ -241,21 +278,20 @@ export function RoomGridView({
               <h4 className="font-medium">학생 목록 및 출석 관리</h4>
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {selectedRoomStudents.map((student) => {
-                  const rollcall = rollcalls.find(
-                    (r) => r.studentId === student.id
-                  );
+                  const sid = getStudentKey(student);
+                  const rollcall = rollcalls.find((r) => r.studentId === sid);
                   const isPresent = rollcall?.present || false;
 
                   return (
                     <div
-                      key={student.id}
+                      key={sid}
                       className="flex items-center justify-between p-3 border rounded-lg"
                     >
                       <div className="flex items-center gap-3">
                         <Checkbox
-                          checked={selectedStudents.includes(student.id)}
+                          checked={selectedStudents.includes(sid)}
                           onCheckedChange={() =>
-                            toggleStudentSelection(student.id)
+                            toggleStudentSelection(sid)
                           }
                         />
                         <div className="flex items-center gap-2">
@@ -266,7 +302,7 @@ export function RoomGridView({
                             </div>
                           </div>
                           {(() => {
-                            const rollcall = getStudentRollcall(student.id);
+                            const rollcall = getStudentRollcall(sid);
                             const currentStatus =
                               rollcall?.status ||
                               (rollcall?.present ? "PRESENT" : "ABSENT");
@@ -302,8 +338,8 @@ export function RoomGridView({
 
                       <div className="flex flex-col gap-2">
                         <AttendanceStatusButtons
-                          student={student}
-                          rollcall={getStudentRollcall(student.id)}
+                          student={{ ...(student as any), id: sid } as Student}
+                          rollcall={getStudentRollcall(sid)}
                           onStatusChange={handleStatusChange}
                           className="min-w-[180px]"
                         />

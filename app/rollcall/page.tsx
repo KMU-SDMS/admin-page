@@ -5,11 +5,12 @@ import { Layout } from "@/components/layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api } from "@/lib/api";
+import { mockRollcalls } from "@/lib/mock-data";
 import { RollCallPageClient } from "./rollcall-page-client";
 
 async function getRooms() {
   try {
-    return await api.get("/rooms");
+    return await api.rooms.getAll();
   } catch (error) {
     return [];
   }
@@ -24,11 +25,8 @@ async function getStudents() {
 }
 
 async function getRollcalls() {
-  try {
-    return await api.get("/rollcalls");
-  } catch (error) {
-    return [];
-  }
+  // API 비연결: 목업 데이터 사용
+  return mockRollcalls;
 }
 
 export default async function RollCallPage() {
@@ -40,14 +38,6 @@ export default async function RollCallPage() {
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold">점호 관리</h1>
-          <p className="text-muted-foreground">
-            학생 출석 확인 및 상/벌점 관리
-          </p>
-        </div>
-
         <Suspense fallback={<div>Loading...</div>}>
           <RollCallPageClient
             initialRooms={rooms}
