@@ -98,7 +98,7 @@ export function NoticesPageClient() {
       params.status = statusFilter;
     }
 
-    // 중요공지 스위치는 필터가 아닌 정렬 용도이므로 API 파라미터로 보내지 않음
+    // 상단고정공지 스위치는 필터가 아닌 정렬 용도이므로 API 파라미터로 보내지 않음
 
     if (dateRange?.from) {
       params.start_date = format(dateRange.from, "yyyy-MM-dd");
@@ -113,7 +113,7 @@ export function NoticesPageClient() {
     }
 
     return params;
-  }, [currentPage, statusFilter, isImportantOnly, dateRange, debouncedSearch]);
+  }, [currentPage, statusFilter, dateRange, debouncedSearch]);
 
   const {
     data: notices,
@@ -162,12 +162,23 @@ export function NoticesPageClient() {
     return `${month}.${day} ${hours}:${minutes}`;
   };
 
-  // 클라이언트에서만 데이터 사용 + 중요공지 우선 정렬 옵션 적용
+  // 클라이언트에서만 데이터 사용 + 상단고정공지 우선 정렬 옵션 적용
   const displayNotices = useMemo(() => {
     if (!Array.isArray(notices)) return [];
-    if (!isImportantOnly) return notices;
+    // 체크 해제 시 원본 순서(API에서 받은 순서) 그대로 반환
+    if (!isImportantOnly) {
+      // 원본 배열을 복사하여 반환 (참조 문제 방지)
+      return [...notices];
+    }
+    // 체크 시 상단고정공지를 맨 위로 정렬
     const cloned = [...notices];
-    cloned.sort((a, b) => Number(b.is_important) - Number(a.is_important));
+    cloned.sort((a, b) => {
+      // 상단고정공지(is_important=true)를 맨 위로
+      if (a.is_important && !b.is_important) return -1;
+      if (!a.is_important && b.is_important) return 1;
+      // 둘 다 상단고정공지이거나 둘 다 일반공지인 경우 원본 순서 유지
+      return 0;
+    });
     return cloned;
   }, [notices, isImportantOnly]);
   const displayPageInfo = pageInfo;
@@ -399,7 +410,7 @@ export function NoticesPageClient() {
                     onCheckedChange={(checked) => setIsImportantOnly(checked)}
                   />
                   <Label className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]">
-                    중요공지 맨 앞
+                    상단고정공지 맨 위
                   </Label>
                 </div>
               </div>

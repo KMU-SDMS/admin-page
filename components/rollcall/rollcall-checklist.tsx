@@ -89,7 +89,8 @@ export function RollCallChecklist({
 
     return {
       present: state?.present ?? existing?.present ?? false,
-      cleaningStatus: state?.cleaningStatus ?? existing?.cleaningStatus ?? "NONE",
+      cleaningStatus:
+        state?.cleaningStatus ?? existing?.cleaningStatus ?? "NONE",
       note: state?.note ?? existing?.note ?? "",
       saving: state?.saving ?? false,
       error: state?.error ?? null,
@@ -185,7 +186,13 @@ export function RollCallChecklist({
 
     const currentData = getRollcallData(studentId);
     updateRollcallState(studentId, { cleaningStatus });
-    await saveRollcall(student, currentData.present, currentData.note, undefined, cleaningStatus);
+    await saveRollcall(
+      student,
+      currentData.present,
+      currentData.note,
+      undefined,
+      cleaningStatus
+    );
   };
 
   const handleNoteChange = (studentId: number, note: string) => {
@@ -258,7 +265,9 @@ export function RollCallChecklist({
         <div className="flex items-center">
           <CardTitle>출석 체크리스트 ({filteredStudents.length}명)</CardTitle>
           <div className="ml-auto flex items-center gap-3">
-            <div className="text-sm text-muted-foreground">총 {filteredStudents.length}명</div>
+            <div className="text-sm text-muted-foreground">
+              총 {filteredStudents.length}명
+            </div>
             <Button
               size="icon"
               variant="outline"
@@ -267,7 +276,9 @@ export function RollCallChecklist({
               disabled={isLoading || !onRefresh}
               title="새로고침"
             >
-              <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+              <RefreshCw
+                className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+              />
             </Button>
           </div>
         </div>
@@ -423,7 +434,10 @@ export function RollCallChecklist({
                 const sid = getStudentKey(student);
                 const rollcall = rollcalls.find((r) => r.studentId === sid);
                 const rollcallData = getRollcallData(sid);
-                const studentWithId = { ...(student as any), id: sid } as Student;
+                const studentWithId = {
+                  ...(student as any),
+                  id: sid,
+                } as Student;
 
                 return (
                   <TableRow key={sid}>
@@ -464,8 +478,13 @@ export function RollCallChecklist({
                             ? { label: "참석", variant: "default" as const }
                             : currentStatus === "LEAVE"
                             ? { label: "외박", variant: "outline" as const }
-                            : { label: "결석", variant: "destructive" as const };
-                        return <Badge variant={config.variant}>{config.label}</Badge>;
+                            : {
+                                label: "결석",
+                                variant: "destructive" as const,
+                              };
+                        return (
+                          <Badge variant={config.variant}>{config.label}</Badge>
+                        );
                       })()}
                     </TableCell>
                     <TableCell>
@@ -490,9 +509,7 @@ export function RollCallChecklist({
                       <Input
                         placeholder="비고 입력..."
                         value={rollcallData.note}
-                        onChange={(e) =>
-                          handleNoteChange(sid, e.target.value)
-                        }
+                        onChange={(e) => handleNoteChange(sid, e.target.value)}
                         className="w-40"
                         disabled={rollcallData.saving}
                       />

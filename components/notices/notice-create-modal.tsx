@@ -323,7 +323,7 @@ export function NoticeCreateModal({
                         letterSpacing: "0.252px",
                       }}
                     >
-                      중요 여부
+                      상단고정 여부
                     </span>
                     <div className="flex items-center space-x-2">
                       <Checkbox
@@ -345,7 +345,7 @@ export function NoticeCreateModal({
                           letterSpacing: "0.144px",
                         }}
                       >
-                        중요공지
+                        상단고정공지
                       </label>
                     </div>
                   </div>
@@ -527,7 +527,7 @@ export function NoticeCreateModal({
                   />
                 </div>
 
-                {/* 중요공지 체크박스 영역 */}
+                {/* 상단고정공지 체크박스 영역 */}
                 <div
                   className="px-6 py-4 border-b flex items-center space-x-2"
                   style={{

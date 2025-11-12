@@ -59,7 +59,7 @@ export function NoticePreviewModal({
 
   const getTargetBadge = () => {
     if (noticeData.is_important)
-      return <Badge variant="destructive">중요공지</Badge>;
+      return <Badge variant="destructive">상단고정공지</Badge>;
     return <Badge variant="default">일반공지</Badge>;
   };
 
@@ -241,7 +241,7 @@ export function NoticePreviewModal({
             pointerEvents: showScrollHeader ? "auto" : "none",
           }}
         >
-          {/* 중요공지 별 아이콘 */}
+          {/* 상단고정공지 별 아이콘 */}
           <div style={{ marginLeft: "32px" }}>
             {noticeData.is_important && (
               <Star
@@ -252,7 +252,7 @@ export function NoticePreviewModal({
             )}
           </div>
 
-          {/* 중요공지/일반공지 배지 */}
+          {/* 상단고정공지/일반공지 배지 */}
           <div style={{ marginLeft: "16px" }}>
             {noticeData.is_important ? (
               <div
@@ -276,7 +276,7 @@ export function NoticePreviewModal({
                     color: "var(--color-semantic-label-inverse)",
                   }}
                 >
-                  중요
+                  상단고정
                 </span>
               </div>
             ) : (
