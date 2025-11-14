@@ -18,6 +18,13 @@ function buildRooms(): Room[] {
     });
 }
 
+export async function generateStaticParams() {
+  const rooms = buildRooms();
+  return rooms.map((room) => ({
+    id: String(room.id),
+  }));
+}
+
 export async function GET(
   _req: Request,
   context: { params: { id: string } }
