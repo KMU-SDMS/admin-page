@@ -25,7 +25,7 @@ export function RecentNoticesList({
 }: RecentNoticesListProps) {
   const getTargetBadge = (notice: Notice) => {
     if (notice.is_important)
-      return <Badge variant="destructive">상단고정공지</Badge>;
+      return <Badge variant="destructive">상단 고정</Badge>;
     return <Badge variant="default">일반공지</Badge>;
   };
 

@@ -226,7 +226,6 @@ export function NoticeCreateModal({
             </Button>
           </div>
         </DialogHeader>
-
         {/* 내용 영역 */}
         <div className="overflow-y-auto h-[calc(100%-48px-72px)] w-full">
           <form onSubmit={handleSubmit} className="h-full flex flex-col">
@@ -348,76 +347,6 @@ export function NoticeCreateModal({
                         상단고정공지
                       </label>
                     </div>
-                  </div>
-
-                  {/* 대상 */}
-                  <div
-                    className="h-[44px] flex items-center px-6 border-b"
-                    style={{
-                      borderBottomColor:
-                        "var(--color-semantic-line-normal-normal)",
-                    }}
-                  >
-                    <span
-                      className="w-[80px] flex-shrink-0"
-                      style={{
-                        color: "var(--color-semantic-label-neutral)",
-                        fontSize: "13px",
-                        fontWeight: 500,
-                        fontFamily: "Pretendard",
-                        lineHeight: "18.005px",
-                        letterSpacing: "0.252px",
-                      }}
-                    >
-                      대상
-                    </span>
-                    <span
-                      style={{
-                        color: "var(--color-semantic-label-normal)",
-                        fontSize: "15px",
-                        fontWeight: 500,
-                        fontFamily: "Pretendard",
-                        lineHeight: "24px",
-                        letterSpacing: "0.144px",
-                      }}
-                    >
-                      전체
-                    </span>
-                  </div>
-
-                  {/* 첨부 */}
-                  <div
-                    className="h-[44px] flex items-center px-6 border-b"
-                    style={{
-                      borderBottomColor:
-                        "var(--color-semantic-line-normal-normal)",
-                    }}
-                  >
-                    <span
-                      className="w-[80px] flex-shrink-0"
-                      style={{
-                        color: "var(--color-semantic-label-neutral)",
-                        fontSize: "13px",
-                        fontWeight: 500,
-                        fontFamily: "Pretendard",
-                        lineHeight: "18.005px",
-                        letterSpacing: "0.252px",
-                      }}
-                    >
-                      첨부
-                    </span>
-                    <span
-                      style={{
-                        color: "var(--color-semantic-label-normal)",
-                        fontSize: "15px",
-                        fontWeight: 500,
-                        fontFamily: "Pretendard",
-                        lineHeight: "24px",
-                        letterSpacing: "0.144px",
-                      }}
-                    >
-                      없음
-                    </span>
                   </div>
 
                   {/* 제목 */}
@@ -554,7 +483,7 @@ export function NoticeCreateModal({
                       letterSpacing: "0.144px",
                     }}
                   >
-                    중요공지
+                    상단 고정
                   </label>
                 </div>
 

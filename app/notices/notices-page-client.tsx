@@ -19,7 +19,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Switch } from "@/components/ui/switch";
 import {
   Popover,
   PopoverContent,
@@ -55,7 +54,6 @@ export function NoticesPageClient() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [statusFilter, setStatusFilter] = useState<NoticeStatus[]>([]);
-  const [isImportantOnly, setIsImportantOnly] = useState(true);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -77,12 +75,11 @@ export function NoticesPageClient() {
     const sortedStatuses = [...statusFilter].sort();
     return JSON.stringify({
       statuses: sortedStatuses,
-      important: isImportantOnly,
       start: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : null,
       end: dateRange?.to ? format(dateRange.to, "yyyy-MM-dd") : null,
       search: debouncedSearch,
     });
-  }, [statusFilter, isImportantOnly, dateRange, debouncedSearch]);
+  }, [statusFilter, dateRange, debouncedSearch]);
 
   useEffect(() => {
     setCurrentPage((prev) => (prev === 1 ? prev : 1));
@@ -97,8 +94,6 @@ export function NoticesPageClient() {
     if (statusFilter.length > 0) {
       params.status = statusFilter;
     }
-
-    // 상단고정공지 스위치는 필터가 아닌 정렬 용도이므로 API 파라미터로 보내지 않음
 
     if (dateRange?.from) {
       params.start_date = format(dateRange.from, "yyyy-MM-dd");
@@ -162,25 +157,12 @@ export function NoticesPageClient() {
     return `${month}.${day} ${hours}:${minutes}`;
   };
 
-  // 클라이언트에서만 데이터 사용 + 상단고정공지 우선 정렬 옵션 적용
+  // 클라이언트에서만 데이터 사용
   const displayNotices = useMemo(() => {
     if (!Array.isArray(notices)) return [];
-    // 체크 해제 시 원본 순서(API에서 받은 순서) 그대로 반환
-    if (!isImportantOnly) {
-      // 원본 배열을 복사하여 반환 (참조 문제 방지)
-      return [...notices];
-    }
-    // 체크 시 상단고정공지를 맨 위로 정렬
-    const cloned = [...notices];
-    cloned.sort((a, b) => {
-      // 상단고정공지(is_important=true)를 맨 위로
-      if (a.is_important && !b.is_important) return -1;
-      if (!a.is_important && b.is_important) return 1;
-      // 둘 다 상단고정공지이거나 둘 다 일반공지인 경우 원본 순서 유지
-      return 0;
-    });
-    return cloned;
-  }, [notices, isImportantOnly]);
+    // 원본 배열을 복사하여 반환 (참조 문제 방지)
+    return [...notices];
+  }, [notices]);
   const displayPageInfo = pageInfo;
   const totalItems = displayPageInfo?.total_notice || 0;
   const totalPages = displayPageInfo?.total_page || 1;
@@ -379,39 +361,6 @@ export function NoticesPageClient() {
                     </div>
                     <Check className="h-4 w-4 text-muted-foreground" />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="scheduled"
-                        checked={statusFilter.includes("SCHEDULED")}
-                        onCheckedChange={(checked) =>
-                          handleStatusToggle("SCHEDULED", checked)
-                        }
-                      />
-                      <Label
-                        htmlFor="scheduled"
-                        className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]"
-                      >
-                        작성 예약
-                      </Label>
-                    </div>
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t" />
-
-              {/* Toggle Options */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Switch
-                    checked={isImportantOnly}
-                    onCheckedChange={(checked) => setIsImportantOnly(checked)}
-                  />
-                  <Label className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]">
-                    상단고정공지 맨 위
-                  </Label>
                 </div>
               </div>
 
@@ -516,22 +465,6 @@ export function NoticesPageClient() {
                       작성자/작성일
                     </TableHead>
                     <TableHead
-                      className="hidden xl:table-cell"
-                      style={{
-                        paddingTop: "14px",
-                        paddingBottom: "14px",
-                        paddingLeft: "19.5px",
-                        paddingRight: "19.5px",
-                        fontSize: "14px",
-                        fontWeight: 700,
-                        lineHeight: "20.006px",
-                        letterSpacing: "0.203px",
-                        color: "#16161d",
-                      }}
-                    >
-                      조회 현황
-                    </TableHead>
-                    <TableHead
                       className="w-24"
                       style={{
                         paddingTop: "14px",
@@ -552,7 +485,7 @@ export function NoticesPageClient() {
                 <TableBody style={{ marginTop: "8px" }}>
                   {noticesLoading ? (
                     <TableRow style={{ height: "76px", borderBottom: "none" }}>
-                      <TableCell colSpan={5} className="text-center">
+                      <TableCell colSpan={4} className="text-center">
                         <LoadingSpinner />
                       </TableCell>
                     </TableRow>
@@ -674,12 +607,6 @@ export function NoticesPageClient() {
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell className="hidden xl:table-cell">
-                            <div className="text-sm">3/45명 미읽음</div>
-                            <div className="text-xs text-muted-foreground">
-                              96%
-                            </div>
-                          </TableCell>
                           <TableCell>
                             <Button
                               variant="ghost"
@@ -699,7 +626,7 @@ export function NoticesPageClient() {
                           key={`empty-${i}`}
                           style={{ height: "76px", borderBottom: "none" }}
                         >
-                          <TableCell colSpan={5}></TableCell>
+                          <TableCell colSpan={4}></TableCell>
                         </TableRow>
                       ))}
                     </>
@@ -709,7 +636,7 @@ export function NoticesPageClient() {
                         style={{ height: "76px", borderBottom: "none" }}
                       >
                         <TableCell
-                          colSpan={5}
+                          colSpan={4}
                           className="text-center text-muted-foreground"
                         >
                           공지사항이 없습니다.
@@ -720,7 +647,7 @@ export function NoticesPageClient() {
                           key={`empty-${i}`}
                           style={{ height: "76px", borderBottom: "none" }}
                         >
-                          <TableCell colSpan={5}></TableCell>
+                          <TableCell colSpan={4}></TableCell>
                         </TableRow>
                       ))}
                     </>
