@@ -185,7 +185,7 @@ export function RoomGridView({
   }, [rollcalls]);
 
   return (
-    <>
+    <div className="w-full h-full overflow-auto">
       <div className="space-y-6">
         {Object.entries(roomsByFloor)
           .sort(([a], [b]) => Number.parseInt(a) - Number.parseInt(b))
@@ -428,6 +428,6 @@ export function RoomGridView({
           </div>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }

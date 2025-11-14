@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Save, AlertCircle, Users, RefreshCw } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Save, AlertCircle, Users } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -11,7 +10,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,12 +23,145 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  AttendanceStatusButtons,
-  type AttendanceStatus,
-} from "@/components/rollcall/attendance-status-buttons";
-import { CleaningStatusButtons } from "@/components/rollcall/cleaning-status-buttons";
+import type { AttendanceStatus } from "@/components/rollcall/attendance-status-buttons";
 import type { Student, Rollcall, Room } from "@/lib/types";
+
+// 출석 상태 드롭다운 컴포넌트
+function AttendanceStatusDropdown({
+  student,
+  rollcall,
+  onStatusChange,
+  disabled = false,
+}: {
+  student: Student;
+  rollcall?: Rollcall;
+  onStatusChange: (studentId: number, status: AttendanceStatus) => void;
+  disabled?: boolean;
+}) {
+  const getAttendanceStatus = (rc?: Rollcall): AttendanceStatus => {
+    if (rc?.status) return rc.status;
+    return rc?.present ? "PRESENT" : "ABSENT";
+  };
+
+  const currentStatus = getAttendanceStatus(rollcall);
+
+  const statusOptions: { value: AttendanceStatus; label: string }[] = [
+    {
+      value: "PRESENT",
+      label: "재실",
+    },
+    {
+      value: "LEAVE",
+      label: "외박",
+    },
+    {
+      value: "ABSENT",
+      label: "결석",
+    },
+  ];
+
+  const getCurrentStatusColor = (status: AttendanceStatus) => {
+    switch (status) {
+      case "PRESENT":
+        return "border-green-600 text-green-700 dark:text-green-300 dark:border-green-400";
+      case "LEAVE":
+        return "border-yellow-600 text-yellow-700 dark:text-yellow-300 dark:border-yellow-400";
+      case "ABSENT":
+        return "border-red-600 text-red-700 dark:text-red-300 dark:border-red-400";
+    }
+  };
+
+  return (
+    <Select
+      value={currentStatus}
+      onValueChange={(value) => onStatusChange(student.id, value as AttendanceStatus)}
+      disabled={disabled}
+    >
+      <SelectTrigger
+        className={`w-[150px] h-8 ${getCurrentStatusColor(currentStatus)}`}
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {statusOptions.map((option) => (
+          <SelectItem
+            key={option.value}
+            value={option.value}
+          >
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+// 청소 점호 드롭다운 컴포넌트
+function CleaningStatusDropdown({
+  student,
+  rollcall,
+  onStatusChange,
+  disabled = false,
+}: {
+  student: Student;
+  rollcall?: Rollcall;
+  onStatusChange: (studentId: number, status: "PASS" | "FAIL" | "NONE") => void;
+  disabled?: boolean;
+}) {
+  type CleaningStatus = "PASS" | "FAIL" | "NONE";
+  
+  const currentStatus: CleaningStatus = rollcall?.cleaningStatus ?? "NONE";
+
+  const statusOptions: { value: CleaningStatus; label: string }[] = [
+    {
+      value: "PASS",
+      label: "통과",
+    },
+    {
+      value: "FAIL",
+      label: "불통과",
+    },
+    {
+      value: "NONE",
+      label: "미실시",
+    },
+  ];
+
+  const getCurrentStatusColor = (status: CleaningStatus) => {
+    switch (status) {
+      case "PASS":
+        return "border-green-600 text-green-700 dark:text-green-300 dark:border-green-400";
+      case "FAIL":
+        return "border-red-600 text-red-700 dark:text-red-300 dark:border-red-400";
+      case "NONE":
+        return "border-slate-600 text-slate-700 dark:text-slate-300 dark:border-slate-400";
+    }
+  };
+
+  return (
+    <Select
+      value={currentStatus}
+      onValueChange={(value) => onStatusChange(student.id, value as CleaningStatus)}
+      disabled={disabled}
+    >
+      <SelectTrigger
+        className={`w-[150px] h-8 ${getCurrentStatusColor(currentStatus)}`}
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {statusOptions.map((option) => (
+          <SelectItem
+            key={option.value}
+            value={option.value}
+          >
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
 
 interface RollCallChecklistProps {
   students: Student[];
@@ -237,316 +368,294 @@ export function RollCallChecklist({
 
   if (isLoading) {
     return (
-      <Card>
-        <CardContent className="flex items-center justify-center py-12">
-          <LoadingSpinner size="lg" />
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center py-12">
+        <LoadingSpinner size="lg" />
+      </div>
     );
   }
 
   if (students.length === 0) {
     return (
-      <Card>
-        <CardContent>
-          <EmptyState
-            title="학생이 없습니다"
-            description="선택한 조건에 해당하는 학생이 없습니다."
-            icon={<Users className="h-12 w-12" />}
-          />
-        </CardContent>
-      </Card>
+      <div>
+        <EmptyState
+          title="학생이 없습니다"
+          description="선택한 조건에 해당하는 학생이 없습니다."
+          icon={<Users className="h-12 w-12" />}
+        />
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center">
-          <CardTitle>출석 체크리스트 ({filteredStudents.length}명)</CardTitle>
-          <div className="ml-auto flex items-center gap-3">
-            <div className="text-sm text-muted-foreground">
-              총 {filteredStudents.length}명
-            </div>
-            <Button
-              size="icon"
-              variant="outline"
-              className="h-8 w-8 rounded-full"
-              onClick={onRefresh}
-              disabled={isLoading || !onRefresh}
-              title="새로고침"
+    <div className="w-full h-full flex flex-col">
+      {/* 필터 박스 (외부 필터 사용 시 숨김) */}
+      {!useExternalFilters && (
+        <div className="flex items-center gap-4 mb-4 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">참석</span>
+            <Select
+              value={attendanceFilter}
+              onValueChange={(v) =>
+                setAttendanceFilter(
+                  v as "all" | "PRESENT" | "LEAVE" | "ABSENT"
+                )
+              }
             >
-              <RefreshCw
-                className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
-              />
-            </Button>
+              <SelectTrigger className="w-[140px] h-9">
+                <SelectValue placeholder="전체" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">전체</SelectItem>
+                <SelectItem value="PRESENT">참석</SelectItem>
+                <SelectItem value="LEAVE">외박</SelectItem>
+                <SelectItem value="ABSENT">결석</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">청소</span>
+            <Select
+              value={cleaningFilter}
+              onValueChange={(v) =>
+                setCleaningFilter(v as "all" | "PASS" | "FAIL" | "NONE")
+              }
+            >
+              <SelectTrigger className="w-[140px] h-9">
+                <SelectValue placeholder="전체" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">전체</SelectItem>
+                <SelectItem value="PASS">통과</SelectItem>
+                <SelectItem value="FAIL">불통과</SelectItem>
+                <SelectItem value="NONE">미실시</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
-      </CardHeader>
-      <CardContent>
-        {/* 필터 박스 (외부 필터 사용 시 숨김) */}
-        {!useExternalFilters && (
-          <div className="flex items-center gap-4 mb-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">참석</span>
-              <Select
-                value={attendanceFilter}
-                onValueChange={(v) =>
-                  setAttendanceFilter(
-                    v as "all" | "PRESENT" | "LEAVE" | "ABSENT"
-                  )
-                }
+      )}
+
+      <div className="rounded-md border flex-1 overflow-auto">
+        <Table className="w-full">
+          <TableHeader>
+            <TableRow>
+              <TableHead
+                className="px-4 py-3"
+                style={{
+                  fontSize: "var(--typography-label-1-normal-bold-fontSize)",
+                  fontWeight:
+                    "var(--typography-label-1-normal-bold-fontWeight)",
+                  lineHeight:
+                    "var(--typography-label-1-normal-bold-lineHeight)",
+                  letterSpacing:
+                    "var(--typography-label-1-normal-bold-letterSpacing)",
+                }}
               >
-                <SelectTrigger className="w-[140px] h-9">
-                  <SelectValue placeholder="전체" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">전체</SelectItem>
-                  <SelectItem value="PRESENT">참석</SelectItem>
-                  <SelectItem value="LEAVE">외박</SelectItem>
-                  <SelectItem value="ABSENT">결석</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">청소</span>
-              <Select
-                value={cleaningFilter}
-                onValueChange={(v) =>
-                  setCleaningFilter(v as "all" | "PASS" | "FAIL" | "NONE")
-                }
+                학생명
+              </TableHead>
+              <TableHead
+                className="px-4 py-3"
+                style={{
+                  fontSize: "var(--typography-label-1-normal-bold-fontSize)",
+                  fontWeight:
+                    "var(--typography-label-1-normal-bold-fontWeight)",
+                  lineHeight:
+                    "var(--typography-label-1-normal-bold-lineHeight)",
+                  letterSpacing:
+                    "var(--typography-label-1-normal-bold-letterSpacing)",
+                }}
               >
-                <SelectTrigger className="w-[140px] h-9">
-                  <SelectValue placeholder="전체" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">전체</SelectItem>
-                  <SelectItem value="PASS">통과</SelectItem>
-                  <SelectItem value="FAIL">불통과</SelectItem>
-                  <SelectItem value="NONE">미실시</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        )}
+                호실
+              </TableHead>
+              <TableHead
+                className="px-4 py-3"
+                style={{
+                  fontSize: "var(--typography-label-1-normal-bold-fontSize)",
+                  fontWeight:
+                    "var(--typography-label-1-normal-bold-fontWeight)",
+                  lineHeight:
+                    "var(--typography-label-1-normal-bold-lineHeight)",
+                  letterSpacing:
+                    "var(--typography-label-1-normal-bold-letterSpacing)",
+                }}
+              >
+                상태
+              </TableHead>
+              <TableHead
+                className="px-4 py-3"
+                style={{
+                  fontSize: "var(--typography-label-1-normal-bold-fontSize)",
+                  fontWeight:
+                    "var(--typography-label-1-normal-bold-fontWeight)",
+                  lineHeight:
+                    "var(--typography-label-1-normal-bold-lineHeight)",
+                  letterSpacing:
+                    "var(--typography-label-1-normal-bold-letterSpacing)",
+                }}
+              >
+                출석 상태 변경
+              </TableHead>
+              <TableHead
+                className="px-4 py-3"
+                style={{
+                  fontSize: "var(--typography-label-1-normal-bold-fontSize)",
+                  fontWeight:
+                    "var(--typography-label-1-normal-bold-fontWeight)",
+                  lineHeight:
+                    "var(--typography-label-1-normal-bold-lineHeight)",
+                  letterSpacing:
+                    "var(--typography-label-1-normal-bold-letterSpacing)",
+                }}
+              >
+                청소 점호
+              </TableHead>
+              <TableHead
+                className="px-4 py-3"
+                style={{
+                  fontSize: "var(--typography-label-1-normal-bold-fontSize)",
+                  fontWeight:
+                    "var(--typography-label-1-normal-bold-fontWeight)",
+                  lineHeight:
+                    "var(--typography-label-1-normal-bold-lineHeight)",
+                  letterSpacing:
+                    "var(--typography-label-1-normal-bold-letterSpacing)",
+                }}
+              >
+                비고
+              </TableHead>
+              <TableHead
+                className="px-4 py-3"
+                style={{
+                  fontSize: "var(--typography-label-1-normal-bold-fontSize)",
+                  fontWeight:
+                    "var(--typography-label-1-normal-bold-fontWeight)",
+                  lineHeight:
+                    "var(--typography-label-1-normal-bold-lineHeight)",
+                  letterSpacing:
+                    "var(--typography-label-1-normal-bold-letterSpacing)",
+                }}
+              >
+                저장
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredStudents.map((student) => {
+              const room = rooms.find((r) => r.id === student.roomNumber);
+              const sid = getStudentKey(student);
+              const rollcall = rollcalls.find((r) => r.studentId === sid);
+              const rollcallData = getRollcallData(sid);
+              const studentWithId = {
+                ...(student as any),
+                id: sid,
+              } as Student;
 
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead
-                  style={{
-                    fontSize: "var(--typography-label-1-normal-bold-fontSize)",
-                    fontWeight:
-                      "var(--typography-label-1-normal-bold-fontWeight)",
-                    lineHeight:
-                      "var(--typography-label-1-normal-bold-lineHeight)",
-                    letterSpacing:
-                      "var(--typography-label-1-normal-bold-letterSpacing)",
-                  }}
-                >
-                  학생명
-                </TableHead>
-                <TableHead
-                  style={{
-                    fontSize: "var(--typography-label-1-normal-bold-fontSize)",
-                    fontWeight:
-                      "var(--typography-label-1-normal-bold-fontWeight)",
-                    lineHeight:
-                      "var(--typography-label-1-normal-bold-lineHeight)",
-                    letterSpacing:
-                      "var(--typography-label-1-normal-bold-letterSpacing)",
-                  }}
-                >
-                  호실
-                </TableHead>
-                <TableHead
-                  style={{
-                    fontSize: "var(--typography-label-1-normal-bold-fontSize)",
-                    fontWeight:
-                      "var(--typography-label-1-normal-bold-fontWeight)",
-                    lineHeight:
-                      "var(--typography-label-1-normal-bold-lineHeight)",
-                    letterSpacing:
-                      "var(--typography-label-1-normal-bold-letterSpacing)",
-                  }}
-                >
-                  상태
-                </TableHead>
-                <TableHead
-                  style={{
-                    fontSize: "var(--typography-label-1-normal-bold-fontSize)",
-                    fontWeight:
-                      "var(--typography-label-1-normal-bold-fontWeight)",
-                    lineHeight:
-                      "var(--typography-label-1-normal-bold-lineHeight)",
-                    letterSpacing:
-                      "var(--typography-label-1-normal-bold-letterSpacing)",
-                  }}
-                >
-                  출석 상태 변경
-                </TableHead>
-                <TableHead
-                  style={{
-                    fontSize: "var(--typography-label-1-normal-bold-fontSize)",
-                    fontWeight:
-                      "var(--typography-label-1-normal-bold-fontWeight)",
-                    lineHeight:
-                      "var(--typography-label-1-normal-bold-lineHeight)",
-                    letterSpacing:
-                      "var(--typography-label-1-normal-bold-letterSpacing)",
-                  }}
-                >
-                  청소 점호
-                </TableHead>
-                <TableHead
-                  style={{
-                    fontSize: "var(--typography-label-1-normal-bold-fontSize)",
-                    fontWeight:
-                      "var(--typography-label-1-normal-bold-fontWeight)",
-                    lineHeight:
-                      "var(--typography-label-1-normal-bold-lineHeight)",
-                    letterSpacing:
-                      "var(--typography-label-1-normal-bold-letterSpacing)",
-                  }}
-                >
-                  비고
-                </TableHead>
-                <TableHead
-                  style={{
-                    fontSize: "var(--typography-label-1-normal-bold-fontSize)",
-                    fontWeight:
-                      "var(--typography-label-1-normal-bold-fontWeight)",
-                    lineHeight:
-                      "var(--typography-label-1-normal-bold-lineHeight)",
-                    letterSpacing:
-                      "var(--typography-label-1-normal-bold-letterSpacing)",
-                  }}
-                >
-                  저장
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredStudents.map((student) => {
-                const room = rooms.find((r) => r.id === student.roomNumber);
-                const sid = getStudentKey(student);
-                const rollcall = rollcalls.find((r) => r.studentId === sid);
-                const rollcallData = getRollcallData(sid);
-                const studentWithId = {
-                  ...(student as any),
-                  id: sid,
-                } as Student;
-
-                return (
-                  <TableRow key={sid}>
-                    <TableCell
-                      className="font-medium"
-                      style={{
-                        fontSize:
-                          "var(--typography-body-2-reading-bold-fontSize)",
-                        fontWeight:
-                          "var(--typography-body-2-reading-bold-fontWeight)",
-                        lineHeight:
-                          "var(--typography-body-2-reading-bold-lineHeight)",
-                        letterSpacing:
-                          "var(--typography-body-2-reading-bold-letterSpacing)",
-                      }}
-                    >
-                      {student.name}
-                    </TableCell>
-                    <TableCell
-                      style={{
-                        fontSize:
-                          "var(--typography-label-2-normal-medium-fontSize)",
-                        fontWeight:
-                          "var(--typography-label-2-normal-medium-fontWeight)",
-                        lineHeight:
-                          "var(--typography-label-2-normal-medium-lineHeight)",
-                        letterSpacing:
-                          "var(--typography-label-2-normal-medium-letterSpacing)",
-                      }}
-                    >
-                      {room?.name || `호실 ${student.roomNumber}`}
-                    </TableCell>
-                    <TableCell>
-                      {(() => {
-                        const currentStatus = getAttendanceStatus(rollcall);
-                        const config =
-                          currentStatus === "PRESENT"
-                            ? { label: "참석", variant: "default" as const }
-                            : currentStatus === "LEAVE"
-                            ? { label: "외박", variant: "outline" as const }
-                            : {
-                                label: "결석",
-                                variant: "destructive" as const,
-                              };
-                        return (
-                          <Badge variant={config.variant}>{config.label}</Badge>
-                        );
-                      })()}
-                    </TableCell>
-                    <TableCell>
-                      <AttendanceStatusButtons
-                        student={studentWithId}
-                        rollcall={rollcall}
-                        onStatusChange={handleStatusChange}
-                        disabled={rollcallData.saving}
-                        className="min-w-[150px] max-w-[180px]"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <CleaningStatusButtons
-                        student={studentWithId}
-                        rollcall={rollcall}
-                        onStatusChange={handleCleaningChange}
-                        disabled={rollcallData.saving}
-                        className="min-w-[170px] max-w-[200px]"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        placeholder="비고 입력..."
-                        value={rollcallData.note}
-                        onChange={(e) => handleNoteChange(sid, e.target.value)}
-                        className="w-40"
-                        disabled={rollcallData.saving}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {rollcallData.saving ? (
-                          <LoadingSpinner size="sm" />
-                        ) : rollcallData.error ? (
-                          <div className="flex items-center gap-1">
-                            <AlertCircle className="h-4 w-4 text-destructive" />
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleNoteSave(student)}
-                            >
-                              재시도
-                            </Button>
-                          </div>
-                        ) : (
+              return (
+                <TableRow key={sid}>
+                  <TableCell
+                    className="font-medium px-4 py-3"
+                    style={{
+                      fontSize:
+                        "var(--typography-body-2-reading-bold-fontSize)",
+                      fontWeight:
+                        "var(--typography-body-2-reading-bold-fontWeight)",
+                      lineHeight:
+                        "var(--typography-body-2-reading-bold-lineHeight)",
+                      letterSpacing:
+                        "var(--typography-body-2-reading-bold-letterSpacing)",
+                    }}
+                  >
+                    {student.name}
+                  </TableCell>
+                  <TableCell
+                    className="px-4 py-3"
+                    style={{
+                      fontSize:
+                        "var(--typography-label-2-normal-medium-fontSize)",
+                      fontWeight:
+                        "var(--typography-label-2-normal-medium-fontWeight)",
+                      lineHeight:
+                        "var(--typography-label-2-normal-medium-lineHeight)",
+                      letterSpacing:
+                        "var(--typography-label-2-normal-medium-letterSpacing)",
+                    }}
+                  >
+                    {room?.name || `${student.roomNumber}호`}
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
+                    {(() => {
+                      const currentStatus = getAttendanceStatus(rollcall);
+                      const config =
+                        currentStatus === "PRESENT"
+                          ? { label: "참석", variant: "default" as const }
+                          : currentStatus === "LEAVE"
+                          ? { label: "외박", variant: "outline" as const }
+                          : {
+                              label: "결석",
+                              variant: "destructive" as const,
+                            };
+                      return (
+                        <Badge variant={config.variant}>{config.label}</Badge>
+                      );
+                    })()}
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
+                    <AttendanceStatusDropdown
+                      student={studentWithId}
+                      rollcall={rollcall}
+                      onStatusChange={handleStatusChange}
+                      disabled={rollcallData.saving}
+                    />
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
+                    <CleaningStatusDropdown
+                      student={studentWithId}
+                      rollcall={rollcall}
+                      onStatusChange={handleCleaningChange}
+                      disabled={rollcallData.saving}
+                    />
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
+                    <Input
+                      placeholder="비고 입력..."
+                      value={rollcallData.note}
+                      onChange={(e) => handleNoteChange(sid, e.target.value)}
+                      className="w-40"
+                      disabled={rollcallData.saving}
+                    />
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      {rollcallData.saving ? (
+                        <LoadingSpinner size="sm" />
+                      ) : rollcallData.error ? (
+                        <div className="flex items-center gap-1">
+                          <AlertCircle className="h-4 w-4 text-destructive" />
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => handleNoteSave(student)}
                           >
-                            <Save className="h-4 w-4" />
+                            재시도
                           </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+                        </div>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleNoteSave(student)}
+                        >
+                          <Save className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
   );
 }

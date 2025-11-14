@@ -3,7 +3,6 @@
 import { useState, useMemo } from "react";
 import { Users as UsersIcon, Award, RefreshCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRooms } from "@/hooks/use-rooms";
 import { useStudents } from "@/hooks/use-students";
 import { Input } from "@/components/ui/input";
@@ -41,6 +40,7 @@ export function RollCallPageClient({
   const [nameSearch, setNameSearch] = useState("");
   const [unconfirmedOnly, setUnconfirmedOnly] = useState(false);
   const [mobileTab, setMobileTab] = useState<"student" | "room">("student");
+  const [desktopTab, setDesktopTab] = useState<"student" | "room">("student");
 
   const { data: rooms, isLoading: roomsLoading } = useRooms();
   const {
@@ -74,6 +74,17 @@ export function RollCallPageClient({
   const getAttendanceStatus = (rc?: Rollcall) => {
     if (rc?.status) return rc.status;
     return rc?.present ? "PRESENT" : "ABSENT";
+  };
+
+  // 학생 식별자: id가 없으면 학번(숫자)으로 대체
+  const getStudentKey = (student: any): number => {
+    const anyStudent = student as unknown as { id?: number };
+    if (typeof anyStudent.id === "number") return anyStudent.id;
+    const parsed =
+      typeof student.studentIdNum === "string"
+        ? Number.parseInt(student.studentIdNum, 10)
+        : Number(student.studentIdNum);
+    return Number.isFinite(parsed) ? parsed : -1;
   };
 
   const filteredStudents = useMemo(() => {
@@ -384,54 +395,57 @@ export function RollCallPageClient({
     );
   }
 
+  // 호실별 필터링된 호실 목록 계산
+  const filteredRooms = useMemo(() => {
+    return displayRooms.filter((room) => {
+      const roomStudents = displayStudents.filter((s) => s.roomNumber === room.id);
+      
+      // 참석 상태 필터
+      if (attendanceFilter !== "all") {
+        const hasMatchingAttendance = roomStudents.some((student) => {
+          const sid = getStudentKey(student);
+          const rc = displayRollcalls.find((r) => r.studentId === sid);
+          const status = rc?.status ?? (rc?.present ? "PRESENT" : "ABSENT");
+          return status === attendanceFilter;
+        });
+        if (!hasMatchingAttendance) return false;
+      }
+
+      // 청소 점호 필터
+      if (cleaningFilter !== "all") {
+        const hasMatchingCleaning = roomStudents.some((student) => {
+          const sid = getStudentKey(student);
+          const rc = displayRollcalls.find((r) => r.studentId === sid);
+          return (rc?.cleaningStatus ?? "NONE") === cleaningFilter;
+        });
+        if (!hasMatchingCleaning) return false;
+      }
+
+      return true;
+    });
+  }, [displayRooms, displayStudents, displayRollcalls, attendanceFilter, cleaningFilter]);
+
   return (
-    <Tabs defaultValue="student" className="spacing-normal viewport-fill">
-      <TabsList className="mx-5 mt-4 w-fit">
-        <TabsTrigger value="student">학생별</TabsTrigger>
-        <TabsTrigger value="room">호실별</TabsTrigger>
-      </TabsList>
-
-      <TabsContent value="room" className="viewport-fill-content">
-        <Card className="viewport-fill">
-          <CardHeader className="padding-compact flex-shrink-0">
-            <CardTitle className="text-responsive-sm">
-              호실별 점호 현황
-            </CardTitle>
-            <p className="text-responsive-xs text-muted-foreground">
-              호실을 클릭하여 학생 출석을 확인할 수 있습니다.
-            </p>
-          </CardHeader>
-          <CardContent className="padding-compact viewport-fill-content">
-            <RoomGridView
-              rooms={displayRooms}
-              students={displayStudents}
-              rollcalls={displayRollcalls}
-              selectedDate={selectedDate}
-              onUpdateRollcall={mutateRollcallLocal}
-            />
-          </CardContent>
-        </Card>
-      </TabsContent>
-
-      <TabsContent value="student" className="viewport-fill-content">
-        <div
-          className="flex flex-col h-full"
-          style={{
-            backgroundColor: "var(--color-background-normal-alternative)",
-          }}
-        >
-          <div className="flex items-center px-20 pt-[48px]">
-            <h1
-              style={{
-                color: "var(--color-label-normal)",
-                fontSize: "var(--typography-title-2-bold-fontSize)",
-                fontWeight: "var(--typography-title-2-bold-fontWeight)",
-                lineHeight: "var(--typography-title-2-bold-lineHeight)",
-                letterSpacing: "var(--typography-title-2-bold-letterSpacing)",
-              }}
-            >
-              점호 관리
-            </h1>
+    <div className="spacing-normal viewport-fill">
+      <div
+        className="flex flex-col h-full viewport-fill-content"
+        style={{
+          backgroundColor: "var(--color-background-normal-alternative)",
+        }}
+      >
+        <div className="flex items-center px-20 pt-[48px]">
+          <h1
+            style={{
+              color: "var(--color-label-normal)",
+              fontSize: "var(--typography-title-2-bold-fontSize)",
+              fontWeight: "var(--typography-title-2-bold-fontWeight)",
+              lineHeight: "var(--typography-title-2-bold-lineHeight)",
+              letterSpacing: "var(--typography-title-2-bold-letterSpacing)",
+            }}
+          >
+            점호 관리
+          </h1>
+          {desktopTab === "student" && (
             <div className="flex items-center gap-2 w-[614px] h-[48px] ml-[161px]">
               <Input
                 placeholder="학생 이름 검색"
@@ -444,90 +458,123 @@ export function RollCallPageClient({
                 onChange={(event) => setNameSearch(event.target.value)}
               />
             </div>
-          </div>
+          )}
+        </div>
 
-          <div className="flex flex-col lg:flex-row gap-20 flex-1 min-h-0 px-20 pb-[30px] pt-4">
-            <div className="w-[176px] flex-shrink-0">
-              <div className="flex items-center gap-[10px]">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handleRefresh}
-                  disabled={isRefreshing}
-                  className="h-[32px] w-[32px] rounded-full flex-shrink-0"
-                >
-                  <RefreshCw
-                    className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
-                  />
-                </Button>
-                <div
-                  style={{
-                    color: "var(--color-label-normal)",
-                    fontSize: "var(--typography-body-1-normal-bold-fontSize)",
-                    fontWeight:
-                      "var(--typography-body-1-normal-bold-fontWeight)",
-                    lineHeight:
-                      "var(--typography-body-1-normal-bold-lineHeight)",
-                    letterSpacing:
-                      "var(--typography-body-1-normal-bold-letterSpacing)",
-                  }}
-                >
-                  총 {filteredStudents.length}명
-                </div>
+        <div className="flex flex-col lg:flex-row gap-20 flex-1 min-h-0 px-20 pb-[30px] pt-4">
+          <div className="w-[176px] flex-shrink-0">
+            <div className="flex items-center gap-[10px]">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="h-[32px] w-[32px] rounded-full flex-shrink-0"
+              >
+                <RefreshCw
+                  className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+                />
+              </Button>
+              <div
+                style={{
+                  color: "var(--color-label-normal)",
+                  fontSize: "var(--typography-body-1-normal-bold-fontSize)",
+                  fontWeight:
+                    "var(--typography-body-1-normal-bold-fontWeight)",
+                  lineHeight:
+                    "var(--typography-body-1-normal-bold-lineHeight)",
+                  letterSpacing:
+                    "var(--typography-body-1-normal-bold-letterSpacing)",
+                }}
+              >
+                {desktopTab === "student"
+                  ? `총 ${filteredStudents.length}명`
+                  : `총 ${filteredRooms.length}개 호실`}
               </div>
-
-              <Card className="w-[176px] h-[300px] mt-4 bg-transparent border-none shadow-none">
-                <CardContent className="px-4 space-y-6 overflow-y-auto h-full">
-                  <div className="space-y-2">
-                    <Label className="text-[14px] font-bold leading-[20.006px] tracking-[0.203px]">
-                      참석 상태
-                    </Label>
-                    <Select
-                      value={attendanceFilter}
-                      onValueChange={(v) =>
-                        setAttendanceFilter(
-                          v as "all" | "PRESENT" | "LEAVE" | "ABSENT"
-                        )
-                      }
-                    >
-                      <SelectTrigger className="h-[32px]">
-                        <SelectValue placeholder="전체" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">전체</SelectItem>
-                        <SelectItem value="PRESENT">참석</SelectItem>
-                        <SelectItem value="LEAVE">외박</SelectItem>
-                        <SelectItem value="ABSENT">결석</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-[14px] font-bold leading-[20.006px] tracking-[0.203px]">
-                      청소 점호
-                    </Label>
-                    <Select
-                      value={cleaningFilter}
-                      onValueChange={(v) =>
-                        setCleaningFilter(v as "all" | "PASS" | "FAIL" | "NONE")
-                      }
-                    >
-                      <SelectTrigger className="h-[32px]">
-                        <SelectValue placeholder="전체" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">전체</SelectItem>
-                        <SelectItem value="PASS">통과</SelectItem>
-                        <SelectItem value="FAIL">불통과</SelectItem>
-                        <SelectItem value="NONE">미실시</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
 
-            <div className="flex-1 min-h-0">
+            <Card className="w-[176px] mt-4 bg-transparent border-none shadow-none">
+              <CardContent className="px-4 space-y-6 overflow-y-auto">
+                {/* 학생별/호실별 탭 */}
+                <div className="space-y-2">
+                  <Label className="text-[14px] font-bold leading-[20.006px] tracking-[0.203px]">
+                    보기 방식
+                  </Label>
+                  <div className="flex gap-1 p-1 bg-muted rounded-md">
+                    <button
+                      onClick={() => setDesktopTab("student")}
+                      className={`flex-1 px-3 py-1.5 text-sm font-medium rounded transition-colors ${
+                        desktopTab === "student"
+                          ? "bg-background text-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      학생별
+                    </button>
+                    <button
+                      onClick={() => setDesktopTab("room")}
+                      className={`flex-1 px-3 py-1.5 text-sm font-medium rounded transition-colors ${
+                        desktopTab === "room"
+                          ? "bg-background text-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      호실별
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[14px] font-bold leading-[20.006px] tracking-[0.203px]">
+                    참석 상태
+                  </Label>
+                  <Select
+                    value={attendanceFilter}
+                    onValueChange={(v) =>
+                      setAttendanceFilter(
+                        v as "all" | "PRESENT" | "LEAVE" | "ABSENT"
+                      )
+                    }
+                  >
+                    <SelectTrigger className="h-[32px]">
+                      <SelectValue placeholder="전체" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">전체</SelectItem>
+                      <SelectItem value="PRESENT">참석</SelectItem>
+                      <SelectItem value="LEAVE">외박</SelectItem>
+                      <SelectItem value="ABSENT">결석</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[14px] font-bold leading-[20.006px] tracking-[0.203px]">
+                    청소 점호
+                  </Label>
+                  <Select
+                    value={cleaningFilter}
+                    onValueChange={(v) =>
+                      setCleaningFilter(v as "all" | "PASS" | "FAIL" | "NONE")
+                    }
+                  >
+                    <SelectTrigger className="h-[32px]">
+                      <SelectValue placeholder="전체" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">전체</SelectItem>
+                      <SelectItem value="PASS">통과</SelectItem>
+                      <SelectItem value="FAIL">불통과</SelectItem>
+                      <SelectItem value="NONE">미실시</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="w-[1187px] h-[938px] overflow-hidden">
+            {desktopTab === "student" ? (
               <RollCallChecklist
                 students={filteredStudents}
                 rollcalls={displayRollcalls}
@@ -538,10 +585,18 @@ export function RollCallPageClient({
                 onRefresh={handleRefresh}
                 useExternalFilters
               />
-            </div>
+            ) : (
+              <RoomGridView
+                rooms={filteredRooms}
+                students={displayStudents}
+                rollcalls={displayRollcalls}
+                selectedDate={selectedDate}
+                onUpdateRollcall={mutateRollcallLocal}
+              />
+            )}
           </div>
         </div>
-      </TabsContent>
-    </Tabs>
+      </div>
+    </div>
   );
 }

@@ -29,7 +29,7 @@ const navigation = [
     icon: Moon,
   },
   {
-    name: "점호 관리",
+    name: "점호 관리(미완)",
     href: "/rollcall",
     icon: Users,
   },
