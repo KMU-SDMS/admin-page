@@ -5,6 +5,7 @@ import type {
   OvernightStayPaginatedResponse,
   OvernightStayQuery,
   OvernightStayStatusUpdateRequest,
+  Room,
   Student,
 } from "./types";
 import { toast } from "sonner";
@@ -255,8 +256,8 @@ export const studentsApi = {
 
 // Rooms API
 export const roomsApi = {
-  getAll: () => apiGet<any[]>("/api/rooms"),
-  getById: (id: number) => apiGet<any>(`/api/rooms/${id}`),
+  getAll: () => apiGet<Room[]>("/api/rooms"),
+  getById: (id: number) => apiGet<Room>(`/api/rooms/${id}`),
 };
 
 // Inquiries API
