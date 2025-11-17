@@ -14,8 +14,8 @@ export function useRooms() {
       setIsLoading(true);
       setError(null);
 
-      // API 호출
-      const rooms = await api.get<Room[]>("/rooms");
+      // API 호출 - /api/rooms 사용
+      const rooms = await api.rooms.getAll();
       setData(rooms);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch rooms");

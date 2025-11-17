@@ -21,6 +21,7 @@ export interface Rollcall {
   studentId: number;
   present: boolean;
   status?: "PRESENT" | "LEAVE" | "ABSENT";
+  cleaningStatus?: "PASS" | "FAIL" | "NONE";
   checkedAt?: string;
   checker?: string;
   note?: string;

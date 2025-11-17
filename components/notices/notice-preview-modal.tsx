@@ -51,15 +51,15 @@ export function NoticePreviewModal({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  // 스크롤 감지 - 정보 컨테이너(264px)가 모두 사라졌을 때 고정 헤더 표시
+  // 스크롤 감지 - 정보 컨테이너(132px)가 모두 사라졌을 때 고정 헤더 표시
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.currentTarget;
-    setShowScrollHeader(target.scrollTop >= 264);
+    setShowScrollHeader(target.scrollTop >= 132);
   };
 
   const getTargetBadge = () => {
     if (noticeData.is_important)
-      return <Badge variant="destructive">중요공지</Badge>;
+      return <Badge variant="destructive">상단 고정</Badge>;
     return <Badge variant="default">일반공지</Badge>;
   };
 
@@ -241,7 +241,7 @@ export function NoticePreviewModal({
             pointerEvents: showScrollHeader ? "auto" : "none",
           }}
         >
-          {/* 중요공지 별 아이콘 */}
+          {/* 상단고정공지 별 아이콘 */}
           <div style={{ marginLeft: "32px" }}>
             {noticeData.is_important && (
               <Star
@@ -252,7 +252,7 @@ export function NoticePreviewModal({
             )}
           </div>
 
-          {/* 중요공지/일반공지 배지 */}
+          {/* 상단고정공지/일반공지 배지 */}
           <div style={{ marginLeft: "16px" }}>
             {noticeData.is_important ? (
               <div
@@ -276,7 +276,7 @@ export function NoticePreviewModal({
                     color: "var(--color-semantic-label-inverse)",
                   }}
                 >
-                  중요
+                  상단 고정
                 </span>
               </div>
             ) : (
@@ -345,47 +345,13 @@ export function NoticePreviewModal({
               · {new Date(noticeData.date).toLocaleDateString("ko-KR")}
             </span>
           </div>
-
-          {/* 조회 현황 */}
-          <div style={{ marginLeft: "auto", marginRight: "32px" }}>
-            <div
-              style={{
-                width: "124px",
-                height: "24px",
-                backgroundColor: "var(--color-semantic-fill-normal)",
-                borderRadius: "32px",
-                display: "flex",
-                alignItems: "center",
-                paddingLeft: "6px",
-                paddingRight: "8px",
-                gap: "2px",
-              }}
-            >
-              <User
-                className="w-3.5 h-3.5"
-                style={{ color: "var(--color-semantic-label-alternative)" }}
-              />
-              <span
-                style={{
-                  fontSize: "var(--typography-caption-1-medium-fontSize)",
-                  fontWeight: "var(--typography-caption-1-medium-fontWeight)",
-                  lineHeight: "var(--typography-caption-1-medium-lineHeight)",
-                  letterSpacing:
-                    "var(--typography-caption-1-medium-letterSpacing)",
-                  color: "var(--color-semantic-label-alternative)",
-                }}
-              >
-                45명중 3명 안읽음
-              </span>
-            </div>
-          </div>
         </div>
         <div
           className="overflow-y-auto h-[calc(100%-48px)] w-full"
           onScroll={handleScroll}
         >
-          {/* 정보 컨테이너 - 264px */}
-          <div className="h-[264px] w-full">
+          {/* 정보 컨테이너 */}
+          <div className="w-full">
             {/* 작성자 */}
             <div
               className="h-[44px] flex items-center px-6 border-b"
@@ -485,108 +451,6 @@ export function NoticePreviewModal({
                 }}
               >
                 {getTargetBadge()}
-              </span>
-            </div>
-
-            {/* 대상 */}
-            <div
-              className="h-[44px] flex items-center px-6 border-b"
-              style={{
-                borderBottomColor: "var(--color-semantic-line-normal-normal)",
-              }}
-            >
-              <span
-                className="w-[80px] flex-shrink-0"
-                style={{
-                  color: "var(--color-semantic-label-neutral)",
-                  fontSize: "13px",
-                  fontWeight: 500,
-                  fontFamily: "Pretendard",
-                  lineHeight: "18.005px",
-                  letterSpacing: "0.252px",
-                }}
-              >
-                대상
-              </span>
-              <span
-                style={{
-                  color: "var(--color-semantic-label-normal)",
-                  fontSize: "15px",
-                  fontWeight: 500,
-                  fontFamily: "Pretendard",
-                  lineHeight: "24px",
-                  letterSpacing: "0.144px",
-                }}
-              >
-                전체
-              </span>
-            </div>
-
-            {/* 첨부 */}
-            <div
-              className="h-[44px] flex items-center px-6 border-b"
-              style={{
-                borderBottomColor: "var(--color-semantic-line-normal-normal)",
-              }}
-            >
-              <span
-                className="w-[80px] flex-shrink-0"
-                style={{
-                  color: "var(--color-semantic-label-neutral)",
-                  fontSize: "13px",
-                  fontWeight: 500,
-                  fontFamily: "Pretendard",
-                  lineHeight: "18.005px",
-                  letterSpacing: "0.252px",
-                }}
-              >
-                첨부
-              </span>
-              <span
-                style={{
-                  color: "var(--color-semantic-label-normal)",
-                  fontSize: "15px",
-                  fontWeight: 500,
-                  fontFamily: "Pretendard",
-                  lineHeight: "24px",
-                  letterSpacing: "0.144px",
-                }}
-              >
-                없음
-              </span>
-            </div>
-
-            {/* 조회 */}
-            <div
-              className="h-[44px] flex items-center px-6 border-b"
-              style={{
-                borderBottomColor: "var(--color-semantic-line-normal-normal)",
-              }}
-            >
-              <span
-                className="w-[80px] flex-shrink-0"
-                style={{
-                  color: "var(--color-semantic-label-neutral)",
-                  fontSize: "13px",
-                  fontWeight: 500,
-                  fontFamily: "Pretendard",
-                  lineHeight: "18.005px",
-                  letterSpacing: "0.252px",
-                }}
-              >
-                조회
-              </span>
-              <span
-                style={{
-                  color: "var(--color-semantic-label-normal)",
-                  fontSize: "15px",
-                  fontWeight: 500,
-                  fontFamily: "Pretendard",
-                  lineHeight: "24px",
-                  letterSpacing: "0.144px",
-                }}
-              >
-                0회
               </span>
             </div>
           </div>

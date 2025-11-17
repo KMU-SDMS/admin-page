@@ -32,6 +32,7 @@ export function useRollcalls(params: RollcallQuery = {}) {
       studentId: number;
       present: boolean;
       status?: "PRESENT" | "LEAVE" | "ABSENT";
+      cleaningStatus?: "PASS" | "FAIL" | "NONE";
     }
   ) => {
     try {
