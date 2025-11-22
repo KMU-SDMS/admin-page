@@ -25,7 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { roomsApi, studentsApi } from "@/lib/api";
+import { roomsApi, studentsApi, billsApi } from "@/lib/api";
 import { useIsMobile } from "@/hooks/use-viewport";
 import {
   Popover,
@@ -47,6 +47,8 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { request } from "@/lib/api";
+import type { CalendarSchedule } from "@/lib/types";
+
 type PresignResponse = { url: string; headers: Record<string, string> };
 type DownloadResponse = { url: string };
 
@@ -55,8 +57,9 @@ interface BillRecord {
   roomNumber: string;
   studentName: string;
   paymentDate: string | null;
-  status: "paid" | "unpaid";
+  status: "paid" | "partial" | "unpaid";
   floor: number;
+  hasUploadedImages: boolean;
 }
 
 export function BillPageClient() {
@@ -212,27 +215,210 @@ export function BillPageClient() {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const [rooms, students] = await Promise.all([
+        
+        // 1. 캘린더 일정 조회 (전체)
+        const schedules = await request<CalendarSchedule[]>("/api/calendar").catch(() => []);
+        
+        // 2. 현재 선택된 연/월에 해당하는 일정 찾기
+        // paymentType이 있는 일정을 우선적으로 찾고, 그 중 가장 늦은 날짜를 선택
+        const targetSchedule = schedules
+          .filter(s => {
+            const sDate = new Date(s.date);
+            return (
+              sDate.getFullYear() === selectedYear && 
+              (sDate.getMonth() + 1) === selectedMonth &&
+              s.paymentType !== null // 관리비 관련 일정만 필터링
+            );
+          })
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+
+        let endDate: string;
+        
+        if (targetSchedule) {
+          // 캘린더에서 찾은 일정의 날짜를 사용
+          endDate = targetSchedule.date;
+          console.log(`[BillPage] 캘린더 일정 기반 종료일 설정: ${endDate} (유형: ${targetSchedule.paymentType})`);
+        } else {
+          // 일정이 없으면 기존 로직대로 해당 월의 마지막 날짜 사용
+          const lastDay = new Date(selectedYear, selectedMonth, 0).getDate();
+          endDate = `${selectedYear}-${String(selectedMonth).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+          console.log(`[BillPage] 해당 월(${selectedMonth}월)에 관리비 일정이 없어 기본 종료일 설정: ${endDate}`);
+        }
+
+        const [rooms, students, billsData] = await Promise.all([
           roomsApi.getAll(),
           studentsApi.getAll(),
+          billsApi.getBills(endDate),
         ]);
 
         // 호실별 학생 매핑
-        const studentMap = new Map(students.map((s) => [s.roomNumber, s.name]));
+        const studentMap = new Map(
+          students.map((s) => [s.roomNumber, { name: s.name, studentIdNum: s.studentIdNum }])
+        );
 
-        // BillRecord 생성 (임시로 랜덤 납부 상태 생성)
-        const records: BillRecord[] = rooms.map((room) => {
-          const status = Math.random() > 0.3 ? "paid" : "unpaid";
-          return {
-            id: room.id,
-            roomNumber: String(room.id),
-            studentName: studentMap.get(room.id) || "-",
-            paymentDate: status === "paid" ? "2025.12.05" : null,
-            status,
-            floor: Math.floor(room.id / 100),
-          };
+        // 각 학생의 관리비 조회
+        const recordsPromises = rooms.map(async (room) => {
+          const studentInfo = studentMap.get(room.id);
+          if (!studentInfo) {
+            // 학생 정보가 없어도 이미지 업로드 여부는 확인
+            const imageQuery = (type: "water" | "gas" | "electricity") =>
+              `/api/bill/image?roomId=${encodeURIComponent(String(room.id))}` +
+              `&type=${encodeURIComponent(type)}` +
+              `&year=${encodeURIComponent(String(selectedYear))}` +
+              `&month=${encodeURIComponent(String(selectedMonth))}`;
+
+            const checkImageExists = async (type: "water" | "gas" | "electricity"): Promise<boolean> => {
+              try {
+                const response = await request<DownloadResponse>(imageQuery(type), {
+                  cache: "no-store",
+                  skipAuthErrorHandling: true,
+                });
+                const exists = !!(response?.url);
+                if (exists) {
+                  console.log(`[${room.id}] ${type} 이미지 존재:`, response?.url);
+                }
+                return exists;
+              } catch (error: any) {
+                // 404나 다른 에러는 이미지가 없다는 의미
+                const is404 = error?.message?.includes("404") || error?.message?.includes("HTTP 404");
+                if (!is404) {
+                  console.warn(`[${room.id}] ${type} 이미지 확인 중 에러:`, error?.message);
+                }
+                return false;
+              }
+            };
+
+            const [hasElectricity, hasWater, hasGas] = await Promise.all([
+              checkImageExists("electricity"),
+              checkImageExists("water"),
+              checkImageExists("gas"),
+            ]);
+
+            const hasUploadedImages = hasElectricity || hasWater || hasGas;
+            
+            console.log(`[${room.id}] 이미지 업로드 여부:`, {
+              hasElectricity,
+              hasWater,
+              hasGas,
+              hasUploadedImages,
+            });
+
+            return {
+              id: room.id,
+              roomNumber: String(room.id),
+              studentName: "-",
+              paymentDate: null,
+              status: "unpaid" as const,
+              floor: Math.floor(room.id / 100),
+              hasUploadedImages,
+            };
+          }
+
+          try {
+            // 전체 관리비 데이터에서 해당 학생의 관리비 찾기
+            const bills = billsData[studentInfo.studentIdNum] || [];
+            
+            // 납부 상태 결정: 모두 true면 "paid", 모두 false면 "unpaid", 아니면 "partial"
+            let status: "paid" | "partial" | "unpaid";
+            
+            if (bills.length === 0) {
+              // 관리비 항목이 없는 경우
+              status = "unpaid";
+            } else {
+              const allPaid = bills.every((bill) => bill.is_paid);
+              const allUnpaid = bills.every((bill) => !bill.is_paid);
+              
+              if (allPaid) {
+                // 모든 항목이 납부된 경우
+                status = "paid";
+              } else if (allUnpaid) {
+                // 모든 항목이 미납부인 경우
+                status = "unpaid";
+              } else {
+                // 일부만 납부된 경우
+                status = "partial";
+              }
+            }
+            
+            // 가장 최근 납부일 찾기 (납부된 항목 중)
+            const paidBills = bills.filter((bill) => bill.is_paid);
+            const latestPaidDate = paidBills.length > 0
+              ? paidBills.reduce((latest, bill) => {
+                  const billDate = new Date(bill.endDate);
+                  const latestDate = new Date(latest.endDate);
+                  return billDate > latestDate ? bill : latest;
+                }, paidBills[0])
+              : null;
+
+            // 날짜 포맷팅 (YYYY-MM-DD -> YYYY.MM.DD)
+            const formattedDate = latestPaidDate
+              ? latestPaidDate.endDate.replace(/-/g, ".")
+              : null;
+
+            // 이미지 업로드 여부 확인
+            const imageQuery = (type: "water" | "gas" | "electricity") =>
+              `/api/bill/image?roomId=${encodeURIComponent(String(room.id))}` +
+              `&type=${encodeURIComponent(type)}` +
+              `&year=${encodeURIComponent(String(selectedYear))}` +
+              `&month=${encodeURIComponent(String(selectedMonth))}`;
+
+            const checkImageExists = async (type: "water" | "gas" | "electricity"): Promise<boolean> => {
+              try {
+                const response = await request<DownloadResponse>(imageQuery(type), {
+                  cache: "no-store",
+                  skipAuthErrorHandling: true,
+                });
+                return !!(response?.url);
+              } catch (error: any) {
+                // 404나 다른 에러는 이미지가 없다는 의미
+                if (error?.message?.includes("404") || error?.message?.includes("HTTP 404")) {
+                  return false;
+                }
+                // 다른 에러도 false로 처리 (네트워크 에러 등)
+                return false;
+              }
+            };
+
+            const [hasElectricity, hasWater, hasGas] = await Promise.all([
+              checkImageExists("electricity"),
+              checkImageExists("water"),
+              checkImageExists("gas"),
+            ]);
+
+            // 하나라도 이미지가 업로드되어 있으면 true
+            const hasUploadedImages = hasElectricity || hasWater || hasGas;
+            
+            console.log(`[${room.id}] 이미지 업로드 여부:`, {
+              hasElectricity,
+              hasWater,
+              hasGas,
+              hasUploadedImages,
+            });
+
+            return {
+              id: room.id,
+              roomNumber: String(room.id),
+              studentName: studentInfo.name,
+              paymentDate: formattedDate,
+              status,
+              floor: Math.floor(room.id / 100),
+              hasUploadedImages,
+            };
+          } catch (error) {
+            console.error(`학생 ${studentInfo.studentIdNum}의 관리비 조회 실패:`, error);
+            return {
+              id: room.id,
+              roomNumber: String(room.id),
+              studentName: studentInfo.name,
+              paymentDate: null,
+              status: "unpaid" as const,
+              floor: Math.floor(room.id / 100),
+              hasUploadedImages: false,
+            };
+          }
         });
 
+        const records = await Promise.all(recordsPromises);
         setBillRecords(records);
       } catch (error) {
         console.error("데이터 로딩 실패:", error);
@@ -242,7 +428,7 @@ export function BillPageClient() {
     };
 
     fetchData();
-  }, []);
+  }, [selectedYear, selectedMonth]);
 
   const formatDate = (dateString: string) => {
     return dateString;
@@ -250,11 +436,26 @@ export function BillPageClient() {
 
   // 필터링된 데이터
   const filteredRecords = billRecords.filter((record) => {
-    // 상태 필터: 납부완료, 미납부
-    const isPaid = record.status === "paid";
-    const isUnpaid = record.status === "unpaid";
+    // 모바일: 이미지 업로드 여부 기반 필터링
+    // 데스크탑: 납부 상태 기반 필터링
+    let statusMatch: boolean;
+    
+    if (isMobile) {
+      // 모바일에서는 이미지 업로드 여부로 필터링
+      const hasUploaded = record.hasUploadedImages;
+      statusMatch = 
+        (filterPaid && hasUploaded) || 
+        (filterUnpaid && !hasUploaded);
+    } else {
+      // 데스크탑에서는 납부 상태로 필터링
+      const isPaid = record.status === "paid";
+      const isPartial = record.status === "partial";
+      const isUnpaid = record.status === "unpaid";
 
-    const statusMatch = (filterPaid && isPaid) || (filterUnpaid && isUnpaid);
+      statusMatch = 
+        (filterPaid && (isPaid || isPartial)) || 
+        (filterUnpaid && (isUnpaid || isPartial));
+    }
 
     // 층 필터
     const floorMatch = isMobile
@@ -400,12 +601,56 @@ export function BillPageClient() {
               key={record.id}
               className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-4"
             >
-              <div>
+              <div className="flex-1">
                 <div className="text-[20px] font-extrabold leading-6 text-[#16161d]">
                   {record.roomNumber}호
                 </div>
-                <div className="mt-1 text-[16px] font-semibold text-[#39394e] opacity-80">
-                  {record.studentName}
+                <div className="mt-1 flex items-center gap-2">
+                  <div className="text-[16px] font-semibold text-[#39394e] opacity-80">
+                    {record.studentName}
+                  </div>
+                  {record.status === "paid" && (
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        fontWeight: 600,
+                        padding: "2px 8px",
+                        borderRadius: "12px",
+                        backgroundColor: "#10b981",
+                        color: "#ffffff",
+                      }}
+                    >
+                      납부완료
+                    </span>
+                  )}
+                  {record.status === "partial" && (
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        fontWeight: 600,
+                        padding: "2px 8px",
+                        borderRadius: "12px",
+                        backgroundColor: "#f59e0b",
+                        color: "#ffffff",
+                      }}
+                    >
+                      일부납부
+                    </span>
+                  )}
+                  {record.status === "unpaid" && (
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        fontWeight: 600,
+                        padding: "2px 8px",
+                        borderRadius: "12px",
+                        backgroundColor: "#ef4444",
+                        color: "#ffffff",
+                      }}
+                    >
+                      미납부
+                    </span>
+                  )}
                 </div>
               </div>
               <button
@@ -828,16 +1073,60 @@ export function BillPageClient() {
                               >
                                 {record.studentName}
                               </div>
-                              <div
-                                style={{
-                                  fontSize: "12px",
-                                  fontWeight: 500,
-                                  lineHeight: "16.008px",
-                                  letterSpacing: "0.302px",
-                                  color: "#39394e9c",
-                                }}
-                              >
-                                {record.paymentDate || "-"}
+                              <div className="flex items-center gap-2">
+                                <div
+                                  style={{
+                                    fontSize: "12px",
+                                    fontWeight: 500,
+                                    lineHeight: "16.008px",
+                                    letterSpacing: "0.302px",
+                                    color: "#39394e9c",
+                                  }}
+                                >
+                                  {record.paymentDate || "-"}
+                                </div>
+                                {record.status === "paid" && (
+                                  <span
+                                    style={{
+                                      fontSize: "11px",
+                                      fontWeight: 600,
+                                      padding: "2px 8px",
+                                      borderRadius: "12px",
+                                      backgroundColor: "#10b981",
+                                      color: "#ffffff",
+                                    }}
+                                  >
+                                    납부완료
+                                  </span>
+                                )}
+                                {record.status === "partial" && (
+                                  <span
+                                    style={{
+                                      fontSize: "11px",
+                                      fontWeight: 600,
+                                      padding: "2px 8px",
+                                      borderRadius: "12px",
+                                      backgroundColor: "#f59e0b",
+                                      color: "#ffffff",
+                                    }}
+                                  >
+                                    일부납부
+                                  </span>
+                                )}
+                                {record.status === "unpaid" && (
+                                  <span
+                                    style={{
+                                      fontSize: "11px",
+                                      fontWeight: 600,
+                                      padding: "2px 8px",
+                                      borderRadius: "12px",
+                                      backgroundColor: "#ef4444",
+                                      color: "#ffffff",
+                                    }}
+                                  >
+                                    미납부
+                                  </span>
+                                )}
                               </div>
                             </div>
                           </TableCell>

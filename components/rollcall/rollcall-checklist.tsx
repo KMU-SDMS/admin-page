@@ -45,19 +45,9 @@ function AttendanceStatusDropdown({
 
   const currentStatus = getAttendanceStatus(rollcall);
 
-  const statusOptions: { value: AttendanceStatus; label: string }[] = [
-    {
-      value: "PRESENT",
-      label: "재실",
-    },
-    {
-      value: "LEAVE",
-      label: "외박",
-    },
-    {
-      value: "ABSENT",
-      label: "결석",
-    },
+  const statusOptions: { value: AttendanceStatus; label: string; color: string }[] = [
+    { value: "PRESENT", label: "재실", color: "bg-green-100 text-green-800" },
+    { value: "ABSENT", label: "결석", color: "bg-red-100 text-red-800" },
   ];
 
   const getCurrentStatusColor = (status: AttendanceStatus) => {
@@ -336,15 +326,17 @@ export function RollCallChecklist({
   };
 
   const getAttendanceStatus = (rc?: Rollcall): AttendanceStatus => {
-    if (rc?.status) return rc.status;
-    return rc?.present ? "PRESENT" : "ABSENT";
+    if (rc?.present !== undefined) {
+      return rc.present ? "PRESENT" : "ABSENT";
+    }
+    return rc?.status ?? "ABSENT";
   };
 
   const filteredStudents = useExternalFilters
     ? students
     : students.filter((student) => {
         const sid = getStudentKey(student);
-        const rc = rollcalls.find((r) => r.studentId === sid);
+        const rc = rollcalls.find((r) => String(r.studentId) === String(sid));
         const attendance = getAttendanceStatus(rc);
         const cleaning = rc?.cleaningStatus ?? "NONE";
 
@@ -543,8 +535,9 @@ export function RollCallChecklist({
             {filteredStudents.map((student) => {
               const room = rooms.find((r) => r.id === student.roomNumber);
               const sid = getStudentKey(student);
-              const rollcall = rollcalls.find((r) => r.studentId === sid);
-              const rollcallData = getRollcallData(sid);
+              const rollcall = rollcalls.find(
+    (r) => String(r.studentId) === String(getStudentKey(student))
+  );            const rollcallData = getRollcallData(sid);
               const studentWithId = {
                 ...(student as any),
                 id: sid,

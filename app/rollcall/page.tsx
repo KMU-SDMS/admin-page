@@ -5,7 +5,7 @@ import { Layout } from "@/components/layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api } from "@/lib/api";
-import { mockRollcalls } from "@/lib/mock-data";
+
 import { RollCallPageClient } from "./rollcall-page-client";
 
 async function getRooms() {
@@ -25,8 +25,11 @@ async function getStudents() {
 }
 
 async function getRollcalls() {
-  // API 비연결: 목업 데이터 사용
-  return mockRollcalls;
+  try {
+    return await api.rollcalls.getAll();
+  } catch (error) {
+    return [];
+  }
 }
 
 export default async function RollCallPage() {

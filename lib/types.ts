@@ -169,3 +169,28 @@ export interface OvernightStayStatusUpdateRequest {
   status: "approved" | "rejected";
   checkOutDate?: string;
 }
+
+// Bill types
+export interface BankInfo {
+  bank?: string;
+  account?: string;
+  bank_name?: string;
+  bank_number?: string;
+}
+
+export interface Bill {
+  id: number;
+  studentNo: string;
+  type: "water" | "gas" | "electricity";
+  amount: number;
+  endDate: string;
+  bankInfo: BankInfo[];
+  is_paid: boolean;
+}
+
+export interface CalendarSchedule {
+  id: number;
+  date: string;
+  rollCallType: string | null;
+  paymentType: string | null;
+}

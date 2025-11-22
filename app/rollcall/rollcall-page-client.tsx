@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Users as UsersIcon, Award, RefreshCw } from "lucide-react";
+import { Users as UsersIcon, Award, RefreshCw, Calendar as CalendarIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRooms } from "@/hooks/use-rooms";
 import { useStudents } from "@/hooks/use-students";
+import { useRollcalls } from "@/hooks/use-rollcalls";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -15,23 +16,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { RollCallChecklist } from "@/components/rollcall/rollcall-checklist";
 import { RoomGridView } from "@/components/rollcall/room-grid-view";
 import type { Rollcall } from "@/lib/types";
 import { useIsMobile } from "@/hooks/use-viewport";
 import type { AttendanceStatus } from "@/components/rollcall/attendance-status-buttons";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
-interface RollCallPageClientProps {
-  initialRooms: any[];
-  initialStudents: any[];
-  initialRollcalls: any[];
-}
-
-export function RollCallPageClient({
-  initialRooms,
-  initialStudents,
-  initialRollcalls,
-}: RollCallPageClientProps) {
+export function RollCallPageClient() {
   const isMobile = useIsMobile();
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
@@ -48,28 +47,35 @@ export function RollCallPageClient({
     isLoading: studentsLoading,
     refetch: refetchStudents,
   } = useStudents({
-    roomId:
+    roomNumber:
       selectedRoomId === "all" ? undefined : Number.parseInt(selectedRoomId),
     name: nameSearch || undefined,
   });
 
+  // 점호 API 호출
+  const {
+    data: rollcalls,
+    isLoading: rollcallsLoading,
+    refetch: refetchRollcalls,
+    mutate: mutateRollcall,
+  } = useRollcalls({
+    date: selectedDate,
+    roomId: selectedRoomId === "all" ? undefined : Number.parseInt(selectedRoomId),
+    name: nameSearch || undefined,
+  });
+
+  // ...
+
+
+
   // 공지사항 레이아웃 필터 및 로컬 점호 상태
   const [attendanceFilter, setAttendanceFilter] = useState<
-    "all" | "PRESENT" | "LEAVE" | "ABSENT"
+    "all" | "PRESENT" | "ABSENT"
   >("all");
   const [cleaningFilter, setCleaningFilter] = useState<
     "all" | "PASS" | "FAIL" | "NONE"
   >("all");
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [localRollcalls, setLocalRollcalls] = useState<Rollcall[]>(
-    Array.isArray(initialRollcalls) ? initialRollcalls : []
-  );
-
-  // Use initial data if hooks haven't loaded yet
-  const displayRooms = rooms.length > 0 ? rooms : initialRooms;
-  const displayStudents = students.length > 0 ? students : initialStudents;
-  const displayRollcalls =
-    localRollcalls.length > 0 ? localRollcalls : initialRollcalls;
 
   const getAttendanceStatus = (rc?: Rollcall) => {
     if (rc?.status) return rc.status;
@@ -88,12 +94,14 @@ export function RollCallPageClient({
   };
 
   const filteredStudents = useMemo(() => {
+    if (!students) return [];
     const byUnconfirmed = unconfirmedOnly
-      ? displayStudents.filter((student) => {
-          const rc = displayRollcalls.find((r) => r.studentId === student.id);
+      ? students.filter((student) => {
+          const sid = getStudentKey(student);
+          const rc = rollcalls.find((r) => r.studentId === sid);
           return !rc || !rc.present;
         })
-      : displayStudents;
+      : students;
 
     const byName = nameSearch
       ? byUnconfirmed.filter((s) =>
@@ -105,7 +113,8 @@ export function RollCallPageClient({
       attendanceFilter === "all"
         ? byName
         : byName.filter((s) => {
-            const rc = displayRollcalls.find((r) => r.studentId === s.id);
+            const sid = getStudentKey(s);
+            const rc = rollcalls.find((r) => r.studentId === sid);
             return getAttendanceStatus(rc) === attendanceFilter;
           });
 
@@ -113,7 +122,8 @@ export function RollCallPageClient({
       cleaningFilter === "all"
         ? byAttendance
         : byAttendance.filter((s) => {
-            const rc = displayRollcalls.find((r) => r.studentId === s.id);
+            const sid = getStudentKey(s);
+            const rc = rollcalls.find((r) => r.studentId === sid);
             return (rc?.cleaningStatus ?? "NONE") === cleaningFilter;
           });
 
@@ -125,65 +135,77 @@ export function RollCallPageClient({
       return a.name.localeCompare(b.name, "ko");
     });
   }, [
-    displayStudents,
-    displayRollcalls,
+    students,
+    rollcalls,
     unconfirmedOnly,
     nameSearch,
     attendanceFilter,
     cleaningFilter,
   ]);
 
+  // 호실별 필터링된 호실 목록 계산
+  const filteredRooms = useMemo(() => {
+    if (!rooms || !students || !rollcalls) return [];
+    return rooms.filter((room) => {
+      const roomStudents = students.filter((s) => s.roomNumber === room.id);
+      
+      // 참석 상태 필터
+      if (attendanceFilter !== "all") {
+        const hasMatchingAttendance = roomStudents.some((student) => {
+          const sid = getStudentKey(student);
+          const rc = rollcalls.find((r) => String(r.studentId) === String(sid));
+          const status = rc?.status ?? (rc?.present ? "PRESENT" : "ABSENT");
+          return status === attendanceFilter;
+        });
+        if (!hasMatchingAttendance) return false;
+      }
+
+      // 청소 점호 필터
+      if (cleaningFilter !== "all") {
+        const hasMatchingCleaning = roomStudents.some((student) => {
+          const sid = getStudentKey(student);
+          const rc = rollcalls.find((r) => String(r.studentId) === String(sid));
+          return (rc?.cleaningStatus ?? "NONE") === cleaningFilter;
+        });
+        if (!hasMatchingCleaning) return false;
+      }
+
+      return true;
+    });
+  }, [rooms, students, rollcalls, attendanceFilter, cleaningFilter]);
+
   const handleRefresh = () => {
     setIsRefreshing(true);
-    Promise.resolve()
-      .then(() => {
-        refetchStudents();
-      })
+    Promise.all([refetchStudents(), refetchRollcalls()])
       .finally(() => setIsRefreshing(false));
   };
 
-  // 점호 API 미연결: 로컬 업데이트
+  // 점호 API 연결: mutate 함수 사용
   const mutateRollcallLocal = async (
     data: Partial<Rollcall> & {
       date: string;
-      studentId: number;
+      studentId: number | string;
       present: boolean;
-      status?: "PRESENT" | "LEAVE" | "ABSENT";
+      status?: "PRESENT" | "ABSENT";
       cleaningStatus?: "PASS" | "FAIL" | "NONE";
+      note?: string;
     }
   ) => {
-    setLocalRollcalls((prev) => {
-      const idx = prev.findIndex(
-        (r) => r.studentId === data.studentId && r.date === data.date
-      );
-      if (idx >= 0) {
-        const next = [...prev];
-        next[idx] = { ...next[idx], ...data } as Rollcall;
-        return next;
-      }
-      return [
-        ...prev,
-        {
-          id: prev.length > 0 ? Math.max(...prev.map((r) => r.id)) + 1 : 1,
-          date: data.date,
-          roomId:
-            displayStudents.find(
-              (s) =>
-                (s as any).id === data.studentId ||
-                Number.parseInt(String(s.studentIdNum), 10) === data.studentId
-            )?.roomNumber ?? 0,
-          studentId: data.studentId,
-          present: data.present,
-          status: data.status,
-          cleaningStatus: data.cleaningStatus,
-          note: data.note,
-        } as Rollcall,
-      ];
+    const student = students.find(
+      (s) => String(getStudentKey(s)) === String(data.studentId)
+    );
+    
+    await mutateRollcall({
+      ...data,
+      studentId: String(data.studentId) as any,
+      roomId: student?.roomNumber ?? 0,
     });
   };
 
   // xs 전용 모바일 레이아웃
   if (isMobile) {
+    const selectedDateObj = new Date(selectedDate);
+    
     return (
       <div className="flex flex-col h-full bg-white sm:hidden">
         {/* 상단 타이틀 + 검색 */}
@@ -193,6 +215,32 @@ export function RollCallPageClient({
         >
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-extrabold tracking-tight">점호</h1>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "h-9 px-3 text-sm font-medium",
+                    "justify-start text-left"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {format(selectedDateObj, "yyyy-MM-dd")}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="single"
+                  selected={selectedDateObj}
+                  onSelect={(date) => {
+                    if (date) {
+                      setSelectedDate(date.toISOString().split("T")[0]);
+                    }
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
           <div className="mt-4">
             <Input
@@ -238,7 +286,7 @@ export function RollCallPageClient({
                 value={attendanceFilter}
                 onValueChange={(value) =>
                   setAttendanceFilter(
-                    value as "all" | "PRESENT" | "LEAVE" | "ABSENT"
+                    value as "all" | "PRESENT" | "ABSENT"
                   )
                 }
               >
@@ -248,7 +296,6 @@ export function RollCallPageClient({
                 <SelectContent>
                   <SelectItem value="all">점호 전체</SelectItem>
                   <SelectItem value="PRESENT">참석</SelectItem>
-                  <SelectItem value="LEAVE">외박</SelectItem>
                   <SelectItem value="ABSENT">결석</SelectItem>
                 </SelectContent>
               </Select>
@@ -291,7 +338,7 @@ export function RollCallPageClient({
                     typeof anyStudent.id === "number"
                       ? anyStudent.id
                       : Number.parseInt(String(student.studentIdNum), 10);
-                  const rollcall = displayRollcalls.find(
+                  const rollcall = rollcalls.find(
                     (r) => r.studentId === sid
                   );
                   const currentStatus: AttendanceStatus =
@@ -316,7 +363,7 @@ export function RollCallPageClient({
                   ) => {
                     await mutateRollcallLocal({
                       date: selectedDate,
-                      studentId: sid,
+                      studentId: String(sid), // Convert to string
                       roomId: student.roomNumber,
                       present: currentStatus === "PRESENT",
                       status: currentStatus,
@@ -353,7 +400,6 @@ export function RollCallPageClient({
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="PRESENT">재실</SelectItem>
-                            <SelectItem value="LEAVE">외박</SelectItem>
                             <SelectItem value="ABSENT">결석</SelectItem>
                           </SelectContent>
                         </Select>
@@ -383,9 +429,9 @@ export function RollCallPageClient({
             </div>
           ) : (
             <RoomGridView
-              rooms={displayRooms}
-              students={displayStudents}
-              rollcalls={displayRollcalls}
+              rooms={rooms}
+              students={students}
+              rollcalls={rollcalls}
               selectedDate={selectedDate}
               onUpdateRollcall={mutateRollcallLocal}
             />
@@ -394,36 +440,6 @@ export function RollCallPageClient({
       </div>
     );
   }
-
-  // 호실별 필터링된 호실 목록 계산
-  const filteredRooms = useMemo(() => {
-    return displayRooms.filter((room) => {
-      const roomStudents = displayStudents.filter((s) => s.roomNumber === room.id);
-      
-      // 참석 상태 필터
-      if (attendanceFilter !== "all") {
-        const hasMatchingAttendance = roomStudents.some((student) => {
-          const sid = getStudentKey(student);
-          const rc = displayRollcalls.find((r) => r.studentId === sid);
-          const status = rc?.status ?? (rc?.present ? "PRESENT" : "ABSENT");
-          return status === attendanceFilter;
-        });
-        if (!hasMatchingAttendance) return false;
-      }
-
-      // 청소 점호 필터
-      if (cleaningFilter !== "all") {
-        const hasMatchingCleaning = roomStudents.some((student) => {
-          const sid = getStudentKey(student);
-          const rc = displayRollcalls.find((r) => r.studentId === sid);
-          return (rc?.cleaningStatus ?? "NONE") === cleaningFilter;
-        });
-        if (!hasMatchingCleaning) return false;
-      }
-
-      return true;
-    });
-  }, [displayRooms, displayStudents, displayRollcalls, attendanceFilter, cleaningFilter]);
 
   return (
     <div className="spacing-normal viewport-fill">
@@ -532,7 +548,7 @@ export function RollCallPageClient({
                     value={attendanceFilter}
                     onValueChange={(v) =>
                       setAttendanceFilter(
-                        v as "all" | "PRESENT" | "LEAVE" | "ABSENT"
+                        v as "all" | "PRESENT" | "ABSENT"
                       )
                     }
                   >
@@ -542,7 +558,6 @@ export function RollCallPageClient({
                     <SelectContent>
                       <SelectItem value="all">전체</SelectItem>
                       <SelectItem value="PRESENT">참석</SelectItem>
-                      <SelectItem value="LEAVE">외박</SelectItem>
                       <SelectItem value="ABSENT">결석</SelectItem>
                     </SelectContent>
                   </Select>
@@ -577,8 +592,8 @@ export function RollCallPageClient({
             {desktopTab === "student" ? (
               <RollCallChecklist
                 students={filteredStudents}
-                rollcalls={displayRollcalls}
-                rooms={displayRooms}
+                rollcalls={rollcalls}
+                rooms={rooms}
                 isLoading={studentsLoading}
                 onUpdateRollcall={mutateRollcallLocal}
                 selectedDate={selectedDate}
@@ -588,8 +603,8 @@ export function RollCallPageClient({
             ) : (
               <RoomGridView
                 rooms={filteredRooms}
-                students={displayStudents}
-                rollcalls={displayRollcalls}
+                students={students}
+                rollcalls={rollcalls}
                 selectedDate={selectedDate}
                 onUpdateRollcall={mutateRollcallLocal}
               />

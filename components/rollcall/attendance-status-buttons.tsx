@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { Student, Rollcall } from "@/lib/types";
 
-export type AttendanceStatus = "PRESENT" | "LEAVE" | "ABSENT";
+export type AttendanceStatus = "PRESENT" | "ABSENT";
 
 interface AttendanceStatusButtonsProps {
   student: Student;
@@ -23,14 +23,6 @@ const statusConfig = {
       "bg-transparent hover:bg-green-50 text-green-600 border-green-500 dark:hover:bg-green-950 dark:text-green-400 dark:border-green-400",
     selectedClassName:
       "!bg-gradient-to-br !from-green-50/5 !to-green-50/10 !text-green-700 !font-bold !shadow-md !ring-2 !ring-green-300/40 !border-green-600/80 dark:!from-green-950/20 dark:!to-green-950/30 dark:!text-green-300 dark:!ring-green-400/40 dark:!border-green-400/60",
-  },
-  LEAVE: {
-    label: "외박",
-    variant: "outline" as const,
-    className:
-      "bg-transparent hover:bg-yellow-50 text-yellow-600 border-yellow-500 dark:hover:bg-yellow-950 dark:text-yellow-400 dark:border-yellow-400",
-    selectedClassName:
-      "!bg-gradient-to-br !from-yellow-50/5 !to-yellow-50/10 !text-yellow-700 !font-bold !shadow-md !ring-2 !ring-yellow-300/40 !border-yellow-600/80 dark:!from-yellow-950/20 dark:!to-yellow-950/30 dark:!text-yellow-300 dark:!ring-yellow-400/40 dark:!border-yellow-400/60",
   },
   ABSENT: {
     label: "결석",

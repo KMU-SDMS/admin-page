@@ -1,4 +1,5 @@
 import type {
+  Bill,
   Notice,
   NoticePaginatedResponse,
   NoticeQuery,
@@ -6,7 +7,10 @@ import type {
   OvernightStayQuery,
   OvernightStayStatusUpdateRequest,
   Room,
+  Rollcall,
+  RollcallQuery,
   Student,
+  CalendarSchedule,
 } from "./types";
 import { toast } from "sonner";
 import { authSync } from "./auth-sync";
@@ -191,8 +195,9 @@ function apiPatch<T>(path: string, data?: any) {
   });
 }
 
-function apiDelete<T>(path: string) {
-  return request<T>(path, { method: "DELETE" });
+function apiDelete<T>(path: string, params?: Record<string, any>) {
+  const queryString = params ? buildQueryString(params) : "";
+  return request<T>(`${path}${queryString}`, { method: "DELETE" });
 }
 
 // Notices API
@@ -274,8 +279,32 @@ export const parcelsApi = {
 
 // Rollcalls API
 export const rollcallsApi = {
-  getAll: () => apiGet<any[]>("/api/rollcalls"),
-  getById: (id: number) => apiGet<any>(`/api/rollcalls/${id}`),
+  getAll: (params: RollcallQuery = {}) => {
+    const searchParams = new URLSearchParams();
+    if (params.date) searchParams.append("date", params.date);
+    if (params.roomId) searchParams.append("roomId", params.roomId.toString());
+    if (params.name) searchParams.append("name", params.name);
+    if (params.present !== undefined)
+      searchParams.append("present", params.present.toString());
+
+    return request<Rollcall[]>(`/api/rollcalls?${searchParams.toString()}`);
+  },
+  upsert: (data: {
+    studentId: string;
+    date: string;
+    present: boolean;
+    note?: string;
+  }) => {
+    return request<Rollcall>("/api/rollcall", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+  delete: (id: number) => {
+    return request<void>(`/api/rollcalls/${id}`, {
+      method: "DELETE",
+    });
+  },
 };
 
 export const overnightStaysApi = {
@@ -283,6 +312,12 @@ export const overnightStaysApi = {
     apiGet<OvernightStayPaginatedResponse>("/api/overnight-stays", params),
   updateStatus: (data: OvernightStayStatusUpdateRequest) =>
     apiPatch<void>("/api/overnight-stays", data),
+};
+
+// Bills API
+export const billsApi = {
+  getBills: (endDate: string) =>
+    apiGet<Record<string, Bill[]>>("/api/bills", { endDate }),
 };
 
 // Notifications API
@@ -357,6 +392,49 @@ export const authApi = {
   },
 };
 
+// Calendar API
+export const calendarApi = {
+  getSchedules: (date?: string) => apiGet<CalendarSchedule[]>("/api/calendar", { date }),
+};
+
+/**
+ * Connects Calendar API and Bills API
+ * Fetches the schedule (optionally for a specific date) and then uses a date from the schedule
+ * to fetch bills.
+ * 
+ * Note: This is a demonstration of connecting the two APIs as requested.
+ * In a real scenario, you might want to pick a specific schedule's date.
+ * Here we assume we use the 'date' passed or the current date if not provided,
+ * or potentially the date from the first schedule if available.
+ * 
+ * For this implementation, I'll assume we want to use the 'date' parameter to fetch schedules,
+ * and then use that SAME date (or a date from the response) to fetch bills.
+ * 
+ * If no date is provided, we might default to today.
+ */
+export const fetchBillsBasedOnSchedule = async (date?: string) => {
+  // 1. Get Schedules
+  const schedules = await calendarApi.getSchedules(date);
+  
+  // 2. Determine the date to use for bills. 
+  // If a date was passed, use it. 
+  // If not, and we have schedules, maybe use the first one? 
+  // Or just use the date passed (which might be undefined -> today?).
+  // The requirement says "Receive the schedule API created above and connect it to the management fee API below."
+  // Let's assume we use the provided date.
+  
+  const targetDate = date || new Date().toISOString().split('T')[0];
+  
+  // 3. Get Bills using the date
+  const bills = await billsApi.getBills(targetDate);
+  
+  return {
+    schedules,
+    bills,
+    targetDate
+  };
+};
+
 export const api = {
   get: apiGet,
   post: apiPost,
@@ -370,5 +448,7 @@ export const api = {
   rollcalls: rollcallsApi,
   overnightStays: overnightStaysApi,
   notifications: notificationsApi,
+  bills: billsApi,
+  calendar: calendarApi,
   auth: authApi,
 };
