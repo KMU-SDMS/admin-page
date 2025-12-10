@@ -1,6 +1,6 @@
 "use client";
 
-import type React from "react";
+import React from "react";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import {
   ChevronLeft,
@@ -25,7 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { roomsApi, studentsApi, billsApi } from "@/lib/api";
+import { roomsApi, studentsApi, billsApi, calendarApi } from "@/lib/api";
 import { useIsMobile } from "@/hooks/use-viewport";
 import {
   Popover,
@@ -47,7 +47,8 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { request } from "@/lib/api";
-import type { CalendarSchedule } from "@/lib/types";
+import { toast } from "sonner";
+import type { CalendarSchedule, Bill } from "@/lib/types";
 
 type PresignResponse = { url: string; headers: Record<string, string> };
 type DownloadResponse = { url: string };
@@ -57,18 +58,44 @@ interface BillRecord {
   roomNumber: string;
   studentName: string;
   paymentDate: string | null;
-  status: "paid" | "partial" | "unpaid";
+  status: "paid" | "partial" | "unpaid" | "no_data";
   floor: number;
   hasUploadedImages: boolean;
+  details: {
+    electricity: boolean | null; // true: paid, false: unpaid, null: not billed
+    water: boolean | null;
+    gas: boolean | null;
+  };
 }
+
+import { useSearchParams, useRouter } from "next/navigation";
 
 export function BillPageClient() {
   const isMobile = useIsMobile();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [selectedYear, setSelectedYear] = useState<number>(2025);
-  const [selectedMonth, setSelectedMonth] = useState<number>(10);
-  const [filterPaid, setFilterPaid] = useState(true);
-  const [filterUnpaid, setFilterUnpaid] = useState(true);
+  
+  // URL 쿼리 파라미터에서 초기값 읽기
+  const initialYear = searchParams.get("year") 
+    ? parseInt(searchParams.get("year")!, 10) 
+    : new Date().getFullYear();
+  const initialMonth = searchParams.get("month") 
+    ? parseInt(searchParams.get("month")!, 10) 
+    : new Date().getMonth() + 1;
+
+  const [selectedYear, setSelectedYear] = useState<number>(initialYear);
+  const [selectedMonth, setSelectedMonth] = useState<number>(initialMonth);
+
+  // 연/월 변경 시 URL 업데이트
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("year", String(selectedYear));
+    params.set("month", String(selectedMonth));
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }, [selectedYear, selectedMonth, router, searchParams]);
+  const [viewMode, setViewMode] = useState<"bills" | "status">("bills");
   const [selectedFloor, setSelectedFloor] = useState<number | null>(null);
   const [billRecords, setBillRecords] = useState<BillRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -83,7 +110,7 @@ export function BillPageClient() {
     gas: string | null;
     electricity: string | null;
   }>({ water: null, gas: null, electricity: null });
-  // mobileTab 제거됨 - 납부확인 탭 삭제
+  const [noSchedule, setNoSchedule] = useState(false);
 
   const labels = ["전기", "수도", "가스"] as const;
   const toType = (
@@ -202,6 +229,25 @@ export function BillPageClient() {
 
         const previewUrl = URL.createObjectURL(file);
         setPreviews((prev) => ({ ...prev, [type]: previewUrl }));
+      } catch (error: any) {
+        console.error("파일 업로드 실패:", error);
+        let message = error.message || "이미지 업로드 중 오류가 발생했습니다.";
+
+        // "HTTP 400: {...}" 형태의 에러 메시지에서 JSON 부분만 추출하여 파싱 시도
+        try {
+          const jsonStart = message.indexOf("{");
+          if (jsonStart !== -1) {
+            const jsonString = message.substring(jsonStart);
+            const parsed = JSON.parse(jsonString);
+            if (parsed.error) {
+              message = parsed.error;
+            }
+          }
+        } catch (e) {
+          // JSON 파싱 실패 시 원래 메시지 사용
+        }
+
+        toast.error(message);
       } finally {
         // reset input to allow re-selecting the same file
         if (fileInputRef.current) fileInputRef.current.value = "";
@@ -215,36 +261,37 @@ export function BillPageClient() {
     const fetchData = async () => {
       try {
         setIsLoading(true);
+        setNoSchedule(false);
         
-        // 1. 캘린더 일정 조회 (전체)
-        const schedules = await request<CalendarSchedule[]>("/api/calendar").catch(() => []);
-        
+        // 1. 캘린더 일정 조회 (해당 월)
+        const schedules = await calendarApi
+          .getSchedules({ year: selectedYear, month: selectedMonth })
+          .catch(() => []);
+
         // 2. 현재 선택된 연/월에 해당하는 일정 찾기
         // paymentType이 있는 일정을 우선적으로 찾고, 그 중 가장 늦은 날짜를 선택
         const targetSchedule = schedules
-          .filter(s => {
-            const sDate = new Date(s.date);
-            return (
-              sDate.getFullYear() === selectedYear && 
-              (sDate.getMonth() + 1) === selectedMonth &&
-              s.paymentType !== null // 관리비 관련 일정만 필터링
-            );
-          })
-          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+          .filter((s) => s.paymentType !== null) // 관리비 관련 일정만 필터링
+          .sort(
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+          )[0];
 
-        let endDate: string;
-        
-        if (targetSchedule) {
-          // 캘린더에서 찾은 일정의 날짜를 사용
-          endDate = targetSchedule.date;
-          console.log(`[BillPage] 캘린더 일정 기반 종료일 설정: ${endDate} (유형: ${targetSchedule.paymentType})`);
-        } else {
-          // 일정이 없으면 기존 로직대로 해당 월의 마지막 날짜 사용
-          const lastDay = new Date(selectedYear, selectedMonth, 0).getDate();
-          endDate = `${selectedYear}-${String(selectedMonth).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
-          console.log(`[BillPage] 해당 월(${selectedMonth}월)에 관리비 일정이 없어 기본 종료일 설정: ${endDate}`);
+        if (!targetSchedule) {
+          console.log(
+            `[BillPage] 해당 월(${selectedMonth}월)에 관리비 일정이 없어 데이터 조회 중단`
+          );
+          setNoSchedule(true);
+          setBillRecords([]);
+          setIsLoading(false);
+          return;
         }
 
+        const endDate = targetSchedule.date;
+        console.log(
+          `[BillPage] 캘린더 일정 기반 종료일 설정: ${endDate} (유형: ${targetSchedule.paymentType})`
+        );
+
+        // 3. 데이터 조회 (일정이 있을 때만 수행)
         const [rooms, students, billsData] = await Promise.all([
           roomsApi.getAll(),
           studentsApi.getAll(),
@@ -259,58 +306,26 @@ export function BillPageClient() {
         // 각 학생의 관리비 조회
         const recordsPromises = rooms.map(async (room) => {
           const studentInfo = studentMap.get(room.id);
+          
+          // 기본적으로 이미지는 확인하지 않음 (서버 부하 감소)
+          const hasUploadedImages = false;
+
+          const details = {
+            electricity: null as boolean | null,
+            water: null as boolean | null,
+            gas: null as boolean | null,
+          };
+
           if (!studentInfo) {
-            // 학생 정보가 없어도 이미지 업로드 여부는 확인
-            const imageQuery = (type: "water" | "gas" | "electricity") =>
-              `/api/bill/image?roomId=${encodeURIComponent(String(room.id))}` +
-              `&type=${encodeURIComponent(type)}` +
-              `&year=${encodeURIComponent(String(selectedYear))}` +
-              `&month=${encodeURIComponent(String(selectedMonth))}`;
-
-            const checkImageExists = async (type: "water" | "gas" | "electricity"): Promise<boolean> => {
-              try {
-                const response = await request<DownloadResponse>(imageQuery(type), {
-                  cache: "no-store",
-                  skipAuthErrorHandling: true,
-                });
-                const exists = !!(response?.url);
-                if (exists) {
-                  console.log(`[${room.id}] ${type} 이미지 존재:`, response?.url);
-                }
-                return exists;
-              } catch (error: any) {
-                // 404나 다른 에러는 이미지가 없다는 의미
-                const is404 = error?.message?.includes("404") || error?.message?.includes("HTTP 404");
-                if (!is404) {
-                  console.warn(`[${room.id}] ${type} 이미지 확인 중 에러:`, error?.message);
-                }
-                return false;
-              }
-            };
-
-            const [hasElectricity, hasWater, hasGas] = await Promise.all([
-              checkImageExists("electricity"),
-              checkImageExists("water"),
-              checkImageExists("gas"),
-            ]);
-
-            const hasUploadedImages = hasElectricity || hasWater || hasGas;
-            
-            console.log(`[${room.id}] 이미지 업로드 여부:`, {
-              hasElectricity,
-              hasWater,
-              hasGas,
-              hasUploadedImages,
-            });
-
             return {
               id: room.id,
               roomNumber: String(room.id),
               studentName: "-",
               paymentDate: null,
-              status: "unpaid" as const,
+              status: "no_data" as const,
               floor: Math.floor(room.id / 100),
               hasUploadedImages,
+              details,
             };
           }
 
@@ -319,11 +334,11 @@ export function BillPageClient() {
             const bills = billsData[studentInfo.studentIdNum] || [];
             
             // 납부 상태 결정: 모두 true면 "paid", 모두 false면 "unpaid", 아니면 "partial"
-            let status: "paid" | "partial" | "unpaid";
+            let status: "paid" | "partial" | "unpaid" | "no_data";
             
             if (bills.length === 0) {
               // 관리비 항목이 없는 경우
-              status = "unpaid";
+              status = "no_data";
             } else {
               const allPaid = bills.every((bill) => bill.is_paid);
               const allUnpaid = bills.every((bill) => !bill.is_paid);
@@ -338,6 +353,13 @@ export function BillPageClient() {
                 // 일부만 납부된 경우
                 status = "partial";
               }
+
+              // 상세 납부 현황 파악
+              bills.forEach((bill) => {
+                if (bill.type === "electricity") details.electricity = bill.is_paid;
+                if (bill.type === "water") details.water = bill.is_paid;
+                if (bill.type === "gas") details.gas = bill.is_paid;
+              });
             }
             
             // 가장 최근 납부일 찾기 (납부된 항목 중)
@@ -355,46 +377,6 @@ export function BillPageClient() {
               ? latestPaidDate.endDate.replace(/-/g, ".")
               : null;
 
-            // 이미지 업로드 여부 확인
-            const imageQuery = (type: "water" | "gas" | "electricity") =>
-              `/api/bill/image?roomId=${encodeURIComponent(String(room.id))}` +
-              `&type=${encodeURIComponent(type)}` +
-              `&year=${encodeURIComponent(String(selectedYear))}` +
-              `&month=${encodeURIComponent(String(selectedMonth))}`;
-
-            const checkImageExists = async (type: "water" | "gas" | "electricity"): Promise<boolean> => {
-              try {
-                const response = await request<DownloadResponse>(imageQuery(type), {
-                  cache: "no-store",
-                  skipAuthErrorHandling: true,
-                });
-                return !!(response?.url);
-              } catch (error: any) {
-                // 404나 다른 에러는 이미지가 없다는 의미
-                if (error?.message?.includes("404") || error?.message?.includes("HTTP 404")) {
-                  return false;
-                }
-                // 다른 에러도 false로 처리 (네트워크 에러 등)
-                return false;
-              }
-            };
-
-            const [hasElectricity, hasWater, hasGas] = await Promise.all([
-              checkImageExists("electricity"),
-              checkImageExists("water"),
-              checkImageExists("gas"),
-            ]);
-
-            // 하나라도 이미지가 업로드되어 있으면 true
-            const hasUploadedImages = hasElectricity || hasWater || hasGas;
-            
-            console.log(`[${room.id}] 이미지 업로드 여부:`, {
-              hasElectricity,
-              hasWater,
-              hasGas,
-              hasUploadedImages,
-            });
-
             return {
               id: room.id,
               roomNumber: String(room.id),
@@ -403,6 +385,7 @@ export function BillPageClient() {
               status,
               floor: Math.floor(room.id / 100),
               hasUploadedImages,
+              details,
             };
           } catch (error) {
             console.error(`학생 ${studentInfo.studentIdNum}의 관리비 조회 실패:`, error);
@@ -411,9 +394,10 @@ export function BillPageClient() {
               roomNumber: String(room.id),
               studentName: studentInfo.name,
               paymentDate: null,
-              status: "unpaid" as const,
+              status: "no_data" as const,
               floor: Math.floor(room.id / 100),
               hasUploadedImages: false,
+              details,
             };
           }
         });
@@ -436,33 +420,12 @@ export function BillPageClient() {
 
   // 필터링된 데이터
   const filteredRecords = billRecords.filter((record) => {
-    // 모바일: 이미지 업로드 여부 기반 필터링
-    // 데스크탑: 납부 상태 기반 필터링
-    let statusMatch: boolean;
-    
-    if (isMobile) {
-      // 모바일에서는 이미지 업로드 여부로 필터링
-      const hasUploaded = record.hasUploadedImages;
-      statusMatch = 
-        (filterPaid && hasUploaded) || 
-        (filterUnpaid && !hasUploaded);
-    } else {
-      // 데스크탑에서는 납부 상태로 필터링
-      const isPaid = record.status === "paid";
-      const isPartial = record.status === "partial";
-      const isUnpaid = record.status === "unpaid";
-
-      statusMatch = 
-        (filterPaid && (isPaid || isPartial)) || 
-        (filterUnpaid && (isUnpaid || isPartial));
-    }
-
     // 층 필터
     const floorMatch = isMobile
       ? true
       : selectedFloor === null || record.floor === selectedFloor;
 
-    return statusMatch && floorMatch;
+    return floorMatch;
   });
 
   const displayRecords = filteredRecords.slice(
@@ -496,9 +459,6 @@ export function BillPageClient() {
 
   // xs 전용 모바일 레이아웃
   if (isMobile) {
-    const showAll = filterPaid && filterUnpaid;
-    const showUnuploadedOnly = filterUnpaid && !filterPaid;
-    const showUploadedOnly = filterPaid && !filterUnpaid;
     return (
       <div className="flex flex-col h-full bg-white sm:hidden">
         {/* 상단 타이틀 (텍스트: 좌 30px, 아이콘: 우 16px) */}
@@ -540,131 +500,195 @@ export function BillPageClient() {
           </div>
         </div>
 
-        {/* 필터 칩 */}
+        {/* 뷰 모드 탭 (고지서 조회 / 납부여부 조회) */}
         <div className="px-5 mt-5">
           <div className="flex items-center gap-3">
             <Button
               className="h-9 px-4 rounded-2xl"
-              onClick={() => {
-                setFilterPaid(true);
-                setFilterUnpaid(true);
-              }}
+              onClick={() => setViewMode("bills")}
               style={{
-                backgroundColor: showAll ? "#000" : "#ffffff",
-                color: showAll ? "#fff" : "#16161d",
-                border: showAll ? "1px solid #000" : "1px solid #E5E7EB",
+                backgroundColor: viewMode === "bills" ? "#000" : "#ffffff",
+                color: viewMode === "bills" ? "#fff" : "#16161d",
+                border: viewMode === "bills" ? "1px solid #000" : "1px solid #E5E7EB",
               }}
             >
-              전체
+              고지서 조회
             </Button>
             <Button
               variant="outline"
               className="h-9 px-4 rounded-2xl"
-              onClick={() => {
-                setFilterUnpaid(true);
-                setFilterPaid(false);
-              }}
+              onClick={() => setViewMode("status")}
               style={{
-                backgroundColor: showUnuploadedOnly ? "#000" : "#ffffff",
-                color: showUnuploadedOnly ? "#fff" : "#16161d",
-                border: showUnuploadedOnly
+                backgroundColor: viewMode === "status" ? "#000" : "#ffffff",
+                color: viewMode === "status" ? "#fff" : "#16161d",
+                border: viewMode === "status"
                   ? "1px solid #000"
                   : "1px solid #E5E7EB",
               }}
             >
-              미업로드
-            </Button>
-            <Button
-              variant="outline"
-              className="h-9 px-4 rounded-2xl"
-              onClick={() => {
-                setFilterPaid(true);
-                setFilterUnpaid(false);
-              }}
-              style={{
-                backgroundColor: showUploadedOnly ? "#000" : "#ffffff",
-                color: showUploadedOnly ? "#fff" : "#16161d",
-                border: showUploadedOnly
-                  ? "1px solid #000"
-                  : "1px solid #E5E7EB",
-              }}
-            >
-              업로드
+              납부여부 조회
             </Button>
           </div>
         </div>
 
         {/* 리스트 */}
         <div className="px-5 mt-5 pb-24 space-y-3">
-          {displayRecords.map((record) => (
-            <div
-              key={record.id}
-              className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-4"
-            >
-              <div className="flex-1">
-                <div className="text-[20px] font-extrabold leading-6 text-[#16161d]">
-                  {record.roomNumber}호
-                </div>
-                <div className="mt-1 flex items-center gap-2">
-                  <div className="text-[16px] font-semibold text-[#39394e] opacity-80">
-                    {record.studentName}
-                  </div>
-                  {record.status === "paid" && (
-                    <span
-                      style={{
-                        fontSize: "11px",
-                        fontWeight: 600,
-                        padding: "2px 8px",
-                        borderRadius: "12px",
-                        backgroundColor: "#10b981",
-                        color: "#ffffff",
-                      }}
-                    >
-                      납부완료
-                    </span>
-                  )}
-                  {record.status === "partial" && (
-                    <span
-                      style={{
-                        fontSize: "11px",
-                        fontWeight: 600,
-                        padding: "2px 8px",
-                        borderRadius: "12px",
-                        backgroundColor: "#f59e0b",
-                        color: "#ffffff",
-                      }}
-                    >
-                      일부납부
-                    </span>
-                  )}
-                  {record.status === "unpaid" && (
-                    <span
-                      style={{
-                        fontSize: "11px",
-                        fontWeight: 600,
-                        padding: "2px 8px",
-                        borderRadius: "12px",
-                        backgroundColor: "#ef4444",
-                        color: "#ffffff",
-                      }}
-                    >
-                      미납부
-                    </span>
-                  )}
+          {viewMode === "bills" ? (
+            noSchedule ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="text-lg font-semibold text-gray-500">
+                  {selectedMonth}월의 관리비 납부 정보가 없습니다
                 </div>
               </div>
-              <button
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-400"
-                aria-label="납부 사진 업로드"
-                onClick={() => {
-                  setActiveRecord(record);
-                  setIsPhotoSheetOpen(true);
-                }}
-              >
-                <Camera className="h-5 w-5" />
-              </button>
-            </div>
-          ))}
+            ) : (
+              displayRecords.map((record) => (
+                <div
+                  key={record.id}
+                  className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-4"
+                >
+                  <div className="flex-1">
+                    <div className="text-[20px] font-extrabold leading-6 text-[#16161d]">
+                      {record.roomNumber}호
+                    </div>
+                    <div className="mt-1 flex items-center gap-2">
+                      <div className="text-[16px] font-semibold text-[#39394e] opacity-80">
+                        {record.studentName}
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      {record.status === "paid" && (
+                        <span
+                          style={{
+                            fontSize: "11px",
+                            fontWeight: 600,
+                            padding: "2px 8px",
+                            borderRadius: "12px",
+                            backgroundColor: "#10b981",
+                            color: "#ffffff",
+                          }}
+                        >
+                          납부완료
+                        </span>
+                      )}
+                      {record.status === "partial" && (
+                        <span
+                          style={{
+                            fontSize: "11px",
+                            fontWeight: 600,
+                            padding: "2px 8px",
+                            borderRadius: "12px",
+                            backgroundColor: "#f59e0b",
+                            color: "#ffffff",
+                          }}
+                        >
+                          일부납부
+                        </span>
+                      )}
+                      {record.status === "unpaid" && (
+                        <span
+                          style={{
+                            fontSize: "11px",
+                            fontWeight: 600,
+                            padding: "2px 8px",
+                            borderRadius: "12px",
+                            backgroundColor: "#ef4444",
+                            color: "#ffffff",
+                          }}
+                        >
+                          미납부
+                        </span>
+                      )}
+                      {record.status === "no_data" && (
+                        <span
+                          style={{
+                            fontSize: "11px",
+                            fontWeight: 600,
+                            padding: "2px 8px",
+                            borderRadius: "12px",
+                            backgroundColor: "#E5E7EB",
+                            color: "#9CA3AF",
+                          }}
+                        >
+                          정보없음
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-400"
+                    aria-label="납부 사진 업로드"
+                    onClick={() => {
+                      setActiveRecord(record);
+                      setIsPhotoSheetOpen(true);
+                    }}
+                  >
+                    <Camera className="h-5 w-5" />
+                  </button>
+                </div>
+              ))
+            )
+          ) : (
+            // 납부여부 조회 (Status Mode)
+            noSchedule ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="text-lg font-semibold text-gray-500">
+                  {selectedMonth}월의 관리비 납부 정보가 없습니다
+                </div>
+              </div>
+            ) : (
+              displayRecords.map((record) => (
+                <div
+                  key={record.id}
+                  className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-4"
+                >
+                  <div className="flex-1">
+                    <div className="text-[20px] font-extrabold leading-6 text-[#16161d]">
+                      {record.roomNumber}호
+                    </div>
+                    <div className="mt-1 flex items-center gap-2">
+                      <div className="text-[16px] font-semibold text-[#39394e] opacity-80">
+                        {record.studentName}
+                      </div>
+                    </div>
+                    {/* 상세 납부 태그 */}
+                    <div className="mt-2 flex items-center gap-1.5">
+                      {[
+                        { label: "전기", status: record.details.electricity },
+                        { label: "수도", status: record.details.water },
+                        { label: "가스", status: record.details.gas },
+                      ].map((item) => {
+                        let bgColor = "#E5E7EB"; // Default Gray (Disabled)
+                        let textColor = "#9CA3AF";
+                        if (item.status === true) {
+                          bgColor = "#10b981"; // Green (Paid)
+                          textColor = "#ffffff";
+                        } else if (item.status === false) {
+                          bgColor = "#ef4444"; // Red (Unpaid)
+                          textColor = "#ffffff";
+                        }
+
+                        return (
+                          <span
+                            key={item.label}
+                            style={{
+                              fontSize: "11px",
+                              fontWeight: 600,
+                              padding: "2px 8px",
+                              borderRadius: "12px",
+                              backgroundColor: bgColor,
+                              color: textColor,
+                            }}
+                          >
+                            {item.label}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )
+          )}
         </div>
 
         {/* 사진 업로드 바텀시트 */}
@@ -862,48 +886,34 @@ export function BillPageClient() {
             </Button>
           </div>
 
-          {/* Payment Status Filter */}
+          {/* View Mode Filter */}
           <div className="mt-4 space-y-3">
             <Label className="text-[14px] font-bold leading-[20.006px] tracking-[0.203px]">
-              게시 상태
+              메뉴
             </Label>
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="paid"
-                    checked={filterPaid}
-                    onCheckedChange={(checked) => {
-                      setFilterPaid(checked as boolean);
-                    }}
-                  />
-                  <Label
-                    htmlFor="paid"
-                    className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]"
-                  >
-                    납부 완료
-                  </Label>
-                </div>
-                <CheckCircle className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="unpaid"
-                    checked={filterUnpaid}
-                    onCheckedChange={(checked) => {
-                      setFilterUnpaid(checked as boolean);
-                    }}
-                  />
-                  <Label
-                    htmlFor="unpaid"
-                    className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px]"
-                  >
-                    미납부
-                  </Label>
-                </div>
-                <div className="h-4 w-4" />
-              </div>
+              <button
+                onClick={() => setViewMode("bills")}
+                className="w-full flex items-center justify-between px-2 py-1 hover:bg-gray-100 rounded transition-colors"
+              >
+                <Label className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px] cursor-pointer">
+                  고지서 조회
+                </Label>
+                {viewMode === "bills" && (
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                )}
+              </button>
+              <button
+                onClick={() => setViewMode("status")}
+                className="w-full flex items-center justify-between px-2 py-1 hover:bg-gray-100 rounded transition-colors"
+              >
+                <Label className="text-[14px] font-medium leading-[20.006px] tracking-[0.203px] cursor-pointer">
+                  납부여부 조회
+                </Label>
+                {viewMode === "status" && (
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                )}
+              </button>
             </div>
           </div>
 
@@ -947,242 +957,251 @@ export function BillPageClient() {
         {/* Main Table Area */}
         <Card className="flex-1 flex flex-col min-h-0 w-[1187px] h-[938px]">
           <CardContent className="px-4 py-0 flex flex-col flex-1 min-h-0 overflow-hidden">
-            <div className="overflow-auto flex-1">
-              <Table style={{ tableLayout: "fixed", width: "960px" }}>
-                <TableHeader>
-                  <TableRow style={{ height: "80px", borderBottom: "none" }}>
-                    <TableHead
-                      style={{
-                        width: "120px",
-                        padding: "0",
-                        paddingLeft: "60px",
-                        fontSize: "14px",
-                        fontWeight: 700,
-                        lineHeight: "20.006px",
-                        letterSpacing: "0.203px",
-                        color: "#16161d",
-                      }}
-                    >
-                      호실
-                    </TableHead>
-                    <TableHead
-                      style={{
-                        width: "160px",
-                        padding: "0",
-                        fontSize: "14px",
-                        fontWeight: 700,
-                        lineHeight: "20.006px",
-                        letterSpacing: "0.203px",
-                        color: "#16161d",
-                      }}
-                    >
-                      납부인/납부일
-                    </TableHead>
-                    <TableHead
-                      style={{
-                        width: "200px",
-                        padding: "0",
-                        fontSize: "14px",
-                        fontWeight: 700,
-                        lineHeight: "20.006px",
-                        letterSpacing: "0.203px",
-                        color: "#16161d",
-                      }}
-                    >
-                      작업
-                    </TableHead>
-                    <TableHead
-                      style={{
-                        width: "120px",
-                        padding: "0",
-                        fontSize: "14px",
-                        fontWeight: 700,
-                        lineHeight: "20.006px",
-                        letterSpacing: "0.203px",
-                        color: "#16161d",
-                      }}
-                    >
-                      호실
-                    </TableHead>
-                    <TableHead
-                      style={{
-                        width: "160px",
-                        padding: "0",
-                        fontSize: "14px",
-                        fontWeight: 700,
-                        lineHeight: "20.006px",
-                        letterSpacing: "0.203px",
-                        color: "#16161d",
-                      }}
-                    >
-                      납부인/납부일
-                    </TableHead>
-                    <TableHead
-                      style={{
-                        width: "200px",
-                        padding: "0",
-                        fontSize: "14px",
-                        fontWeight: 700,
-                        lineHeight: "20.006px",
-                        letterSpacing: "0.203px",
-                        color: "#16161d",
-                      }}
-                    >
-                      작업
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody style={{ marginTop: "8px" }}>
-                  {isLoading ? (
-                    <TableRow style={{ height: "76px", borderBottom: "none" }}>
-                      <TableCell colSpan={3} className="text-center">
-                        <LoadingSpinner />
-                      </TableCell>
+            {viewMode === "bills" ? (
+              <div className="overflow-auto flex-1">
+                <Table style={{ tableLayout: "fixed", width: "960px" }}>
+                  {/* ... (Existing Bills Table Header) ... */}
+                  <TableHeader>
+                    <TableRow style={{ height: "80px", borderBottom: "none" }}>
+                      <TableHead style={{ width: "120px", paddingLeft: "60px", color: "#16161d", fontWeight: 700 }}>호실</TableHead>
+                      <TableHead style={{ width: "160px", color: "#16161d", fontWeight: 700 }}>납부인/납부일</TableHead>
+                      <TableHead style={{ width: "200px", color: "#16161d", fontWeight: 700 }}>작업</TableHead>
+                      <TableHead style={{ width: "120px", color: "#16161d", fontWeight: 700 }}>호실</TableHead>
+                      <TableHead style={{ width: "160px", color: "#16161d", fontWeight: 700 }}>납부인/납부일</TableHead>
+                      <TableHead style={{ width: "200px", color: "#16161d", fontWeight: 700 }}>작업</TableHead>
                     </TableRow>
-                  ) : displayRecords.length > 0 ? (
-                    <>
-                      {displayRecords.map((record) => (
-                        <TableRow
-                          key={record.id}
-                          className="cursor-pointer"
-                          style={{ height: "76px", borderBottom: "none" }}
-                        >
-                          <TableCell>
-                            <span
-                              style={{
-                                fontSize: "15px",
-                                fontWeight: 700,
-                                lineHeight: "24px",
-                                letterSpacing: "0.144px",
-                                color: "#16161d",
-                              }}
-                            >
-                              {record.roomNumber}호
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            <div className="space-y-1">
-                              <div
-                                style={{
-                                  fontSize: "15px",
-                                  fontWeight: 700,
-                                  lineHeight: "24px",
-                                  letterSpacing: "0.144px",
-                                  color: "#16161d",
-                                }}
-                              >
-                                {record.studentName}
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <div
-                                  style={{
-                                    fontSize: "12px",
-                                    fontWeight: 500,
-                                    lineHeight: "16.008px",
-                                    letterSpacing: "0.302px",
-                                    color: "#39394e9c",
-                                  }}
-                                >
-                                  {record.paymentDate || "-"}
-                                </div>
-                                {record.status === "paid" && (
-                                  <span
-                                    style={{
-                                      fontSize: "11px",
-                                      fontWeight: 600,
-                                      padding: "2px 8px",
-                                      borderRadius: "12px",
-                                      backgroundColor: "#10b981",
-                                      color: "#ffffff",
-                                    }}
-                                  >
-                                    납부완료
-                                  </span>
-                                )}
-                                {record.status === "partial" && (
-                                  <span
-                                    style={{
-                                      fontSize: "11px",
-                                      fontWeight: 600,
-                                      padding: "2px 8px",
-                                      borderRadius: "12px",
-                                      backgroundColor: "#f59e0b",
-                                      color: "#ffffff",
-                                    }}
-                                  >
-                                    일부납부
-                                  </span>
-                                )}
-                                {record.status === "unpaid" && (
-                                  <span
-                                    style={{
-                                      fontSize: "11px",
-                                      fontWeight: 600,
-                                      padding: "2px 8px",
-                                      borderRadius: "12px",
-                                      backgroundColor: "#ef4444",
-                                      color: "#ffffff",
-                                    }}
-                                  >
-                                    미납부
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell">
-                            <Button
-                              variant="outline"
-                              className="h-[28px] px-3 p-0"
-                              style={{
-                                borderRadius: "262.5px",
-                                fontSize: "12px",
-                              }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setActiveRecord(record);
-                                setIsPhotoSheetOpen(true);
-                              }}
-                            >
-                              📷 사진
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {Array.from({ length: emptyRowsCount }, (_, i) => (
-                        <TableRow
-                          key={`empty-${i}`}
-                          style={{ height: "76px", borderBottom: "none" }}
-                        >
-                          <TableCell colSpan={3}></TableCell>
-                        </TableRow>
-                      ))}
-                    </>
-                  ) : (
-                    <>
-                      <TableRow
-                        style={{ height: "76px", borderBottom: "none" }}
-                      >
-                        <TableCell
-                          colSpan={3}
-                          className="text-center text-muted-foreground"
-                        >
-                          납부 기록이 없습니다.
+                  </TableHeader>
+                  <TableBody style={{ marginTop: "8px" }}>
+                    {isLoading ? (
+                      <TableRow style={{ height: "76px", borderBottom: "none" }}>
+                        <TableCell colSpan={6} className="text-center">
+                          <LoadingSpinner />
                         </TableCell>
                       </TableRow>
-                      {Array.from({ length: 9 }, (_, i) => (
-                        <TableRow
-                          key={`empty-${i}`}
-                          style={{ height: "76px", borderBottom: "none" }}
-                        >
-                          <TableCell colSpan={3}></TableCell>
+                    ) : noSchedule ? (
+                      <>
+                        <TableRow style={{ height: "76px", borderBottom: "none" }}>
+                          <TableCell colSpan={6} className="text-center text-muted-foreground">
+                            {selectedMonth}월의 관리비 납부 정보가 없습니다
+                          </TableCell>
                         </TableRow>
-                      ))}
-                    </>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+                        {Array.from({ length: 9 }, (_, i) => (
+                          <TableRow key={`empty-${i}`} style={{ height: "76px", borderBottom: "none" }}>
+                            <TableCell colSpan={6}></TableCell>
+                          </TableRow>
+                        ))}
+                      </>
+                    ) : displayRecords.length > 0 ? (
+                      <>
+                        {displayRecords.reduce((rows: BillRecord[][], record, index) => {
+                          if (index % 2 === 0) rows.push([record]);
+                          else rows[rows.length - 1].push(record);
+                          return rows;
+                        }, []).map((row, rowIndex) => (
+                          <TableRow key={rowIndex} style={{ height: "76px", borderBottom: "none" }}>
+                            {row.map((record) => (
+                              <React.Fragment key={record.id}>
+                                <TableCell>
+                                  <span style={{ fontSize: "15px", fontWeight: 700, color: "#16161d" }}>
+                                    {record.roomNumber}호
+                                  </span>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="space-y-1">
+                                    <div style={{ fontSize: "15px", fontWeight: 700, color: "#16161d" }}>
+                                      {record.studentName}
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <div style={{ fontSize: "12px", fontWeight: 500, color: "#39394e9c" }}>
+                                        {record.paymentDate || "-"}
+                                      </div>
+                                      {record.status === "paid" && (
+                                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "2px 8px", borderRadius: "12px", backgroundColor: "#10b981", color: "#ffffff" }}>납부완료</span>
+                                      )}
+                                      {record.status === "partial" && (
+                                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "2px 8px", borderRadius: "12px", backgroundColor: "#f59e0b", color: "#ffffff" }}>일부납부</span>
+                                      )}
+                                      {record.status === "unpaid" && (
+                                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "2px 8px", borderRadius: "12px", backgroundColor: "#ef4444", color: "#ffffff" }}>미납부</span>
+                                      )}
+                                      {record.status === "no_data" && (
+                                        <span style={{ fontSize: "11px", fontWeight: 600, padding: "2px 8px", borderRadius: "12px", backgroundColor: "#E5E7EB", color: "#9CA3AF" }}>정보없음</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <Button
+                                    variant="outline"
+                                    className="h-[28px] px-3 p-0"
+                                    style={{ borderRadius: "262.5px", fontSize: "12px" }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setActiveRecord(record);
+                                      setIsPhotoSheetOpen(true);
+                                    }}
+                                  >
+                                    📷 사진
+                                  </Button>
+                                </TableCell>
+                              </React.Fragment>
+                            ))}
+                            {row.length === 1 && (
+                              <>
+                                <TableCell></TableCell>
+                                <TableCell></TableCell>
+                                <TableCell></TableCell>
+                              </>
+                            )}
+                          </TableRow>
+                        ))}
+                        {Array.from({ length: Math.max(0, 5 - Math.ceil(displayRecords.length / 2)) }, (_, i) => (
+                          <TableRow key={`empty-${i}`} style={{ height: "76px", borderBottom: "none" }}>
+                            <TableCell colSpan={6}></TableCell>
+                          </TableRow>
+                        ))}
+                      </>
+                    ) : (
+                      <>
+                        <TableRow style={{ height: "76px", borderBottom: "none" }}>
+                          <TableCell colSpan={6} className="text-center text-muted-foreground">
+                            납부 기록이 없습니다.
+                          </TableCell>
+                        </TableRow>
+                        {Array.from({ length: 9 }, (_, i) => (
+                          <TableRow key={`empty-${i}`} style={{ height: "76px", borderBottom: "none" }}>
+                            <TableCell colSpan={6}></TableCell>
+                          </TableRow>
+                        ))}
+                      </>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              // 납부여부 조회 (Status Mode) - Desktop
+              <div className="overflow-auto flex-1">
+                <Table style={{ tableLayout: "fixed", width: "960px" }}>
+                  <TableHeader>
+                    <TableRow style={{ height: "80px", borderBottom: "none" }}>
+                      <TableHead style={{ width: "120px", paddingLeft: "60px", color: "#16161d", fontWeight: 700 }}>호실</TableHead>
+                      <TableHead style={{ width: "240px", color: "#16161d", fontWeight: 700 }}>납부 현황</TableHead>
+                      <TableHead style={{ width: "120px", color: "#16161d", fontWeight: 700 }}></TableHead>
+                      <TableHead style={{ width: "120px", color: "#16161d", fontWeight: 700 }}>호실</TableHead>
+                      <TableHead style={{ width: "240px", color: "#16161d", fontWeight: 700 }}>납부 현황</TableHead>
+                      <TableHead style={{ width: "120px", color: "#16161d", fontWeight: 700 }}></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody style={{ marginTop: "8px" }}>
+                    {isLoading ? (
+                      <TableRow style={{ height: "76px", borderBottom: "none" }}>
+                        <TableCell colSpan={6} className="text-center">
+                          <LoadingSpinner />
+                        </TableCell>
+                      </TableRow>
+                    ) : noSchedule ? (
+                      <>
+                        <TableRow style={{ height: "76px", borderBottom: "none" }}>
+                          <TableCell colSpan={6} className="text-center text-muted-foreground">
+                            {selectedMonth}월의 관리비 납부 정보가 없습니다
+                          </TableCell>
+                        </TableRow>
+                        {Array.from({ length: 9 }, (_, i) => (
+                          <TableRow key={`empty-${i}`} style={{ height: "76px", borderBottom: "none" }}>
+                            <TableCell colSpan={6}></TableCell>
+                          </TableRow>
+                        ))}
+                      </>
+                    ) : displayRecords.length > 0 ? (
+                      <>
+                        {displayRecords.reduce((rows: BillRecord[][], record, index) => {
+                          if (index % 2 === 0) rows.push([record]);
+                          else rows[rows.length - 1].push(record);
+                          return rows;
+                        }, []).map((row, rowIndex) => (
+                          <TableRow key={rowIndex} style={{ height: "76px", borderBottom: "none" }}>
+                            {row.map((record) => (
+                              <React.Fragment key={record.id}>
+                                <TableCell>
+                                  <span style={{ fontSize: "15px", fontWeight: 700, color: "#16161d" }}>
+                                    {record.roomNumber}호
+                                  </span>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="space-y-1">
+                                    <div style={{ fontSize: "15px", fontWeight: 700, color: "#16161d" }}>
+                                      {record.studentName}
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                      {[
+                                        { label: "전기", status: record.details.electricity },
+                                        { label: "수도", status: record.details.water },
+                                        { label: "가스", status: record.details.gas },
+                                      ].map((item) => {
+                                        let bgColor = "#E5E7EB";
+                                        let textColor = "#9CA3AF";
+                                        if (item.status === true) {
+                                          bgColor = "#10b981";
+                                          textColor = "#ffffff";
+                                        } else if (item.status === false) {
+                                          bgColor = "#ef4444";
+                                          textColor = "#ffffff";
+                                        }
+                                        return (
+                                          <span
+                                            key={item.label}
+                                            style={{
+                                              fontSize: "11px",
+                                              fontWeight: 600,
+                                              padding: "2px 8px",
+                                              borderRadius: "12px",
+                                              backgroundColor: bgColor,
+                                              color: textColor,
+                                            }}
+                                          >
+                                            {item.label}
+                                          </span>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                </TableCell>
+                                <TableCell></TableCell>
+                              </React.Fragment>
+                            ))}
+                            {row.length === 1 && (
+                              <>
+                                <TableCell></TableCell>
+                                <TableCell></TableCell>
+                                <TableCell></TableCell>
+                              </>
+                            )}
+                          </TableRow>
+                        ))}
+                        {Array.from({ length: Math.max(0, 5 - Math.ceil(displayRecords.length / 2)) }, (_, i) => (
+                          <TableRow key={`empty-${i}`} style={{ height: "76px", borderBottom: "none" }}>
+                            <TableCell colSpan={6}></TableCell>
+                          </TableRow>
+                        ))}
+                      </>
+                    ) : (
+                      <>
+                        <TableRow style={{ height: "76px", borderBottom: "none" }}>
+                          <TableCell colSpan={6} className="text-center text-muted-foreground">
+                            납부 기록이 없습니다.
+                          </TableCell>
+                        </TableRow>
+                        {Array.from({ length: 9 }, (_, i) => (
+                          <TableRow key={`empty-${i}`} style={{ height: "76px", borderBottom: "none" }}>
+                            <TableCell colSpan={6}></TableCell>
+                          </TableRow>
+                        ))}
+                      </>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </CardContent>
 
           {/* Pagination */}

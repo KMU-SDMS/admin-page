@@ -394,7 +394,8 @@ export const authApi = {
 
 // Calendar API
 export const calendarApi = {
-  getSchedules: (date?: string) => apiGet<CalendarSchedule[]>("/api/calendar", { date }),
+  getSchedules: (params?: { date?: string; year?: number; month?: number }) =>
+    apiGet<CalendarSchedule[]>("/api/calendar", params),
 };
 
 /**
@@ -414,7 +415,7 @@ export const calendarApi = {
  */
 export const fetchBillsBasedOnSchedule = async (date?: string) => {
   // 1. Get Schedules
-  const schedules = await calendarApi.getSchedules(date);
+  const schedules = await calendarApi.getSchedules({ date });
   
   // 2. Determine the date to use for bills. 
   // If a date was passed, use it. 
