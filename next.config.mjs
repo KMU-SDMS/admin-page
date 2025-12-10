@@ -12,8 +12,8 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: [],
   },
-  // 개발 환경에서는 정적 내보내기 비활성화
-  ...(process.env.NODE_ENV === "production" && {
+  // Surge 배포 시에만 정적 내보내기 활성화
+  ...(process.env.NEXT_PUBLIC_DEPLOY_TARGET === "surge" && {
     output: "export",
     trailingSlash: true,
   }),

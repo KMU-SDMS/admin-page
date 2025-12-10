@@ -27,10 +27,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
+      - name: Remove API routes for Static Export
+        run: rm -rf app/api
+
       - name: Build Next.js app
         run: pnpm run build
         env:
           NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+          NEXT_PUBLIC_DEPLOY_TARGET: surge
 
       - name: Build Storybook
         run: pnpm run build-storybook
